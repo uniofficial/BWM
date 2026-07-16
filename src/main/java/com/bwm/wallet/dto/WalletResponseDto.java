@@ -1,6 +1,7 @@
 package com.bwm.wallet.dto;
 
 import lombok.AllArgsConstructor;
+
 import lombok.Getter;
 
 @Getter
