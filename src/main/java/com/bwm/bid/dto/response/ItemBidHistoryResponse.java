@@ -5,23 +5,21 @@ import java.time.LocalDateTime;
 import com.bwm.bid.entity.Bid;
 
 /**
- * 입찰 등록 응답 DTO 
+ * 상품별 입찰 내역 조회 응답 DTO
  *
- * 사용자 식별 정보 보호를 위해
- * bidderId 대신 화면 표시용 닉네임만 반환 
+ * 사용자 개인정보 보호를 위해
+ * 사용자 ID나 이메일은 반환하지 않고 닉네임만 제공!! 
  */
-public record BidResponse(
+public record ItemBidHistoryResponse(
         Integer bidId,
-        Integer itemId,
         String bidderNickname,
         Integer bidAmount,
         LocalDateTime bidAt
 ) {
 
-    public static BidResponse from(Bid bid) {
-        return new BidResponse(
+    public static ItemBidHistoryResponse from(Bid bid) {
+        return new ItemBidHistoryResponse(
                 bid.getBidId(),
-                bid.getItem().getItemId(),
                 bid.getBidder().getNickname(),
                 bid.getBidAmount(),
                 bid.getBidAt()
