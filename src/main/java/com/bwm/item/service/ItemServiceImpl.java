@@ -5,8 +5,8 @@ import com.bwm.item.dto.response.ItemResponse;
 import com.bwm.item.entity.Item;
 import com.bwm.item.exception.ItemNotFoundException;
 import com.bwm.item.repository.ItemRepository;
-import com.bwm.user.User;            // TODO: 실제 패키지 경로에 맞게 수정 (인증 파트 담당자에게 확인)
-import com.bwm.user.UserRepository;  // TODO: 인증 파트에서 만든 Repository로 교체
+import com.bwm.user.entity.User;
+import com.bwm.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -30,7 +30,7 @@ public class ItemServiceImpl implements ItemService {
 
     @Override
     @Transactional
-    public ItemResponse createItem(Long sellerId, ItemCreateRequest request){
+    public ItemResponse createItem(Integer sellerId, ItemCreateRequest request){
 
         // #1. 판매자 조회 - 존재하지 않는 유저 id가 넘어오면 예외 발생 (404)
         User seller = userRepository.findById(sellerId)

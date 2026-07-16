@@ -16,8 +16,8 @@ import com.bwm.item.entity.ItemStatus;
 
 
 public record ItemResponse(
-    Long itemId,
-    Long sellerId,
+    Integer itemId,
+    Integer sellerId,
     String title,
     String category,
     Integer startPrice,

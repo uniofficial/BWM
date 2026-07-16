@@ -41,5 +41,6 @@ out/
 
 #Local config
 application-local.yml
+application-local.properties
 .env
 

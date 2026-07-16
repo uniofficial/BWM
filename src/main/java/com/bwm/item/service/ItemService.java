@@ -30,5 +30,5 @@ public interface ItemService {
      * @return 등록된 상품 정보 (itemId 포함 - DB에 저장된 후의 결과)
      */
 
-    ItemResponse createItem(Long sellerId, ItemCreateRequest request);  
+    ItemResponse createItem(Integer sellerId, ItemCreateRequest request);
 }
