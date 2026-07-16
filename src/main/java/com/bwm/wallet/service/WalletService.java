@@ -3,16 +3,24 @@ package com.bwm.wallet.service;
 import org.springframework.stereotype.Service;
 
 import org.springframework.transaction.annotation.Transactional;
+
+import com.bwm.wallet.dto.WalletHistoryResponseDto;
 import com.bwm.wallet.dto.WalletResponseDto;
 import com.bwm.wallet.entity.Wallet;
+import com.bwm.wallet.entity.WalletHistory;
+import com.bwm.wallet.entity.WalletHistoryType;
+import com.bwm.wallet.repository.WalletHistoryRepository;
 import com.bwm.wallet.repository.WalletRepository;
+
 import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
-@Transactional(readOnly = true) // 더티 체킹(변경 감지)을 위한 복사본(스냅샷)을 생성하지 않아서 덕분에 메모리가 절약되고 DB 읽기 성능이 소폭 향상된다고 합니다.
+@Transactional(readOnly = true)
 public class WalletService {
 	private final WalletRepository walletRepository;
+	
+	private final WalletHistoryRepository walletHistoryRepository;
 	
 	public WalletResponseDto getMyWallet(Integer userId) {
         Wallet wallet = walletRepository.findById(userId)
@@ -20,4 +28,26 @@ public class WalletService {
         
         return new WalletResponseDto(wallet.getBalance());
     }
+	
+	/*
+	 * 사용자 포인트 충전 비즈니스 로직 추가
+	 */
+	@Transactional
+	public void chargeUserPoint(Integer userId, Integer amount) {
+		// TODO: llegalArgumentException 부분은 전역예외처리기 만들면 나중에 바꿈
+		Wallet wallet = walletRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("해당 유저의 지갑을 찾을 수 없습니다."));
+		
+		wallet.charge(amount);
+		
+		WalletHistory history = WalletHistory.builder()
+											 .wallet(wallet)
+											 .itemId(null)
+											 .type(WalletHistoryType.CHARGE)
+											 .amount(amount)
+											 .balanceAfter(wallet.getBalance())
+											 .build();
+		
+		walletHistoryRepository.save(history);
+	}
 }
