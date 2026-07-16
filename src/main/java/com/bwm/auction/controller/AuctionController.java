@@ -9,19 +9,20 @@ import org.springframework.web.bind.annotation.RestController;
 import com.bwm.auction.dto.AuctionCloseResponse;
 import com.bwm.auction.service.AuctionService;
 
-//경매 종료 관련 API 처리 컨트롤러
+import lombok.RequiredArgsConstructor;
+
+/**
+ * 경매 종료 관련 API를 처리하는 컨트롤러입니다.
+ */
 @RestController
+@RequiredArgsConstructor
 @RequestMapping("/api/items")
 public class AuctionController {
 
     private final AuctionService auctionService;
 
-    public AuctionController(AuctionService auctionService) {
-        this.auctionService = auctionService;
-    }
-
     /**
-     * 특정 상품의 경매 종료
+     * 특정 상품의 경매를 종료합니다.
      *
      * POST /api/items/{itemId}/close
      *
@@ -30,14 +31,15 @@ public class AuctionController {
      */
     @PostMapping("/{itemId}/close")
     public ResponseEntity<AuctionCloseResponse> closeAuction(
-            @PathVariable Long itemId) {
+            @PathVariable Integer itemId) {
 
         /*
          * TODO
-         * 인증 기능이 완성되면 SecurityContext에서
-         * 현재 로그인한 사용자의 ID를 가져오도록 수정 
+         * 인증 기능이 최종 연결되면 하드코딩 값을 제거하고
+         * SecurityContext 또는 @AuthenticationPrincipal에서
+         * 현재 로그인 사용자의 ID를 가져오도록 변경합니다.
          */
-        Long requesterId = 1L;
+        Integer requesterId = 1;
 
         AuctionCloseResponse response =
                 auctionService.closeAuction(itemId, requesterId);

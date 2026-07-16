@@ -132,7 +132,43 @@ public class Item {
     }
 
 
+    /**
+     * 최고 입찰자가 존재하는 경매를 낙찰 완료 상태로 변경합니다.
+     */
+    public void closeAsSold() {
+        if (this.status != ItemStatus.OPEN) {
+            throw new IllegalStateException(
+                    "OPEN 상태의 경매만 SOLD로 변경할 수 있습니다."
+            );
+        }
 
+        if (this.highestBidder == null) {
+            throw new IllegalStateException(
+                    "최고 입찰자가 없는 경매는 SOLD로 변경할 수 없습니다."
+            );
+        }
+
+        this.status = ItemStatus.SOLD;
+    }
+
+    /**
+     * 최고 입찰자가 없는 경매를 유찰 상태로 변경합니다.
+     */
+    public void closeAsUnsold() {
+        if (this.status != ItemStatus.OPEN) {
+            throw new IllegalStateException(
+                    "OPEN 상태의 경매만 UNSOLD로 변경할 수 있습니다."
+            );
+        }
+
+        if (this.highestBidder != null) {
+            throw new IllegalStateException(
+                    "최고 입찰자가 있는 경매는 UNSOLD로 변경할 수 없습니다."
+            );
+        }
+
+        this.status = ItemStatus.UNSOLD;
+    }
 
 
 
