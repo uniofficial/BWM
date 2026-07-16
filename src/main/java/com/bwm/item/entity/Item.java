@@ -2,6 +2,8 @@ package com.bwm.item.entity;
 
 import java.time.LocalDateTime;
 
+import com.bwm.user.entity.User;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -28,7 +30,7 @@ public class Item {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "item_id")
-    private Long itemId;
+    private Integer itemId;
 
     // 판매자. FK(item .seller_id -> user.user_id) NOT NULL 이므로 상품 등록시 항상 지정되어야함 */
     @ManyToOne(fetch = FetchType.LAZY)

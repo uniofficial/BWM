@@ -42,7 +42,7 @@ public class ItemController {
 
     @PostMapping
     public ResponseEntity<ItemResponse> createItem(
-        @RequestHeader(value = "X-USER-ID", required = false) Long sellerIdHeader,
+        @RequestHeader(value = "X-USER-ID", required = false) Integer sellerIdHeader,
         @Valid @RequestBody ItemCreateRequest request ) {
 
             // 헤더가 없으면(= 임시 인증 정보를 안 보낸 경우) 요청 자체를 막는다.

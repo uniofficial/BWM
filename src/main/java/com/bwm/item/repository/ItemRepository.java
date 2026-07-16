@@ -17,7 +17,7 @@ import com.bwm.item.entity.Item;
  *   List<Item> findByStatus(ItemStatus status);
  */
 
-public interface ItemRepository extends JpaRepository<Item, Long> {
+public interface ItemRepository extends JpaRepository<Item, Integer> {
 
     
 
