@@ -10,6 +10,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.bwm.bid.dto.request.BidCreateRequest;
 import com.bwm.bid.dto.response.BidResponse;
 import com.bwm.bid.dto.response.ItemBidHistoryResponse;
+import com.bwm.bid.dto.response.MyBidHistoryResponse;
 import com.bwm.bid.entity.Bid;
 import com.bwm.bid.exception.AlreadyHighestBidderException;
 import com.bwm.bid.exception.BidAmountTooLowException;
@@ -28,7 +29,7 @@ import com.bwm.wallet.service.WalletService;
 import lombok.RequiredArgsConstructor;
 
 /**
- * 입찰 관련 비즈니스 로직을 담당하는 서비스입니다.
+ * 입찰 관련 비즈니스 로직을 담당하는 서비스
  */
 @Service
 @RequiredArgsConstructor
@@ -46,7 +47,7 @@ public class BidService {
      *
      * 입찰 처리 과정 전체를 하나의 트랜잭션으로 묶어
      * 입찰 저장, 포인트 차감·환불, 상품 정보 변경 중 하나라도 실패하면
-     * 모든 변경사항을 롤백합니다.
+     * 모든 변경 사항을 롤백합니다.
      *
      * @param itemId 입찰 대상 상품 ID
      * @param bidderId 입찰자 사용자 ID
@@ -70,7 +71,8 @@ public class BidService {
         User bidder = userRepository.findById(bidderId)
                 .orElseThrow(() ->
                         new IllegalArgumentException(
-                                "입찰자를 찾을 수 없습니다. userId=" + bidderId
+                                "입찰자를 찾을 수 없습니다. userId="
+                                        + bidderId
                         ));
 
         validateOpenStatus(item);
@@ -86,14 +88,18 @@ public class BidService {
         User previousHighestBidder = item.getHighestBidder();
         Integer previousHighestBidAmount = item.getCurrentPrice();
 
-        // 새 입찰자의 지갑에서 입찰 금액 전액을 차감합니다.
+        /*
+         * 새 입찰자의 지갑에서 입찰 금액 전액을 차감합니다.
+         */
         walletService.deductBidPoint(
                 bidderId,
                 itemId,
                 request.bidAmount()
         );
 
-        // 기존 최고 입찰자가 있다면 기존 입찰 금액을 환불합니다.
+        /*
+         * 기존 최고 입찰자가 있다면 기존 입찰 금액을 환불합니다.
+         */
         if (previousHighestBidder != null) {
             walletService.refundBidPoint(
                     previousHighestBidder.getUserId(),
@@ -102,7 +108,9 @@ public class BidService {
             );
         }
 
-        // 입찰 이력을 저장합니다.
+        /*
+         * 입찰 이력을 저장합니다.
+         */
         Bid bid = Bid.builder()
                 .item(item)
                 .bidder(bidder)
@@ -113,7 +121,9 @@ public class BidService {
 
         /*
          * 상품의 최고 입찰자와 현재가를 변경합니다.
-         * Item은 영속 상태이므로 트랜잭션 종료 시 변경 감지로 반영됩니다.
+         *
+         * Item은 영속 상태이므로 트랜잭션 종료 시
+         * 변경 감지로 데이터베이스에 반영됩니다.
          */
         item.updateHighestBidder(
                 bidder,
@@ -148,6 +158,43 @@ public class BidService {
     }
 
     /**
+     * 특정 사용자의 전체 입찰 내역을 최신순으로 조회합니다.
+     *
+     * 사용자가 한 번이라도 입찰한 모든 기록을 반환합니다.
+     * 같은 상품에 여러 번 입찰한 경우 각각의 입찰 기록이 모두 반환됩니다.
+     *
+     * 응답에는 상품 정보, 입찰 금액, 입찰 시각과 함께
+     * 현재 최고 입찰자인지 여부가 포함됩니다.
+     *
+     * @param userId 조회 사용자 ID
+     * @return 사용자의 전체 입찰 내역
+     */
+    @Transactional(readOnly = true)
+    public List<MyBidHistoryResponse> getMyBidHistory(
+            Integer userId
+    ) {
+        /*
+         * 존재하지 않는 사용자 ID가 전달된 경우
+         * 잘못된 요청이 빈 목록으로 처리되지 않도록 검증합니다.
+         */
+        if (!userRepository.existsById(userId)) {
+            throw new IllegalArgumentException(
+                    "사용자를 찾을 수 없습니다. userId=" + userId
+            );
+        }
+
+        return bidRepository
+                .findByBidderUserIdOrderByBidAtDesc(userId)
+                .stream()
+                .map(bid ->
+                        MyBidHistoryResponse.from(
+                                bid,
+                                userId
+                        ))
+                .toList();
+    }
+
+    /**
      * 경매가 현재 진행 중인지 검증합니다.
      */
     private void validateOpenStatus(Item item) {
@@ -162,7 +209,8 @@ public class BidService {
     /**
      * 경매 마감 시간이 지나지 않았는지 검증합니다.
      *
-     * 현재 시각이 마감 시각과 같거나 이후라면 입찰할 수 없습니다.
+     * 현재 시각이 마감 시각과 같거나 이후라면
+     * 입찰할 수 없습니다.
      */
     private void validateAuctionEndTime(Item item) {
         LocalDateTime now = LocalDateTime.now();
@@ -223,9 +271,11 @@ public class BidService {
             Integer bidAmount
     ) {
         int minimumBidAmount =
-                item.getCurrentPrice() + MINIMUM_BID_INCREMENT;
+                item.getCurrentPrice()
+                + MINIMUM_BID_INCREMENT;
 
-        if (bidAmount == null || bidAmount < minimumBidAmount) {
+        if (bidAmount == null
+                || bidAmount < minimumBidAmount) {
             throw new BidAmountTooLowException(
                     item.getCurrentPrice(),
                     bidAmount,
