@@ -2,13 +2,20 @@ package com.bwm.item.controller;
 
 import com.bwm.item.dto.request.ItemCreateRequest;
 import com.bwm.item.dto.response.ItemResponse;
+import com.bwm.item.dto.response.ItemSummaryResponse;
 import com.bwm.item.exception.ItemNotFoundException;
 import com.bwm.item.service.ItemService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
 
 
 /**
@@ -70,4 +77,24 @@ public class ItemController {
     public ResponseEntity<String> handleItemNotFoundException(ItemNotFoundException e) {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
     }
-}
+
+
+     /**
+     * 상품 목록 조회 API.
+     *
+     * 쿼리 파라미터로 페이지네이션 제어 가능 (예: ?page=0&size=20&sort=createdAt,desc).
+     * 기본값: 페이지당 20개, 등록 최신순 정렬.
+     *
+     * @param pageable 페이지 조건 (Spring이 쿼리 파라미터를 자동으로 바인딩)
+     * @return 200 OK + 페이징된 상품 목록
+     */
+    @GetMapping
+    public ResponseEntity<Page<ItemSummaryResponse>> getItems(
+        @PageableDefault(size = 20, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable){
+            Page<ItemSummaryResponse> response = itemService.getItems(pageable);
+            return ResponseEntity.ok(response);
+        }
+    
+    }
+    
+
