@@ -1,22 +1,25 @@
 package com.bwm.auction.controller;
 
+import java.util.List;
+
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.bwm.auction.dto.AuctionCloseResponse;
+import com.bwm.auction.dto.WinningAuctionResponse;
 import com.bwm.auction.service.AuctionService;
 
 import lombok.RequiredArgsConstructor;
 
 /**
- * 경매 종료 관련 API를 처리하는 컨트롤러입니다.
+ * 경매 종료 및 낙찰 내역 관련 API를 처리하는 컨트롤러입니다.
  */
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/items")
 public class AuctionController {
 
     private final AuctionService auctionService;
@@ -29,10 +32,10 @@ public class AuctionController {
      * @param itemId 종료할 상품 ID
      * @return 경매 종료 결과
      */
-    @PostMapping("/{itemId}/close")
+    @PostMapping("/api/items/{itemId}/close")
     public ResponseEntity<AuctionCloseResponse> closeAuction(
-            @PathVariable Integer itemId) {
-
+            @PathVariable Integer itemId
+    ) {
         /*
          * TODO
          * 인증 기능이 최종 연결되면 하드코딩 값을 제거하고
@@ -46,4 +49,34 @@ public class AuctionController {
 
         return ResponseEntity.ok(response);
     }
+
+    /**
+     * 로그인 사용자의 낙찰 내역을 조회합니다.
+     *
+     * GET /api/auctions/wins/me
+     *
+     * 현재 인증 기능이 연결되지 않았으므로
+     * X-USER-ID 헤더로 사용자 ID를 전달받습니다.
+     *
+     * @param userIdHeader 로그인 사용자 ID
+     * @return 낙찰 완료 상품 목록
+     */
+    @GetMapping("/api/auctions/wins/me")
+    public ResponseEntity<List<WinningAuctionResponse>> getMyWinningAuctions(
+            @RequestHeader(value = "X-USER-ID", required = false)
+            Integer userIdHeader
+    ) {
+        if (userIdHeader == null) {
+            throw new IllegalArgumentException(
+                    "X-USER-ID 헤더가 필요합니다. "
+                    + "(임시 인증 방식 - 인증 파트 연동 전)"
+            );
+        }
+
+        List<WinningAuctionResponse> response =
+                auctionService.getMyWinningAuctions(userIdHeader);
+
+        return ResponseEntity.ok(response);
+    }
+    
 }
