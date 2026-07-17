@@ -15,7 +15,7 @@ import com.bwm.item.entity.ItemStatus;
 import jakarta.persistence.LockModeType;
 
 /**
- * Item 엔티티의 DB 접근을 담당하는 Repository입니다.
+ * Item 엔티티의 DB 접근을 담당하는 Repository
  */
 public interface ItemRepository extends JpaRepository<Item, Integer> {
 
@@ -25,6 +25,21 @@ public interface ItemRepository extends JpaRepository<Item, Integer> {
     List<Item> findAllByStatusAndAuctionEndAtLessThanEqualOrderByAuctionEndAtAsc(
             ItemStatus status,
             LocalDateTime now
+    );
+
+    /**
+     * 로그인 사용자가 최고 입찰자로 등록된 낙찰 완료 상품을 조회합니다.
+     *
+     * 최고 입찰자 ID와 상품 상태를 조건으로 조회하며,
+     * 경매 마감 시각이 최신인 상품부터 반환합니다.
+     *
+     * @param userId 최고 입찰자 사용자 ID
+     * @param status 조회할 상품 상태
+     * @return 낙찰 상품 목록
+     */
+    List<Item> findAllByHighestBidderUserIdAndStatusOrderByAuctionEndAtDesc(
+            Integer userId,
+            ItemStatus status
     );
 
     /**
