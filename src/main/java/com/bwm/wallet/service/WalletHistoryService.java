@@ -22,7 +22,7 @@ public class WalletHistoryService {
 		
 		return histories.stream().map( history -> WalletHistoryResponseDto.builder()
 																		  .type(history.getType().name())
-																		  .itemId(history.getItemId())
+																		  .itemId(history.getItem() != null ? history.getItem().getItemId() : null)
 																		  .amount(history.getAmount())
 																		  .balanceAfter(history.getBalanceAfter())
 																		  .createdAt(history.getCreatedAt())
