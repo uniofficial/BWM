@@ -1,6 +1,7 @@
 package com.bwm.item.controller;
 
 import com.bwm.item.dto.request.ItemCreateRequest;
+import com.bwm.item.dto.request.ItemSearchCondition;
 import com.bwm.item.dto.response.ItemResponse;
 import com.bwm.item.dto.response.ItemSummaryResponse;
 import com.bwm.item.exception.ItemNotFoundException;
@@ -15,6 +16,9 @@ import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+
 
 
 
@@ -95,6 +99,32 @@ public class ItemController {
             return ResponseEntity.ok(response);
         }
     
-    }
+    /**
+     * 상품 검색 API.
+     *
+     * @ModelAttribute가 하는 일: HTTP 쿼리 파라미터들(?keyword=...&category=...)을
+     * ItemSearchCondition 레코드의 각 필드에 이름으로 매칭해서 자동으로 채워준다.
+     * (예: 쿼리 파라미터 "keyword"가 있으면 ItemSearchCondition.keyword에 들어감)
+     * 안 보낸 파라미터는 자동으로 null이 되므로, 컨트롤러에서 따로 null 체크 코드를 안 짜도 됨.
+     *
+     * 예) GET /api/items/search?keyword=노트북&category=전자기기&minPrice=10000&maxPrice=50000&page=0&size=20
+     *
+     * @param condition 검색 조건 (쿼리 파라미터 자동 바인딩)
+     * @param pageable 페이지 조건 (page/size/sort 쿼리 파라미터 자동 바인딩)
+     * @return 200 OK + 조건에 맞는 상품 목록
+     */
+    @GetMapping("/search")
+    public ResponseEntity<Page<ItemSummaryResponse>> searchItems(
+        @ModelAttribute ItemSearchCondition condition,
+        @PageableDefault(size = 20, sort = "createdAt",
+            direction = Sort.Direction.DESC) Pageable pageable
+        ) {
+            // 검증/조립 로직은 전부 Service에 위임하고 Controller는 요청 바인딩 + 응답 포장만 담당
+            Page<ItemSummaryResponse> response = itemService.searchItems(condition, pageable);
+            return ResponseEntity.ok(response);
+        }
+    
+    
+}
     
 

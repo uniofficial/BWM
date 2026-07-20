@@ -1,17 +1,20 @@
 package com.bwm.item.service;
 
 import com.bwm.item.dto.request.ItemCreateRequest;
+import com.bwm.item.dto.request.ItemSearchCondition;
 import com.bwm.item.dto.response.ItemResponse;
 import com.bwm.item.dto.response.ItemSummaryResponse;
 import com.bwm.item.entity.Item;
 import com.bwm.item.exception.ItemNotFoundException;
 import com.bwm.item.repository.ItemRepository;
+import com.bwm.item.repository.ItemSpecification;
 import com.bwm.user.entity.User;
 import com.bwm.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
  
@@ -64,5 +67,18 @@ public class ItemServiceImpl implements ItemService {
         // ItemRepository는 JpaRepository를 상속하고 있어서 findAll(Pageable)이 기본 제공됨.
         // 페이지 단위로 조회한 Item 엔티티들을 ItemSummaryResponse로 변환해서 반환.
         return itemRepository.findAll(pageable).map(ItemSummaryResponse::from);
+    }
+
+    @Override
+    @Transactional(readOnly = true) // 조회만 하고 데이터는 안 바꾸는 API라 읽기 전용 트랜잭션으로 최적화 
+    public Page<ItemSummaryResponse> searchItems(ItemSearchCondition condition, Pageable pageable) {
+
+        // #1. DTO(검색 조건)을  실제 JPA가 이해하는 WHERE 절 형태로 변환
+        Specification<Item> spec = ItemSpecification.from(condition);
+        
+        // #2. JpaSpecificationExecutor가 제공하는 findAll(spec, pageable) 로 
+        // "동적 조건 필터링 + 페이징" 을 한 번의 쿼리로 처리하고
+        // 결과로 나온 Item 엔티티들을 곧바로 ItemSummaryResponse 로 변환
+        return itemRepository.findAll(spec,pageable).map(ItemSummaryResponse::from);
     }
 }
