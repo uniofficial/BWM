@@ -130,6 +130,7 @@ public class ItemController {
      * 상품 수정 API.
      *
      * @param sellerIdHeader 요청자 user_id (X-USER-ID 헤더, 임시 인증 방식 - createItem과 동일)
+     *        TODO: 인증 파트 완성되면 SecurityContext에서 로그인한 사용자 id를 꺼내는 방식으로 교체할 것.
      * @param itemId 수정할 상품 id
      * @param request 수정할 값들. title/category/description 전부 선택사항이며 보낸 필드만 반영됨
      * @return 200 OK + 수정된 상품 정보. 본인 상품 아니면 403, 없으면 404, OPEN 아니거나 입찰 있으면 409
@@ -157,6 +158,7 @@ public class ItemController {
      * 상품 취소 API.
      *
      * @param sellerIdHeader 요청자 user_id (X-USER-ID 헤더, 임시 인증 방식)
+     *        TODO: 인증 파트 완성되면 SecurityContext에서 로그인한 사용자 id를 꺼내는 방식으로 교체할 것.
      * @param itemId 취소할 상품 id
      * @return 200 OK + 취소된 상품 정보. 본인 상품 아니면 403, 없으면 404, OPEN 아니거나 입찰 있으면 409
      */

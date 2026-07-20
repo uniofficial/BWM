@@ -3,10 +3,14 @@ package com.bwm.item.controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.bwm.auction.dto.SoldAuctionResponse;
+import com.bwm.auction.service.AuctionService;
 import com.bwm.item.dto.response.ItemSummaryResponse;
 import com.bwm.item.service.ItemService;
 
 import lombok.RequiredArgsConstructor;
+
+import java.util.List;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -27,7 +31,7 @@ import org.springframework.data.domain.Sort;
 @RequiredArgsConstructor
 public class UserController {
     private final ItemService itemService;
-
+    private final AuctionService auctionService;
     /**
      * 내가 등록한 상품 조회 API.
      *
@@ -55,6 +59,30 @@ public class UserController {
     public ResponseEntity<String> handleIllegalArgumaentException(IllegalArgumentException e) {
         return ResponseEntity.badRequest().body(e.getMessage());
     }
+    
+    /**
+     * 내가 등록한 상품 중 판매 완료(SOLD)된 것만 조회하는 API.
+     *
+     * 이미 AuctionController(GET /api/auctions/sold/me)에 동일한 기능이 구현돼 있어서,
+     * 여기서는 새로 로직을 짜지 않고 AuctionService.getMySoldAuctions()를 그대로 재사용한다.
+     * 스펙 명세서에 정의된 URL(/api/users/me/sales)로도 접근 가능하게 하기 위한 얇은 위임(delegate) 엔드포인트.
+     *
+     * @param userIdHeader 요청자 user_id (X-USER-ID 헤더, 임시 인증 방식)
+     *       
+     */
+     // TODO: 인증 파트 완성되면 SecurityContext에서 로그인한 사용자 id를 꺼내는 방식으로 교체할 것
+    @GetMapping("/sales")
+    public ResponseEntity<List<SoldAuctionResponse>> getMySales(
+        @RequestHeader(value = "X-USER-ID", required = false)
+        Integer userIdHeader) {
+            if (userIdHeader == null) {
+                throw new IllegalArgumentException("X-USER-ID 헤더가 필요합니다. - 임시 인증 방식");
+            }
+
+            List<SoldAuctionResponse> response = auctionService.getMySoldAuctions(userIdHeader);
+            return ResponseEntity.ok(response);
+
+        }
     
     
     
