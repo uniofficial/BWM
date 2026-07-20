@@ -2,11 +2,13 @@ package com.bwm.item.service;
 
 import com.bwm.item.dto.request.ItemCreateRequest;
 import com.bwm.item.dto.request.ItemSearchCondition;
+import com.bwm.item.dto.request.ItemUpdateRequest;
 import com.bwm.item.dto.response.ItemDetailResponse;
 import com.bwm.item.dto.response.ItemResponse;
 import com.bwm.item.dto.response.ItemSummaryResponse;
 import com.bwm.item.entity.Item;
 import com.bwm.item.entity.ItemImage;
+import com.bwm.item.exception.ItemAccessDeniedException;
 import com.bwm.item.exception.ItemNotFoundException;
 import com.bwm.item.repository.ItemImageRepository;
 import com.bwm.item.repository.ItemRepository;
@@ -106,4 +108,25 @@ public class ItemServiceImpl implements ItemService {
         // 결과로 나온 Item 엔티티들을 곧바로 ItemSummaryResponse 로 변환
         return itemRepository.findAll(spec,pageable).map(ItemSummaryResponse::from);
     }
+
+    @Override
+    @Transactional
+    public ItemResponse updateItem(Integer itemId, Integer sellerId, ItemUpdateRequest request){
+        // #1. 상품 조회 - 존재하지 않는 itemId면 제외
+        Item item = itemRepository.findById(itemId)
+                                  .orElseThrow(() -> new ItemNotFoundException("존재하지 않는 상품입니다. id = " + itemId));
+
+        // #2. 권한 체크 - 본인이 등록한 상품만 수정 가능
+        if(!item.getSeller().getUserId().equals(sellerId)) {
+            throw new ItemAccessDeniedException("본인이 등록한 상품만 수정할 수 있습니다.");
+        }
+
+        // #3. 도메인 메서드에 위임 - 상테/입찰 여부 검증 + 실제 필드 반영은 Item 엔티티 책임
+        item.update(request.title(), request.category(), request.description());
+
+        // #4. save() 호출 안 해도 됨 - 트랜잭션 안에서 조회한 영속상태 엔티티라 
+        // 커밋 시점에 JPA가 변경 감지(dirty checking)해서 자동으로 UPDATE 쿼리를 날림
+        return ItemResponse.from(item);
+    }
+
 }
