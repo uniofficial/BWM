@@ -1,108 +1,20 @@
 package com.bwm.wallet.service;
 
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
-import com.bwm.item.entity.Item;
-import com.bwm.item.repository.ItemRepository;
 import com.bwm.wallet.dto.WalletResponseDto;
-import com.bwm.wallet.entity.Wallet;
-import com.bwm.wallet.entity.WalletHistory;
-import com.bwm.wallet.entity.WalletHistoryType;
-import com.bwm.wallet.repository.WalletHistoryRepository;
-import com.bwm.wallet.repository.WalletRepository;
 
-import lombok.RequiredArgsConstructor;
+public interface WalletService {
+    
+    // 사용자의 현재 잔액을 조회
+    WalletResponseDto getMyWallet(Integer userId);
+    
+    // 사용자 포인트 충전
+    void chargeUserPoint(Integer userId, Integer amount);
+    
+    // 포인트 차감
+ 
+    void deductBidPoint(Integer userId, Integer itemId, Integer amount);
+    
+    // 최고 입찰자 경신 시 이전 최고 입찰자에게 포인트를 환불
 
-@Service
-@RequiredArgsConstructor
-@Transactional(readOnly = true)
-public class WalletService {
-	private final WalletRepository walletRepository;
-	
-	private final WalletHistoryRepository walletHistoryRepository;
-	
-	private final ItemRepository itemRepository;
-	
-	public WalletResponseDto getMyWallet(Integer userId) {
-        Wallet wallet = walletRepository.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("해당 유저의 지갑을 찾을 수 없습니다."));
-        
-        return new WalletResponseDto(wallet.getBalance());
-    }
-	
-	/*
-	 * 사용자 포인트 충전 비즈니스 로직 추가
-	 */
-	@Transactional
-	public void chargeUserPoint(Integer userId, Integer amount) {
-		// TODO: llegalArgumentException 부분은 전역예외처리기 만들면 나중에 바꿈
-		Wallet wallet = walletRepository.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("해당 유저의 지갑을 찾을 수 없습니다."));
-		
-		wallet.charge(amount);
-		
-		WalletHistory history = WalletHistory.builder()
-											 .wallet(wallet)
-											 .item(null)
-											 .type(WalletHistoryType.CHARGE)
-											 .amount(amount)
-											 .balanceAfter(wallet.getBalance())
-											 .build();
-		
-		walletHistoryRepository.save(history);
-	}
-	
-	/*
-	 * 입찰 시 포인트 차감
-	 */
-	@Transactional
-	public void deductBidPoint(Integer userId, Integer itemId, Integer amount) {
-
-	    Wallet wallet = walletRepository.findById(userId)
-	            .orElseThrow(() ->
-	                    new IllegalArgumentException("해당 유저의 지갑을 찾을 수 없습니다."));
-	    
-	    Item item = itemRepository.findById(itemId)
-                .orElseThrow(() -> new IllegalArgumentException("해당 상품을 찾을 수 없습니다."));
-	    
-	    wallet.deduct(amount);
-
-	    WalletHistory history = WalletHistory.builder()
-	            .wallet(wallet)
-	            .item(item)
-	            .type(WalletHistoryType.BID_PAYMENT)
-	            .amount(amount)
-	            .balanceAfter(wallet.getBalance())
-	            .build();
-
-	    walletHistoryRepository.save(history);
-	}
-	
-	/*
-	 * 최고 입찰자 변경 시 이전 최고 입찰자 환불
-	 */
-	@Transactional
-	public void refundBidPoint(Integer userId, Integer itemId, Integer amount) {
-
-	    Wallet wallet = walletRepository.findById(userId)
-	            .orElseThrow(() ->
-	                    new IllegalArgumentException("해당 유저의 지갑을 찾을 수 없습니다."));
-	    
-	    Item item = itemRepository.findById(itemId)
-                .orElseThrow(() -> new IllegalArgumentException("해당 상품을 찾을 수 없습니다."));
-	    
-	    wallet.charge(amount);
-
-	    WalletHistory history = WalletHistory.builder()
-	            .wallet(wallet)
-	            .item(item)
-	            .type(WalletHistoryType.REFUND)
-	            .amount(amount)
-	            .balanceAfter(wallet.getBalance())
-	            .build();
-
-	    walletHistoryRepository.save(history);
-	}
-	
+    void refundBidPoint(Integer userId, Integer itemId, Integer amount);
 }
