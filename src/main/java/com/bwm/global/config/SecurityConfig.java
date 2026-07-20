@@ -2,6 +2,8 @@ package com.bwm.global.config;
 
 import com.bwm.global.config.security.CustomAccessDeniedHandler;
 import com.bwm.global.config.security.CustomAuthenticationEntryPoint;
+import com.bwm.global.config.security.JwtAuthenticationFilter;
+import com.bwm.global.config.security.JwtProvider;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -12,8 +14,7 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
-// TODO: 추후 JwtAuthenticationFilter 추가 시 주석 해제
-// import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 @Configuration
 @EnableWebSecurity
@@ -22,6 +23,7 @@ public class SecurityConfig {
     // 프론트에게 code, msg전달 위함(서블릿 이전 exception은 따로 핸들링 필요)
     private final CustomAuthenticationEntryPoint authenticationEntryPoint;
     private final CustomAccessDeniedHandler accessDeniedHandler;
+    private final JwtProvider jwtProvider;
 
     @Bean
     public PasswordEncoder passwordEncoder() {
@@ -45,16 +47,16 @@ public class SecurityConfig {
 
                 // 권한 규칙 설정
                 .authorizeHttpRequests(auth -> auth
-                        // .requestMatchers("/api/auth/login", "/api/auth/signup").permitAll()
-                        // .requestMatchers("/swagger/**", "/swagger-ui/**",
-                        // "/v3/api-docs/**").permitAll()
-                        // .anyRequest().authenticated());
-                        .anyRequest().permitAll()); // 토큰 발급후 막을 예정
+                        .requestMatchers("/api/auth/login", "/api/auth/signup").permitAll()
+                        .requestMatchers("/swagger/**", "/swagger-ui/**",
+                                "/v3/api-docs/**").permitAll()
+                        .requestMatchers("/error").permitAll()
+                        .anyRequest().authenticated())
+        // .anyRequest().permitAll()); // 토큰 발급후 막을 예정
         // .logout은 세션삭제라 jwt토큰기반은 불필요
 
-        // TODO: 추후 JWT 필터 등록 예정
-        // .addFilterBefore(jwtAuthenticationFilter,
-        // UsernamePasswordAuthenticationFilter.class);
+        // JWT 필터 등록
+        .addFilterBefore(new JwtAuthenticationFilter(jwtProvider), UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }

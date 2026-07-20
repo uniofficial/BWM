@@ -3,9 +3,11 @@ package com.bwm.auth.service;
 import com.bwm.auth.dto.LoginRequest;
 import com.bwm.auth.dto.LoginResult;
 import com.bwm.auth.dto.SignupRequest;
+import com.bwm.global.config.security.JwtProvider;
 import com.bwm.user.entity.User;
 import com.bwm.user.entity.UserRole;
 import com.bwm.user.repository.UserRepository;
+import com.bwm.user.repository.UserRoleRepository;
 import com.bwm.user.repository.UserRoleRepository;
 import lombok.RequiredArgsConstructor;
 
@@ -19,13 +21,14 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-@Service
 @RequiredArgsConstructor
+@Service
 public class AuthService {
 
     private final UserRepository userRepository;
     private final UserRoleRepository userRoleRepository;
     private final PasswordEncoder passwordEncoder;
+    private final JwtProvider jwtProvider;
 
     @Transactional
     public void signup(SignupRequest request) {
@@ -45,7 +48,7 @@ public class AuthService {
         // 기본 권한 부여 (미리 DB에 "USER" 또는 "ROLE_USER" 권한이 있어야 함)
         UserRole userRole = userRoleRepository.findByUserRole("USER")
                 .orElseGet(() -> userRoleRepository.save(UserRole.builder().userRole("USER").build()));
-        
+
         user.getRoles().add(userRole);
 
         userRepository.save(user);
@@ -65,10 +68,13 @@ public class AuthService {
                 .findFirst()
                 .orElse("USER");
 
-        // 임시 token생성
+        // 실제 JWT Token 발급
+        String accessToken = jwtProvider.generateAccessToken(user.getEmail(), roleStr);
+        String refreshToken = jwtProvider.generateRefreshToken();
+
         return LoginResult.builder()
-                .accessToken("AccessToken_JWT")
-                .refreshToken("RefreshToken_JWT")
+                .accessToken(accessToken)
+                .refreshToken(refreshToken)
                 .nickname(user.getNickname())
                 .role(roleStr)
                 .build();
