@@ -72,4 +72,16 @@ public interface ItemService {
      * @return 조건에 맞는 상품 목록 (요약 정보만 포함, 페이징 메타데이터 포함)
      */
     Page<ItemSummaryResponse> searchItems(ItemSearchCondition condition, Pageable pageable);
+
+    /**
+     * 특정 판매자(=로그인한 나)가 등록한 상품 목록을 페이지 단위로 조회한다.
+     *
+     * @param sellerId 조회할 판매자 id (X-USER-ID 헤더에서 꺼낸 값)
+     * @param pageable 페이지 번호/크기/정렬 조건
+     * @return 그 판매자가 등록한 상품 목록 (요약 정보만 포함)
+     */
+    Page<ItemSummaryResponse> getMyItems(Integer sellerId, Pageable pageable);
+
+
+
 }

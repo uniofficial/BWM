@@ -1,5 +1,8 @@
 package com.bwm.item.repository;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.springframework.data.jpa.domain.Specification;
 
 import com.bwm.item.dto.request.ItemSearchCondition;
@@ -24,15 +27,26 @@ public class ItemSpecification {
     }
 
     public static Specification<Item> from(ItemSearchCondition condition) {
-        // Specification.where(null)은 "조건 없음"으로 취급되고,
-        // .and(null)도 안전하게 무시됨 (Spring Data JPA가 null 체크를 내부적으로 해줌)
-        // 그래서 아래 5개 메서드가 조건이 없을 때 null을 반환해도 안전하게 조합된다.
+        // 지금 쓰는 Spring Data JPA 버전은 .and(null)을 호출하면
+        // "Other specification must not be null" 예외를 던진다 (예전엔 null-safe였는데 동작이 바뀜).
+        // 그래서 .and()로 체이닝하는 대신, null이 아닌 조건만 리스트에 모아서
+        // Specification.allOf(...)로 한 번에 AND 조합한다. 리스트가 비어있으면
+        // allOf가 자동으로 "조건 없음(전체 매칭)" Specification을 반환해준다.
+        List<Specification<Item>> specs = new ArrayList<>();
 
-        return Specification.where(keywordContains(condition.keyword()))
-                            .and(categoryEquals(condition.category()))
-                            .and(statusEquals(condition.status()))
-                            .and(priceGreaterThanOrEqual(condition.minPrice()))
-                            .and(priceLessThanOrEqual(condition.maxPrice()));
+        addIfPresent(specs, keywordContains(condition.keyword()));
+        addIfPresent(specs, categoryEquals(condition.category()));
+        addIfPresent(specs, statusEquals(condition.status()));
+        addIfPresent(specs, priceGreaterThanOrEqual(condition.minPrice()));
+        addIfPresent(specs, priceLessThanOrEqual(condition.maxPrice()));
+
+        return Specification.allOf(specs);
+    }
+
+    private static void addIfPresent(List<Specification<Item>> specs, Specification<Item> spec) {
+        if (spec != null) {
+            specs.add(spec);
+        }
     }
 
 // Specification<Item>의 람다 파라미터 3개 의미:
