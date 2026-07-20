@@ -16,9 +16,5 @@ public record ItemUpdateRequest(
     String category,
 
     @Size(max=255)
-    String Description
-) {
-  
-
-
-}
+    String description
+) { }
