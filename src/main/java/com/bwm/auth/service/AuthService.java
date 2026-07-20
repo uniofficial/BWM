@@ -2,9 +2,12 @@ package com.bwm.auth.service;
 
 import com.bwm.auth.dto.LoginRequest;
 import com.bwm.auth.dto.LoginResult;
+import com.bwm.auth.dto.SignupRequest;
+import com.bwm.global.config.security.JwtProvider;
 import com.bwm.user.entity.User;
 import com.bwm.user.entity.UserRole;
 import com.bwm.user.repository.UserRepository;
+import com.bwm.user.repository.UserRoleRepository;
 import lombok.RequiredArgsConstructor;
 
 import java.util.Collection;
@@ -21,26 +24,55 @@ import org.springframework.transaction.annotation.Transactional;
 public class AuthService {
 
     private final UserRepository userRepository;
+    private final UserRoleRepository userRoleRepository;
     private final PasswordEncoder passwordEncoder;
+    private final JwtProvider jwtProvider;
+
+    @Transactional
+    public void signup(SignupRequest request) {
+        if (userRepository.findByEmail(request.getEmail()).isPresent()) {
+            throw new IllegalArgumentException("이미 사용 중인 이메일입니다.");
+        }
+
+        // 비밀번호 암호화
+        String encodedPassword = passwordEncoder.encode(request.getPassword());
+
+        User user = User.builder()
+                .email(request.getEmail())
+                .password(encodedPassword)
+                .nickname(request.getNickname())
+                .build();
+
+        // 기본 권한 부여 (미리 DB에 "USER" 또는 "ROLE_USER" 권한이 있어야 함)
+        UserRole userRole = userRoleRepository.findByUserRole("USER")
+                .orElseGet(() -> userRoleRepository.save(UserRole.builder().userRole("USER").build()));
+        
+        user.getRoles().add(userRole);
+
+        userRepository.save(user);
+    }
 
     public LoginResult login(LoginRequest request) {
         User user = userRepository.findByEmail(request.getEmail())
                 .orElseThrow(() -> new IllegalArgumentException("이메일 또는 비밀번호가 일치하지 않습니다."));
 
-        // if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
-        if (!request.getPassword().equals(user.getPassword())) {
+        // 암호화된 비밀번호 비교로 원복!
+        if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
             throw new IllegalArgumentException("이메일 또는 비밀번호가 일치하지 않습니다.");
         }
 
         String roleStr = user.getRoles().stream()
                 .map(UserRole::getUserRole)
                 .findFirst()
-                .orElse("ROLE_USER");
+                .orElse("USER");
 
-        // 임시 token생성
+        // 실제 JWT Token 발급
+        String accessToken = jwtProvider.generateAccessToken(user.getEmail(), roleStr);
+        String refreshToken = jwtProvider.generateRefreshToken();
+
         return LoginResult.builder()
-                .accessToken("AccessToken_JWT")
-                .refreshToken("RefreshToken_JWT")
+                .accessToken(accessToken)
+                .refreshToken(refreshToken)
                 .nickname(user.getNickname())
                 .role(roleStr)
                 .build();
