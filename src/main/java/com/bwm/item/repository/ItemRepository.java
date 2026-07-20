@@ -4,6 +4,8 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Lock;
@@ -72,4 +74,12 @@ public interface ItemRepository extends JpaRepository<Item, Integer>, JpaSpecifi
     Optional<Item> findByIdForUpdate(
             @Param("itemId") Integer itemId
     );
+
+    /**
+     * 특정 판매자가 등록한 상품 목록을 페이지 단위로 조회합니다.
+     * "Seller_UserId"는 Item.seller(연관관계 필드) -> User.userId를 타고 들어가는
+     * Spring Data JPA 쿼리 메서드 이름 규칙이다.
+     */
+    Page<Item> findAllBySeller_UserId(Integer sellerId, Pageable pageable); 
+
 }

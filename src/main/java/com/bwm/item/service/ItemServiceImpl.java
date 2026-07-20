@@ -110,6 +110,13 @@ public class ItemServiceImpl implements ItemService {
     }
 
     @Override
+    @Transactional(readOnly = true)
+    public Page<ItemSummaryResponse> getMyItems(Integer sellerId, Pageable pageable) {
+        // getItems(전체 목록)와 거의 같은 흐름인데, seller_id 조건만 하나 더 걸려있는 버전
+        return itemRepository.findAllBySeller_UserId(sellerId, pageable).map(ItemSummaryResponse::from);
+    }
+
+    @Override
     @Transactional
     public ItemResponse updateItem(Integer itemId, Integer sellerId, ItemUpdateRequest request){
         // #1. 상품 조회 - 존재하지 않는 itemId면 제외
@@ -124,7 +131,7 @@ public class ItemServiceImpl implements ItemService {
         // #3. 도메인 메서드에 위임 - 상테/입찰 여부 검증 + 실제 필드 반영은 Item 엔티티 책임
         item.update(request.title(), request.category(), request.description());
 
-        // #4. save() 호출 안 해도 됨 - 트랜잭션 안에서 조회한 영속상태 엔티티라 
+        // #4. save() 호출 안 해도 됨 - 트랜잭션 안에서 조회한 영속상태 엔티티라
         // 커밋 시점에 JPA가 변경 감지(dirty checking)해서 자동으로 UPDATE 쿼리를 날림
         return ItemResponse.from(item);
     }

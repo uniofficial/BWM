@@ -1,11 +1,17 @@
 package com.bwm.auth.service;
 
 import com.bwm.auth.dto.LoginRequest;
-import com.bwm.auth.dto.LoginResponse;
+import com.bwm.auth.dto.LoginResult;
 import com.bwm.user.entity.User;
 import com.bwm.user.entity.UserRole;
 import com.bwm.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+
+import java.util.Collection;
+import java.util.stream.Collectors;
+
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -17,7 +23,7 @@ public class AuthService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
 
-    public LoginResponse login(LoginRequest request) {
+    public LoginResult login(LoginRequest request) {
         User user = userRepository.findByEmail(request.getEmail())
                 .orElseThrow(() -> new IllegalArgumentException("이메일 또는 비밀번호가 일치하지 않습니다."));
 
@@ -32,11 +38,18 @@ public class AuthService {
                 .orElse("ROLE_USER");
 
         // 임시 token생성
-        return LoginResponse.builder()
-                .accessToken("임시_AccessToken_JWT_미적용")
-                .refreshToken("임시_RefreshToken_JWT_미적용")
+        return LoginResult.builder()
+                .accessToken("AccessToken_JWT")
+                .refreshToken("RefreshToken_JWT")
                 .nickname(user.getNickname())
                 .role(roleStr)
                 .build();
     }
+    // @Override
+    // public Collection<? extends GrantedAuthority> getAuthorities() {
+    // return user.getRoles().stream()
+    // .map(userRole -> new SimpleGrantedAuthority("ROLE_" +
+    // userRole.getUserRole()))
+    // .collect(Collectors.toList());
+    // }
 }
