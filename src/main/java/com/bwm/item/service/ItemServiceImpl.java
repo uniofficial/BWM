@@ -106,4 +106,12 @@ public class ItemServiceImpl implements ItemService {
         // 결과로 나온 Item 엔티티들을 곧바로 ItemSummaryResponse 로 변환
         return itemRepository.findAll(spec,pageable).map(ItemSummaryResponse::from);
     }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Page<ItemSummaryResponse> getMyItems(Integer sellerId, Pageable pageable) {
+        // getItems(전체 목록)와 거의 같은 흐름인데, seller_id 조건만 하나 더 걸려있는 버전
+        return itemRepository.findAllBySeller_UserId(sellerId, pageable).map(ItemSummaryResponse::from);
+    }
+
 }
