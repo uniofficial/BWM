@@ -47,6 +47,21 @@ public interface ItemRepository extends JpaRepository<Item, Integer>, JpaSpecifi
     );
 
     /**
+     * 로그인 사용자가 판매한 판매 완료 상품을 조회합니다.
+     *
+     * 판매자 ID와 상품 상태를 조건으로 조회하며,
+     * 경매 마감 시각이 최신인 상품부터 반환합니다.
+     *
+     * @param userId 판매자 사용자 ID
+     * @param status 조회할 상품 상태
+     * @return 판매 완료 상품 목록
+     */
+    List<Item> findAllBySellerUserIdAndStatusOrderByAuctionEndAtDesc(
+            Integer userId,
+            ItemStatus status
+    );
+
+    /**
      * 입찰 처리 시 상품 행에 비관적 쓰기 락을 적용하여 조회합니다.
      *
      * 거의 동시에 여러 사용자가 입찰하더라도

@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.bwm.auction.dto.AuctionCloseResponse;
+import com.bwm.auction.dto.SoldAuctionResponse;
 import com.bwm.auction.dto.WinningAuctionResponse;
 import com.bwm.auction.service.AuctionService;
 
@@ -78,5 +79,34 @@ public class AuctionController {
 
         return ResponseEntity.ok(response);
     }
-    
+
+    /**
+     * 로그인 사용자의 판매 완료 내역을 조회합니다.
+     *
+     * GET /api/auctions/sold/me
+     *
+     * 현재 인증 기능이 연결되지 않았으므로
+     * X-USER-ID 헤더로 사용자 ID를 전달받습니다.
+     *
+     * @param userIdHeader 로그인 사용자 ID
+     * @return 판매 완료 상품 목록
+     */
+    @GetMapping("/api/auctions/sold/me")
+    public ResponseEntity<List<SoldAuctionResponse>> getMySoldAuctions(
+            @RequestHeader(value = "X-USER-ID", required = false)
+            Integer userIdHeader
+    ) {
+        if (userIdHeader == null) {
+            throw new IllegalArgumentException(
+                    "X-USER-ID 헤더가 필요합니다. "
+                    + "(임시 인증 방식 - 인증 파트 연동 전)"
+            );
+        }
+
+        List<SoldAuctionResponse> response =
+                auctionService.getMySoldAuctions(userIdHeader);
+
+        return ResponseEntity.ok(response);
+    }
+
 }

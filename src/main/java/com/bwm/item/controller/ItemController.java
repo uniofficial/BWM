@@ -2,6 +2,7 @@ package com.bwm.item.controller;
 
 import com.bwm.item.dto.request.ItemCreateRequest;
 import com.bwm.item.dto.request.ItemSearchCondition;
+import com.bwm.item.dto.response.ItemDetailResponse;
 import com.bwm.item.dto.response.ItemResponse;
 import com.bwm.item.dto.response.ItemSummaryResponse;
 import com.bwm.item.exception.ItemNotFoundException;
@@ -18,6 +19,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+
 
 
 
@@ -100,6 +102,24 @@ public class ItemController {
         }
     
     /**
+     * 상품 상세 조회 API.
+     *
+     * 등록/수정/취소와 달리 인증 헤더(X-USER-ID) 없이 누구나 호출 가능하게 열어둠
+     * (로그인 안 한 사용자도 상품 상세는 볼 수 있어야 자연스러우므로).
+     *
+     * @param itemId 조회할 상품 id (URL 경로 변수, 예: /api/items/5 -> itemId=5)
+     * @return 200 OK + 상품 상세 정보. 존재하지 않으면 404 (기존 ItemNotFoundException 핸들러가 처리)
+     */
+    @GetMapping("/{itemId}")
+    public ResponseEntity<ItemDetailResponse> getItem(@PathVariable Integer itemId){
+        // 권한 체크가 없는 조회성 API라 Controller가 하는 일은 파라미터 받아서 Service 호출하고
+        // 결과를 200으로 감싸는 것뿐 (createItem처럼 헤더 검증하는 코드가 없음)
+        ItemDetailResponse response = itemService.getItem(itemId);
+
+        return ResponseEntity.ok(response);
+    }
+
+    /**
      * 상품 검색 API.
      *
      * @ModelAttribute가 하는 일: HTTP 쿼리 파라미터들(?keyword=...&category=...)을
@@ -123,8 +143,5 @@ public class ItemController {
             Page<ItemSummaryResponse> response = itemService.searchItems(condition, pageable);
             return ResponseEntity.ok(response);
         }
-    
-    
-}
-    
 
+}
