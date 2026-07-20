@@ -2,6 +2,8 @@ package com.bwm.wallet.entity;
 
 import java.time.LocalDateTime;
 
+import com.bwm.item.entity.Item;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -31,12 +33,9 @@ public class WalletHistory {
     @JoinColumn(name = "wallet_user_id", nullable = false)
     private Wallet wallet;
     
- // @ManyToOne(fetch = FetchType.LAZY)
- // @JoinColumn(name = "item_id")
- // private Item item; // Item 작업 완료 시 이 주석을 풀고 아래 itemId를 제거
-
-    @Column(name = "item_id")
-    private Integer itemId; // 임시로 받는 상품 ID
+    @ManyToOne(fetch = FetchType.LAZY)
+  	@JoinColumn(name = "item_id")
+  	private Item item; 
 
     @Enumerated(EnumType.STRING)
     @Column(name = "type", nullable = false, length = 20)
@@ -52,10 +51,10 @@ public class WalletHistory {
     private LocalDateTime createdAt;
     
     @Builder
-    public WalletHistory(Wallet wallet, Integer itemId, WalletHistoryType type, 
+    public WalletHistory(Wallet wallet, Item item, WalletHistoryType type, 
                          Integer amount, Integer balanceAfter) {
         this.wallet = wallet;
-        this.itemId = itemId;
+        this.item = item;
         this.type = type;
         this.amount = amount;
         this.balanceAfter = balanceAfter;
