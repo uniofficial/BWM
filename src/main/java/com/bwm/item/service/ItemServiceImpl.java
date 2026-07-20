@@ -7,6 +7,7 @@ import com.bwm.item.dto.response.ItemResponse;
 import com.bwm.item.dto.response.ItemSummaryResponse;
 import com.bwm.item.entity.Item;
 import com.bwm.item.entity.ItemImage;
+import com.bwm.item.exception.ItemAccessDeniedException;
 import com.bwm.item.exception.ItemNotFoundException;
 import com.bwm.item.repository.ItemImageRepository;
 import com.bwm.item.repository.ItemRepository;
@@ -112,6 +113,26 @@ public class ItemServiceImpl implements ItemService {
     public Page<ItemSummaryResponse> getMyItems(Integer sellerId, Pageable pageable) {
         // getItems(전체 목록)와 거의 같은 흐름인데, seller_id 조건만 하나 더 걸려있는 버전
         return itemRepository.findAllBySeller_UserId(sellerId, pageable).map(ItemSummaryResponse::from);
+    }
+
+    @Override
+    @Transactional
+    public ItemResponse cancelItem(Integer itemId, Integer sellerId) {
+
+        // #1. 상품 조회 - 존재하지 않는 itemId면 예외
+        Item item = itemRepository.findByIdForUpdate(itemId)
+                                  .orElseThrow(() -> new ItemNotFoundException("존재하지 않는 상품입니다. id = " + itemId));
+
+        // #2. 권한 체크 - 본인이 등록한 상품만 취소 가능
+        if (!item.getSeller().getUserId().equals(sellerId)) {
+            throw new ItemAccessDeniedException("본인이 등록한 상품만 취소할 수 있습니다.");
+        }
+
+        // #3. 도메인 메서드에 위임 - 상태/입찰 여부 검증 + 실제  상태 변경은 Item 엔티티가 책임짐
+        item.cancel();
+
+        // #4. save() 호출 안 해도 됨 - 영속 상태 엔티티라 커밋 기점에 JPA가 변경 감지해서 자동 UPDATE
+        return ItemResponse.from(item);
     }
 
 }

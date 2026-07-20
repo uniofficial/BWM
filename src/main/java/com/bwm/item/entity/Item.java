@@ -203,4 +203,23 @@ public class Item {
         this.currentPrice = bidAmount;
     }
 
+    /**
+     * 판매자가 경매를 직접 취소한다.
+     *
+     * 취소 가능 조건:
+     * - 경매가 OPEN 상태여야 함
+     * - 아직 입찰이 한 건도 없어야 함 (currentPrice == startPrice)
+     *   입찰자가 있는 상품을 판매자가 임의로 취소해버리면 입찰자에게 불공평하기 때문
+     */
+    public void cancel() {
+        if(this.status != ItemStatus.OPEN) {
+            throw new IllegalStateException("진행 중인 경매만 취소할 수 있습니다.");
+        }
+
+        if(!this.currentPrice.equals(this.startPrice)){
+            throw new IllegalStateException("입찰이 시작된 상품은 취소할 수 없습니다.");
+        }
+
+        this.status = ItemStatus.CANCELLED;
+    }
 }

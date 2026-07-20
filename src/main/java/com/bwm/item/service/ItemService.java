@@ -82,6 +82,13 @@ public interface ItemService {
      */
     Page<ItemSummaryResponse> getMyItems(Integer sellerId, Pageable pageable);
 
-
+    /**
+     * 상품 등록을 취소한다 (상태를 CANCELLED로 변경).
+     *
+     * @param itemId 취소할 상품 id
+     * @param sellerId 요청자 id. 상품을 등록한 판매자 본인만 취소 가능
+     * @return 취소된 상품 정보
+     */
+    ItemResponse cancelItem(Integer itemId, Integer sellerId);
 
 }

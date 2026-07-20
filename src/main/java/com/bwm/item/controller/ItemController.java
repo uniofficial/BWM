@@ -5,11 +5,13 @@ import com.bwm.item.dto.request.ItemSearchCondition;
 import com.bwm.item.dto.response.ItemDetailResponse;
 import com.bwm.item.dto.response.ItemResponse;
 import com.bwm.item.dto.response.ItemSummaryResponse;
+import com.bwm.item.exception.ItemAccessDeniedException;
 import com.bwm.item.exception.ItemNotFoundException;
 import com.bwm.item.service.ItemService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
+import org.apache.catalina.connector.Response;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -17,8 +19,9 @@ import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+
 
 
 
@@ -34,7 +37,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 @RequiredArgsConstructor
 public class ItemController {
 
-        private final ItemService itemService;
+    private final ItemService itemService;
     /**
      * 상품 등록 API.
      *
@@ -144,4 +147,38 @@ public class ItemController {
             return ResponseEntity.ok(response);
         }
 
+    /**
+     * 상품 취소 API.
+     *
+     * @param sellerIdHeader 요청자 user_id (X-USER-ID 헤더, 임시 인증 방식)
+     * @param itemId 취소할 상품 id
+     * @return 200 OK + 취소된 상품 정보. 본인 상품 아니면 403, 없으면 404, OPEN 아니거나 입찰 있으면 409
+     */
+    @PostMapping("/{itemId}/cancel")
+    public ResponseEntity<ItemResponse> cancelItem(
+        @RequestHeader(value = "X-USER-ID", required = false) 
+        Integer sellerIdHeader,
+
+        @PathVariable
+        Integer itemId ) {
+            if(sellerIdHeader == null) {
+                throw new IllegalArgumentException("X-USER-ID 헤더가 필요합니다. (임시 인증 방식)");
+            }
+        
+        ItemResponse response = itemService.cancelItem(itemId, sellerIdHeader);
+
+        return ResponseEntity.ok(response);
+    }
+    
+    // 본인 상품이 아닌데 취소하려 하면 403 응답
+    @ExceptionHandler(ItemAccessDeniedException.class)
+    public ResponseEntity<String> handleItemAccessDeniedException(ItemAccessDeniedException e) {
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
+    }
+
+    // OPEN 상태가 아니거나 이미 입찰이 들어온 상품을 취소하려 하면 409(Conflict)로 응답
+    @ExceptionHandler(IllegalStateException.class)
+    public ResponseEntity<String> handleIllegalStateException(IllegalStateException e) {
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(e.getMessage());
+    }
 }
