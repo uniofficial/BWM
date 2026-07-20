@@ -132,8 +132,75 @@ public class Item {
     }
 
 
+    /**
+     * 최고 입찰자가 존재하는 경매를 낙찰 완료 상태로 변경합니다.
+     */
+    public void closeAsSold() {
+        if (this.status != ItemStatus.OPEN) {
+            throw new IllegalStateException(
+                    "OPEN 상태의 경매만 SOLD로 변경할 수 있습니다."
+            );
+        }
 
+        if (this.highestBidder == null) {
+            throw new IllegalStateException(
+                    "최고 입찰자가 없는 경매는 SOLD로 변경할 수 없습니다."
+            );
+        }
 
+        this.status = ItemStatus.SOLD;
+    }
 
+    /**
+     * 최고 입찰자가 없는 경매를 유찰 상태로 변경합니다.
+     */
+    public void closeAsUnsold() {
+        if (this.status != ItemStatus.OPEN) {
+            throw new IllegalStateException(
+                    "OPEN 상태의 경매만 UNSOLD로 변경할 수 있습니다."
+            );
+        }
+
+        if (this.highestBidder != null) {
+            throw new IllegalStateException(
+                    "최고 입찰자가 있는 경매는 UNSOLD로 변경할 수 없습니다."
+            );
+        }
+
+        this.status = ItemStatus.UNSOLD;
+    }
+
+    
+    /**
+     * 새로운 최고 입찰자와 현재가를 갱신함 
+     *
+     * @param bidder 새로운 최고 입찰자
+     * @param bidAmount 새로운 최고 입찰 금액
+     */
+    public void updateHighestBidder(User bidder, Integer bidAmount) {
+
+        if (this.status != ItemStatus.OPEN) {
+            throw new IllegalStateException(
+                    "진행 중인 경매만 최고 입찰자를 변경할 수 있습니다."
+            );
+        }
+
+        if (bidder == null) {
+            throw new IllegalArgumentException(
+                    "최고 입찰자는 null일 수 없습니다."
+            );
+        }
+
+        int minimumBidAmount = this.currentPrice + 100;
+
+        if (bidAmount == null || bidAmount < minimumBidAmount) {
+            throw new IllegalArgumentException(
+                    "새 입찰 금액은 현재가보다 최소 100P 이상 높아야 합니다."
+            );
+        }
+
+        this.highestBidder = bidder;
+        this.currentPrice = bidAmount;
+    }
 
 }

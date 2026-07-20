@@ -2,12 +2,16 @@ package com.bwm.item.service;
 
 import com.bwm.item.dto.request.ItemCreateRequest;
 import com.bwm.item.dto.response.ItemResponse;
+import com.bwm.item.dto.response.ItemSummaryResponse;
 import com.bwm.item.entity.Item;
 import com.bwm.item.exception.ItemNotFoundException;
 import com.bwm.item.repository.ItemRepository;
 import com.bwm.user.entity.User;
 import com.bwm.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
  
@@ -51,5 +55,14 @@ public class ItemServiceImpl implements ItemService {
 
         // #4. 엔티티를 그대로 반환하지 않고 DTO로 변환해 반환
         return ItemResponse.from(saved);
+    }
+
+
+    @Override
+    @Transactional(readOnly = true)
+    public Page<ItemSummaryResponse> getItems(Pageable pageable) {
+        // ItemRepository는 JpaRepository를 상속하고 있어서 findAll(Pageable)이 기본 제공됨.
+        // 페이지 단위로 조회한 Item 엔티티들을 ItemSummaryResponse로 변환해서 반환.
+        return itemRepository.findAll(pageable).map(ItemSummaryResponse::from);
     }
 }

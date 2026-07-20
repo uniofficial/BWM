@@ -1,7 +1,11 @@
 package com.bwm.item.service;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+
 import com.bwm.item.dto.request.ItemCreateRequest;
 import com.bwm.item.dto.response.ItemResponse;
+import com.bwm.item.dto.response.ItemSummaryResponse;
 
 /**
  * 상품(Item) 관련 비즈니스 로직의 "계약(contract)"만 정의하는 인터페이스.
@@ -29,6 +33,14 @@ public interface ItemService {
      * @param request  상품 등록 요청 값 (제목/카테고리/시작가/마감시각/설명)
      * @return 등록된 상품 정보 (itemId 포함 - DB에 저장된 후의 결과)
      */
-
     ItemResponse createItem(Integer sellerId, ItemCreateRequest request);
+
+
+    /**
+     * 상품 목록을 페이지 단위로 조회한다.
+     *
+     * @param pageable 페이지 번호/크기/정렬 조건 (컨트롤러에서 쿼리 파라미터로 받아 그대로 전달)
+     * @return 페이징된 상품 목록 (요약 정보만 포함)
+     */
+    Page<ItemSummaryResponse> getItems(Pageable pageable);
 }

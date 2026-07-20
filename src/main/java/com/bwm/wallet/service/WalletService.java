@@ -50,4 +50,51 @@ public class WalletService {
 		
 		walletHistoryRepository.save(history);
 	}
+	
+	/*
+	 * 입찰 시 포인트 차감
+	 */
+	@Transactional
+	public void deductBidPoint(Integer userId, Integer itemId, Integer amount) {
+
+	    Wallet wallet = walletRepository.findById(userId)
+	            .orElseThrow(() ->
+	                    new IllegalArgumentException("해당 유저의 지갑을 찾을 수 없습니다."));
+
+	    wallet.deduct(amount);
+
+	    WalletHistory history = WalletHistory.builder()
+	            .wallet(wallet)
+	            .itemId(itemId)
+	            .type(WalletHistoryType.BID_PAYMENT)
+	            .amount(amount)
+	            .balanceAfter(wallet.getBalance())
+	            .build();
+
+	    walletHistoryRepository.save(history);
+	}
+	
+	/*
+	 * 최고 입찰자 변경 시 이전 최고 입찰자 환불
+	 */
+	@Transactional
+	public void refundBidPoint(Integer userId, Integer itemId, Integer amount) {
+
+	    Wallet wallet = walletRepository.findById(userId)
+	            .orElseThrow(() ->
+	                    new IllegalArgumentException("해당 유저의 지갑을 찾을 수 없습니다."));
+
+	    wallet.charge(amount);
+
+	    WalletHistory history = WalletHistory.builder()
+	            .wallet(wallet)
+	            .itemId(itemId)
+	            .type(WalletHistoryType.REFUND)
+	            .amount(amount)
+	            .balanceAfter(wallet.getBalance())
+	            .build();
+
+	    walletHistoryRepository.save(history);
+	}
+	
 }
