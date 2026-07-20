@@ -1,8 +1,9 @@
 package com.bwm.global.config.security;
 
-import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
+import io.jsonwebtoken.JwtException;
+import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.MalformedJwtException;
 import io.jsonwebtoken.UnsupportedJwtException;
 import io.jsonwebtoken.security.Keys;
@@ -11,15 +12,15 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.User;
 import org.springframework.stereotype.Component;
 
 import javax.crypto.SecretKey;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.Date;
-import java.util.stream.Collectors;
+import java.util.List;
 
 @Slf4j
 @Component
@@ -38,62 +39,99 @@ public class JwtProvider {
 
     @PostConstruct
     public void init() {
-        this.key = Keys.hmacShaKeyFor(secret.getBytes());
+        this.key = Keys.hmacShaKeyFor(
+                secret.getBytes(StandardCharsets.UTF_8)
+        );
     }
 
     public String generateAccessToken(String email, String role) {
-        long now = (new Date()).getTime();
-        Date validity = new Date(now + this.accessExpiration);
+        long now = System.currentTimeMillis();
+        Date issuedAt = new Date(now);
+        Date expiration = new Date(now + accessExpiration);
 
         return Jwts.builder()
                 .subject(email)
                 .claim("auth", role)
-                .expiration(validity)
+                .issuedAt(issuedAt)
+                .expiration(expiration)
                 .signWith(key)
                 .compact();
     }
 
     public String generateRefreshToken() {
-        long now = (new Date()).getTime();
-        Date validity = new Date(now + this.refreshExpiration);
+        long now = System.currentTimeMillis();
+        Date issuedAt = new Date(now);
+        Date expiration = new Date(now + refreshExpiration);
 
         return Jwts.builder()
-                .expiration(validity)
+                .issuedAt(issuedAt)
+                .expiration(expiration)
                 .signWith(key)
                 .compact();
     }
 
     public Authentication getAuthentication(String token) {
-        Claims claims = Jwts.parser()
-                .verifyWith(key)
-                .build()
-                .parseSignedClaims(token)
-                .getPayload();
+        Claims claims = getClaims(token);
 
-        Collection<? extends GrantedAuthority> authorities = Arrays.stream(claims.get("auth").toString().split(","))
-                .map(SimpleGrantedAuthority::new)
-                .collect(Collectors.toList());
+        Object authClaim = claims.get("auth");
 
-        // principal은 Spring Security에서 제공하는 기본 User 객체를 활용 (email을 username으로 사용)
-        org.springframework.security.core.userdetails.User principal = new org.springframework.security.core.userdetails.User(
-                claims.getSubject(), "", authorities);
+        if (authClaim == null) {
+            throw new IllegalArgumentException("JWT에 권한 정보가 없습니다.");
+        }
 
-        return new UsernamePasswordAuthenticationToken(principal, token, authorities);
+        List<SimpleGrantedAuthority> authorities =
+                Arrays.stream(authClaim.toString().split(","))
+                        .map(String::trim)
+                        .filter(role -> !role.isBlank())
+                        .map(role -> role.startsWith("ROLE_")
+                                ? role
+                                : "ROLE_" + role)
+                        .map(SimpleGrantedAuthority::new)
+                        .toList();
+
+        User principal = new User(
+                claims.getSubject(),
+                "",
+                authorities
+        );
+
+        return new UsernamePasswordAuthenticationToken(
+                principal,
+                token,
+                authorities
+        );
     }
 
     public boolean validateToken(String token) {
         try {
-            Jwts.parser().verifyWith(key).build().parseSignedClaims(token);
+            getClaims(token);
             return true;
-        } catch (io.jsonwebtoken.security.SecurityException | MalformedJwtException e) {
+
+        } catch (io.jsonwebtoken.security.SecurityException
+                 | MalformedJwtException e) {
             log.info("잘못된 JWT 서명입니다.");
+
         } catch (ExpiredJwtException e) {
             log.info("만료된 JWT 토큰입니다.");
+
         } catch (UnsupportedJwtException e) {
             log.info("지원되지 않는 JWT 토큰입니다.");
+
         } catch (IllegalArgumentException e) {
-            log.info("JWT 토큰이 비어있습니다.");
+            log.info("JWT 토큰이 비어 있거나 올바르지 않습니다.");
+
+        } catch (JwtException e) {
+            log.info("JWT 토큰 검증에 실패했습니다.");
         }
+
         return false;
+    }
+
+    private Claims getClaims(String token) {
+        return Jwts.parser()
+                .verifyWith(key)
+                .build()
+                .parseSignedClaims(token)
+                .getPayload();
     }
 }
