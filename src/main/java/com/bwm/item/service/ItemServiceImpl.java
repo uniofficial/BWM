@@ -1,14 +1,19 @@
 package com.bwm.item.service;
 
 import com.bwm.item.dto.request.ItemCreateRequest;
+import com.bwm.item.dto.response.ItemDetailResponse;
 import com.bwm.item.dto.response.ItemResponse;
 import com.bwm.item.dto.response.ItemSummaryResponse;
 import com.bwm.item.entity.Item;
+import com.bwm.item.entity.ItemImage;
 import com.bwm.item.exception.ItemNotFoundException;
+import com.bwm.item.repository.ItemImageRepository;
 import com.bwm.item.repository.ItemRepository;
 import com.bwm.user.entity.User;
 import com.bwm.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+
+import java.util.List;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -31,6 +36,8 @@ public class ItemServiceImpl implements ItemService {
 
     private final ItemRepository itemRepository;
     private final UserRepository userRepository; // TODO: 인증 파트에서 만든 Repository로 교체
+    private final ItemImageRepository itemImageRepository;
+
 
     @Override
     @Transactional
@@ -64,5 +71,25 @@ public class ItemServiceImpl implements ItemService {
         // ItemRepository는 JpaRepository를 상속하고 있어서 findAll(Pageable)이 기본 제공됨.
         // 페이지 단위로 조회한 Item 엔티티들을 ItemSummaryResponse로 변환해서 반환.
         return itemRepository.findAll(pageable).map(ItemSummaryResponse::from);
+    }
+
+
+    @Override
+    @Transactional(readOnly = true) // 조회 전용 트랜잭션. 데이터 변경이 없으므로 읽기 최적화 힌트 제공
+    public ItemDetailResponse getItem(Integer itemId){
+
+        // #1. 상품 조회 - 존재하지 않는 itemId면 예외
+        Item item = itemRepository.findById(itemId).orElseThrow(() -> new ItemNotFoundException("존재하지 않는 상품입니다. id = " + itemId));
+    
+        // #2. 이 상품에 등록된 이미지들을 따로 조회(Item 엔티티엔 이미지 목록을 직접 들고있지 않음)
+        /// 대표 이미지가 맨 앞에 오도록 정렬된 상태로 가져와서 URL 문자열만 뽑아 리스트로 변환
+        List<String> imageUrls = itemImageRepository.findAllByItem_ItemIdOrderByIsRepresentativeDescCreatedAtAsc(itemId)
+                                                    .stream()
+                                                    .map(ItemImage::getImageUrl)
+                                                    .toList();
+
+         // #3. Item 엔티티 + 이미지 URL 목록을 하나의 응답 DTO로 조립해 반환
+         return ItemDetailResponse.from(item,imageUrls);                                           
+    
     }
 }

@@ -4,6 +4,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
 import com.bwm.item.dto.request.ItemCreateRequest;
+import com.bwm.item.dto.response.ItemDetailResponse;
 import com.bwm.item.dto.response.ItemResponse;
 import com.bwm.item.dto.response.ItemSummaryResponse;
 
@@ -43,4 +44,20 @@ public interface ItemService {
      * @return 페이징된 상품 목록 (요약 정보만 포함)
      */
     Page<ItemSummaryResponse> getItems(Pageable pageable);
+
+
+     /**
+     * 상품 상세 정보를 조회한다.
+     *
+     * 처리 흐름(ItemServiceImpl 기준):
+     * 1) itemId로 Item 조회 - 없으면 ItemNotFoundException
+     * 2) 그 상품에 딸린 이미지 목록을 별도 조회
+     * 3) 엔티티 두 개(Item, 이미지 URL 목록)를 하나의 DTO로 합쳐서 반환
+     *
+     * @param itemId 조회할 상품 id
+     * @return 상품 상세 정보 (이미지 목록, 최고 입찰자 닉네임 포함)
+     */
+    ItemDetailResponse getItem(Integer itemId);
+
+
 }
