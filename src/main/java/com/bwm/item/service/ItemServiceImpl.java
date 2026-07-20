@@ -2,6 +2,7 @@ package com.bwm.item.service;
 
 import com.bwm.item.dto.request.ItemCreateRequest;
 import com.bwm.item.dto.request.ItemSearchCondition;
+import com.bwm.item.dto.request.ItemUpdateRequest;
 import com.bwm.item.dto.response.ItemDetailResponse;
 import com.bwm.item.dto.response.ItemResponse;
 import com.bwm.item.dto.response.ItemSummaryResponse;
@@ -117,9 +118,31 @@ public class ItemServiceImpl implements ItemService {
 
     @Override
     @Transactional
+    public ItemResponse updateItem(Integer itemId, Integer sellerId, ItemUpdateRequest request){
+        // #1. 상품 조회 - 존재하지 않는 itemId면 제외
+        Item item = itemRepository.findById(itemId)
+                                  .orElseThrow(() -> new ItemNotFoundException("존재하지 않는 상품입니다. id = " + itemId));
+
+        // #2. 권한 체크 - 본인이 등록한 상품만 수정 가능
+        if(!item.getSeller().getUserId().equals(sellerId)) {
+            throw new ItemAccessDeniedException("본인이 등록한 상품만 수정할 수 있습니다.");
+        }
+
+        // #3. 도메인 메서드에 위임 - 상테/입찰 여부 검증 + 실제 필드 반영은 Item 엔티티 책임
+        item.update(request.title(), request.category(), request.description());
+
+        // #4. save() 호출 안 해도 됨 - 트랜잭션 안에서 조회한 영속상태 엔티티라
+        // 커밋 시점에 JPA가 변경 감지(dirty checking)해서 자동으로 UPDATE 쿼리를 날림
+        return ItemResponse.from(item);
+    }
+
+    @Override
+    @Transactional
     public ItemResponse cancelItem(Integer itemId, Integer sellerId) {
 
         // #1. 상품 조회 - 존재하지 않는 itemId면 예외
+        // findByIdForUpdate로 비관적 락을 걸어서, 취소 처리 중에 동시에 입찰이 들어와
+        // 상태가 바뀌는 경합을 방지함 (updateItem은 이런 동시성 이슈가 상대적으로 덜 중요해서 findById 그대로 둠)
         Item item = itemRepository.findByIdForUpdate(itemId)
                                   .orElseThrow(() -> new ItemNotFoundException("존재하지 않는 상품입니다. id = " + itemId));
 
@@ -128,10 +151,10 @@ public class ItemServiceImpl implements ItemService {
             throw new ItemAccessDeniedException("본인이 등록한 상품만 취소할 수 있습니다.");
         }
 
-        // #3. 도메인 메서드에 위임 - 상태/입찰 여부 검증 + 실제  상태 변경은 Item 엔티티가 책임짐
+        // #3. 도메인 메서드에 위임 - 상태/입찰 여부 검증 + 실제 상태 변경은 Item 엔티티가 책임짐
         item.cancel();
 
-        // #4. save() 호출 안 해도 됨 - 영속 상태 엔티티라 커밋 기점에 JPA가 변경 감지해서 자동 UPDATE
+        // #4. save() 호출 안 해도 됨 - 영속 상태 엔티티라 커밋 시점에 JPA가 변경 감지해서 자동 UPDATE
         return ItemResponse.from(item);
     }
 
