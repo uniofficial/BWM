@@ -22,7 +22,6 @@ import org.springframework.web.bind.annotation.*;
 
 /**
  * 상품(Item) 관련 REST API 엔드포인트.
- * 지금은 "상품 등록" 하나만 구현되어 있고, 목록/상세/검색/수정/취소는 순서대로 추가 예정.
  */
 
 @RestController
@@ -30,7 +29,7 @@ import org.springframework.web.bind.annotation.*;
 @RequiredArgsConstructor
 public class ItemController {
 
-        private final ItemService itemService;
+    private final ItemService itemService;
     /**
      * 상품 등록 API.
      *
@@ -83,7 +82,7 @@ public class ItemController {
             Page<ItemSummaryResponse> response = itemService.getItems(pageable);
             return ResponseEntity.ok(response);
         }
-    
+
     /**
      * 상품 상세 조회 API.
      *
@@ -139,10 +138,10 @@ public class ItemController {
     public ResponseEntity<ItemResponse> updateItem(
         @RequestHeader(value = "X-USER-ID", required = false)
         Integer sellerIdHeader,
-        
+
         @PathVariable
         Integer itemId,
-        
+
         @Valid
         @RequestBody
         ItemUpdateRequest request){
@@ -153,7 +152,30 @@ public class ItemController {
             ItemResponse response = itemService.updateItem(itemId, sellerIdHeader, request);
             return ResponseEntity.ok(response);
         }
-    
+
+    /**
+     * 상품 취소 API.
+     *
+     * @param sellerIdHeader 요청자 user_id (X-USER-ID 헤더, 임시 인증 방식)
+     * @param itemId 취소할 상품 id
+     * @return 200 OK + 취소된 상품 정보. 본인 상품 아니면 403, 없으면 404, OPEN 아니거나 입찰 있으면 409
+     */
+    @PostMapping("/{itemId}/cancel")
+    public ResponseEntity<ItemResponse> cancelItem(
+        @RequestHeader(value = "X-USER-ID", required = false)
+        Integer sellerIdHeader,
+
+        @PathVariable
+        Integer itemId ) {
+            if(sellerIdHeader == null) {
+                throw new IllegalArgumentException("X-USER-ID 헤더가 필요합니다. (임시 인증 방식)");
+            }
+
+        ItemResponse response = itemService.cancelItem(itemId, sellerIdHeader);
+
+        return ResponseEntity.ok(response);
+    }
+
     // X-USER-ID 헤더 누락 등 요청 자체가 잘못된 경우는 400으로 응답 (전역 예외 처리기 도입 전 임시 처리)
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<String> handleIllegalArgumentException(IllegalArgumentException e) {
@@ -166,16 +188,15 @@ public class ItemController {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
     }
 
-     // 본인 상품이 아닌데 수정하려 하면 403으로 응답
+    // 본인 상품이 아닌데 수정/취소하려 하면 403으로 응답
     @ExceptionHandler(ItemAccessDeniedException.class)
     public ResponseEntity<String> handleItemAccessDeniedException(ItemAccessDeniedException e) {
         return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
     }
 
-    // OPEN 상태가 아니거나 이미 입찰이 들어온 상품을 수정하려 하면 409(Conflict)로 응답
+    // OPEN 상태가 아니거나 이미 입찰이 들어온 상품을 수정/취소하려 하면 409(Conflict)로 응답
     @ExceptionHandler(IllegalStateException.class)
     public ResponseEntity<String> handleIllegalStateException(IllegalStateException e) {
         return ResponseEntity.status(HttpStatus.CONFLICT).body(e.getMessage());
     }
-
 }
