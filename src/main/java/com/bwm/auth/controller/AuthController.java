@@ -1,5 +1,6 @@
 package com.bwm.auth.controller;
 
+import com.bwm.auth.dto.SignupRequest;
 import com.bwm.auth.dto.LoginRequest;
 import com.bwm.auth.dto.LoginResponse;
 import com.bwm.auth.dto.LoginResult;
@@ -20,6 +21,12 @@ import org.springframework.web.bind.annotation.RestController;
 public class AuthController {
 
     private final AuthService authService;
+
+    @PostMapping("/signup")
+    public ResponseEntity<ResultDto<Void>> signup(@RequestBody SignupRequest request) {
+        authService.signup(request);
+        return ResponseEntity.ok(ResultDto.success(null));
+    }
 
     @PostMapping("/login")
     // JWT는 Header로 response -> ResponseEntity가 custom header가능

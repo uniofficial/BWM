@@ -8,9 +8,11 @@ import com.bwm.user.entity.User;
 import com.bwm.user.entity.UserRole;
 import com.bwm.user.repository.UserRepository;
 import com.bwm.user.repository.UserRoleRepository;
+import com.bwm.user.repository.UserRoleRepository;
 import lombok.RequiredArgsConstructor;
 
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.stream.Collectors;
 
 import org.springframework.security.core.GrantedAuthority;
@@ -20,7 +22,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
-@RequiredArgsConstructor
 public class AuthService {
 
     private final UserRepository userRepository;
@@ -46,7 +47,7 @@ public class AuthService {
         // 기본 권한 부여 (미리 DB에 "USER" 또는 "ROLE_USER" 권한이 있어야 함)
         UserRole userRole = userRoleRepository.findByUserRole("USER")
                 .orElseGet(() -> userRoleRepository.save(UserRole.builder().userRole("USER").build()));
-        
+
         user.getRoles().add(userRole);
 
         userRepository.save(user);

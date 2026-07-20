@@ -1,8 +1,8 @@
 package com.bwm.global.config.security;
 
+import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
-import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.MalformedJwtException;
 import io.jsonwebtoken.UnsupportedJwtException;
 import io.jsonwebtoken.security.Keys;
@@ -70,14 +70,13 @@ public class JwtProvider {
                 .parseSignedClaims(token)
                 .getPayload();
 
-        Collection<? extends GrantedAuthority> authorities =
-                Arrays.stream(claims.get("auth").toString().split(","))
-                        .map(SimpleGrantedAuthority::new)
-                        .collect(Collectors.toList());
+        Collection<? extends GrantedAuthority> authorities = Arrays.stream(claims.get("auth").toString().split(","))
+                .map(SimpleGrantedAuthority::new)
+                .collect(Collectors.toList());
 
         // principal은 Spring Security에서 제공하는 기본 User 객체를 활용 (email을 username으로 사용)
-        org.springframework.security.core.userdetails.User principal =
-                new org.springframework.security.core.userdetails.User(claims.getSubject(), "", authorities);
+        org.springframework.security.core.userdetails.User principal = new org.springframework.security.core.userdetails.User(
+                claims.getSubject(), "", authorities);
 
         return new UsernamePasswordAuthenticationToken(principal, token, authorities);
     }
