@@ -50,7 +50,7 @@ public class Item {
     @Column(name = "category", length = 45, nullable = false)
     private String category;
 
-    // 경매 시작가. 등록 후 변경 불가
+    // 경매 시작가. 입찰이 시작되기 전까지만 수정 가능
     @Column(name = "start_price", nullable = false)
     private Integer startPrice;
 
@@ -203,32 +203,44 @@ public class Item {
     }
 
     /**
-     * 상품 정보를 수정한다. title/category/description 중 null이 아닌 값만 반영한다(PATCH 방식).
+     * 상품 정보를 수정한다 (PATCH 방식 - null인 필드는 그대로 유지).
      *
-     * 수정 가능 조건:
-     * - 경매가 OPEN 상태여야 함 (SOLD/UNSOLD/CANCELLED된 상품은 수정 불가)
-     * - 아직 입찰이 한 건도 없어야 함 (currentPrice가 startPrice와 같다는 건 입찰이 없다는 뜻)
-     *   입찰이 들어온 뒤 제목/설명이 바뀌면 입찰자가 보고 입찰한 상품 정보와 달라져서 혼란을 줄 수 있음
+     * - 입찰이 없는 상품(currentPrice == startPrice): title/category/description/startPrice/auctionEndAt 전부 수정 가능.
+     *   startPrice가 바뀌면 아직 입찰이 없으므로 currentPrice도 같이 맞춰줌.
+     * - 입찰이 있는 상품: description만 수정 가능. 그 외 필드에 값이 들어오면 예외.
      */
-    public void update(String title, String category, String description) {
-        if(this.status != ItemStatus.OPEN) {
+    public void update(String title, String category, String description, Integer startPrice, LocalDateTime auctionEndAt) {
+        if (this.status != ItemStatus.OPEN) {
             throw new IllegalStateException("진행 중인 경매만 수정할 수 있습니다.");
         }
 
-        if(!this.currentPrice.equals(this.startPrice)) {
-            throw new IllegalStateException("입찰이 시작된 상품은 수정할 수 없습니다.");
+        boolean hasBid = !this.currentPrice.equals(this.startPrice);
+
+        if (hasBid) {
+            if (title != null || category != null || startPrice != null || auctionEndAt != null) {
+                throw new IllegalStateException("입찰이 시작된 상품은 설명만 수정할 수 있습니다.");
+            }
+            if (description != null) {
+                this.description = description;
+            }
+            return;
         }
 
-        if(title != null) {
+        if (title != null) {
             this.title = title;
         }
-
-        if(category != null) {
+        if (category != null) {
             this.category = category;
         }
-
-        if(description != null) {
+        if (description != null) {
             this.description = description;
+        }
+        if (startPrice != null) {
+            this.startPrice = startPrice;
+            this.currentPrice = startPrice; // 아직 입찰 없으니 현재가도 같이 갱신
+        }
+        if (auctionEndAt != null) {
+            this.auctionEndAt = auctionEndAt;
         }
     }
 

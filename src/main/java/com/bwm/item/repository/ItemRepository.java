@@ -80,6 +80,12 @@ public interface ItemRepository extends JpaRepository<Item, Integer>, JpaSpecifi
      * "Seller_UserId"는 Item.seller(연관관계 필드) -> User.userId를 타고 들어가는
      * Spring Data JPA 쿼리 메서드 이름 규칙이다.
      */
-    Page<Item> findAllBySeller_UserId(Integer sellerId, Pageable pageable); 
+    Page<Item> findAllBySeller_UserId(Integer sellerId, Pageable pageable);
+
+    /**
+     * 특정 상태의 상품만 페이지 단위로 조회합니다.
+     * "상품 목록 조회"는 진행 중(OPEN)인 상품만 보여줘야 하므로 사용.
+     */
+    Page<Item> findAllByStatus(ItemStatus status, Pageable pageable);
 
 }

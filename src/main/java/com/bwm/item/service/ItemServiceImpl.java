@@ -1,5 +1,7 @@
 package com.bwm.item.service;
 
+import com.bwm.bid.dto.response.ItemBidHistoryResponse;
+import com.bwm.bid.service.BidService;
 import com.bwm.item.dto.request.ItemCreateRequest;
 import com.bwm.item.dto.request.ItemSearchCondition;
 import com.bwm.item.dto.request.ItemUpdateRequest;
@@ -8,6 +10,7 @@ import com.bwm.item.dto.response.ItemResponse;
 import com.bwm.item.dto.response.ItemSummaryResponse;
 import com.bwm.item.entity.Item;
 import com.bwm.item.entity.ItemImage;
+import com.bwm.item.entity.ItemStatus;
 import com.bwm.item.exception.ItemAccessDeniedException;
 import com.bwm.item.exception.ItemNotFoundException;
 import com.bwm.item.repository.ItemImageRepository;
@@ -42,6 +45,7 @@ public class ItemServiceImpl implements ItemService {
     private final ItemRepository itemRepository;
     private final UserRepository userRepository; // TODO: 인증 파트에서 만든 Repository로 교체
     private final ItemImageRepository itemImageRepository;
+    private final BidService bidService;
 
 
     @Override
@@ -73,9 +77,8 @@ public class ItemServiceImpl implements ItemService {
     @Override
     @Transactional(readOnly = true)
     public Page<ItemSummaryResponse> getItems(Pageable pageable) {
-        // ItemRepository는 JpaRepository를 상속하고 있어서 findAll(Pageable)이 기본 제공됨.
-        // 페이지 단위로 조회한 Item 엔티티들을 ItemSummaryResponse로 변환해서 반환.
-        return itemRepository.findAll(pageable).map(ItemSummaryResponse::from);
+        // "상품 목록 조회"는 스펙상 진행 중(OPEN)인 상품만 보여줌
+        return itemRepository.findAllByStatus(ItemStatus.OPEN, pageable).map(ItemSummaryResponse::from);
     }
 
     @Override
@@ -92,8 +95,11 @@ public class ItemServiceImpl implements ItemService {
                                                     .map(ItemImage::getImageUrl)
                                                     .toList();
 
-         // #3. Item 엔티티 + 이미지 URL 목록을 하나의 응답 DTO로 조립해 반환
-         return ItemDetailResponse.from(item,imageUrls);
+        // #3. 이 상품에 들어온 입찰 내역도 조회 - 새로 로직 안 짜고 BidService에 이미 있는 걸 그대로 재사용
+        List<ItemBidHistoryResponse> bidHistory = bidService.getItemBidHistory(itemId);
+
+         // #4. Item 엔티티 + 이미지 URL 목록 + 입찰 내역을 하나의 응답 DTO로 조립해 반환
+         return ItemDetailResponse.from(item, imageUrls, bidHistory);
     }
 
     @Override
@@ -129,7 +135,7 @@ public class ItemServiceImpl implements ItemService {
         }
 
         // #3. 도메인 메서드에 위임 - 상테/입찰 여부 검증 + 실제 필드 반영은 Item 엔티티 책임
-        item.update(request.title(), request.category(), request.description());
+        item.update(request.title(), request.category(), request.description(), request.startPrice(), request.auctionEndAt());
 
         // #4. save() 호출 안 해도 됨 - 트랜잭션 안에서 조회한 영속상태 엔티티라
         // 커밋 시점에 JPA가 변경 감지(dirty checking)해서 자동으로 UPDATE 쿼리를 날림
