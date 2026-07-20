@@ -1,32 +1,13 @@
 package com.bwm.wallet.service;
 
 import java.util.List;
-
-import java.util.stream.Collectors;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import com.bwm.wallet.dto.WalletHistoryResponseDto;
-import com.bwm.wallet.entity.WalletHistory;
-import com.bwm.wallet.repository.WalletHistoryRepository;
-import lombok.RequiredArgsConstructor;
 
-@Service
-@RequiredArgsConstructor
-@Transactional(readOnly = true)
-public class WalletHistoryService {
-	
-	private final WalletHistoryRepository walletHistoryRepository;
-	
-	public List<WalletHistoryResponseDto> getMyHistory(Integer userId){
-		List<WalletHistory> histories = walletHistoryRepository.findByWalletUserIdOrderByCreatedAtDesc(userId);
-		
-		return histories.stream().map( history -> WalletHistoryResponseDto.builder()
-																		  .type(history.getType().name())
-																		  .itemId(history.getItem() != null ? history.getItem().getItemId() : null)
-																		  .amount(history.getAmount())
-																		  .balanceAfter(history.getBalanceAfter())
-																		  .createdAt(history.getCreatedAt())
-																		  .build())
-						.collect(Collectors.toList());
-	}
+/**
+ * 지갑 이력(WalletHistory) 관련 비즈니스 로직의 명세를 정의하는 인터페이스.
+ */
+public interface WalletHistoryService {
+    
+    // 포인트 변동 내역 조회
+    List<WalletHistoryResponseDto> getMyHistory(Integer userId);
 }

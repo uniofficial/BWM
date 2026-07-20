@@ -39,7 +39,6 @@ public class Wallet {
      * 포인트 충전 및 환불 (잔액 증가)
      */
     public void charge(int amount) {
-    	// TODO: llegalArgumentException 부분은 전역예외처리기 만들면 나중에 바꿈
         if (amount <= 0) {
             throw new IllegalArgumentException("충전 및 환불 금액은 1원 이상이어야 합니다.");
         }
