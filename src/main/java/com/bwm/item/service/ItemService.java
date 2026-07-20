@@ -4,6 +4,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
 import com.bwm.item.dto.request.ItemCreateRequest;
+import com.bwm.item.dto.request.ItemSearchCondition;
 import com.bwm.item.dto.response.ItemDetailResponse;
 import com.bwm.item.dto.response.ItemResponse;
 import com.bwm.item.dto.response.ItemSummaryResponse;
@@ -46,7 +47,7 @@ public interface ItemService {
     Page<ItemSummaryResponse> getItems(Pageable pageable);
 
 
-     /**
+    /**
      * 상품 상세 정보를 조회한다.
      *
      * 처리 흐름(ItemServiceImpl 기준):
@@ -59,5 +60,16 @@ public interface ItemService {
      */
     ItemDetailResponse getItem(Integer itemId);
 
-
+    /**
+     * 검색 조건에 맞는 상품 목록을 페이지 단위로 조회한다.
+     *
+     * getItems(전체 목록)와 다른 점: 조건 필터링이 추가로 들어감.
+     * 조건을 아무것도 안 넣고 호출하면(전부 null) 사실상 getItems와 동일한 결과가 나온다
+     * (검색 조건이 하나도 안 걸리기 때문).
+     *
+     * @param condition 검색 조건 (제목 키워드/카테고리/상태/가격범위, 전부 선택사항이라 일부만 채워도 됨)
+     * @param pageable 페이지 번호/크기/정렬 조건
+     * @return 조건에 맞는 상품 목록 (요약 정보만 포함, 페이징 메타데이터 포함)
+     */
+    Page<ItemSummaryResponse> searchItems(ItemSearchCondition condition, Pageable pageable);
 }

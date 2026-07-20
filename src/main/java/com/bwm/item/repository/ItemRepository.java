@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -16,8 +17,11 @@ import jakarta.persistence.LockModeType;
 
 /**
  * Item 엔티티의 DB 접근을 담당하는 Repository
+ * JpaRepository: save/findById/findAll 같은 기본 CRUD 제공
+   JpaSpecificationExecutor: findAll(Specification, Pageable) 같은 "동적 조건 검색" 기능 제공
+   이 둘을 같이 상속해야 상품 검색(Specification 기반)이랑 기존 CRUD를 한 인터페이스에서 다 쓸 수 있음
  */
-public interface ItemRepository extends JpaRepository<Item, Integer> {
+public interface ItemRepository extends JpaRepository<Item, Integer>, JpaSpecificationExecutor<Item> {
 
     /**
      * 자동 마감 대상 상품을 조회합니다.
