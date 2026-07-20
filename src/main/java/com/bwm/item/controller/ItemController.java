@@ -2,9 +2,11 @@ package com.bwm.item.controller;
 
 import com.bwm.item.dto.request.ItemCreateRequest;
 import com.bwm.item.dto.request.ItemSearchCondition;
+import com.bwm.item.dto.request.ItemUpdateRequest;
 import com.bwm.item.dto.response.ItemDetailResponse;
 import com.bwm.item.dto.response.ItemResponse;
 import com.bwm.item.dto.response.ItemSummaryResponse;
+import com.bwm.item.exception.ItemAccessDeniedException;
 import com.bwm.item.exception.ItemNotFoundException;
 import com.bwm.item.service.ItemService;
 import jakarta.validation.Valid;
@@ -17,12 +19,6 @@ import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-
-
-
-
 
 /**
  * 상품(Item) 관련 REST API 엔드포인트.
@@ -71,19 +67,6 @@ public class ItemController {
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
 
         }
-
-    // X-USER-ID 헤더 누락 등 요청 자체가 잘못된 경우는 400으로 응답 (전역 예외 처리기 도입 전 임시 처리)
-    @ExceptionHandler(IllegalArgumentException.class)
-    public ResponseEntity<String> handleIllegalArgumentException(IllegalArgumentException e) {
-        return ResponseEntity.badRequest().body(e.getMessage());
-    }
-
-    // 존재하지 않는 사용자/상품 등 리소스를 찾을 수 없는 경우는 404로 응답 (전역 예외 처리기 도입 전 임시 처리)
-    @ExceptionHandler(ItemNotFoundException.class)
-    public ResponseEntity<String> handleItemNotFoundException(ItemNotFoundException e) {
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
-    }
-
 
      /**
      * 상품 목록 조회 API.
@@ -143,5 +126,56 @@ public class ItemController {
             Page<ItemSummaryResponse> response = itemService.searchItems(condition, pageable);
             return ResponseEntity.ok(response);
         }
+
+     /**
+     * 상품 수정 API.
+     *
+     * @param sellerIdHeader 요청자 user_id (X-USER-ID 헤더, 임시 인증 방식 - createItem과 동일)
+     * @param itemId 수정할 상품 id
+     * @param request 수정할 값들. title/category/description 전부 선택사항이며 보낸 필드만 반영됨
+     * @return 200 OK + 수정된 상품 정보. 본인 상품 아니면 403, 없으면 404, OPEN 아니거나 입찰 있으면 409
+     */
+    @PatchMapping("/{itemId}")
+    public ResponseEntity<ItemResponse> updateItem(
+        @RequestHeader(value = "X-USER-ID", required = false)
+        Integer sellerIdHeader,
+        
+        @PathVariable
+        Integer itemId,
+        
+        @Valid
+        @RequestBody
+        ItemUpdateRequest request){
+            if (sellerIdHeader == null) {
+                throw new IllegalArgumentException("X-USER-ID 헤더가 필요합니다. (임시 인증 방식)");
+            }
+
+            ItemResponse response = itemService.updateItem(itemId, sellerIdHeader, request);
+            return ResponseEntity.ok(response);
+        }
+    
+    // X-USER-ID 헤더 누락 등 요청 자체가 잘못된 경우는 400으로 응답 (전역 예외 처리기 도입 전 임시 처리)
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<String> handleIllegalArgumentException(IllegalArgumentException e) {
+        return ResponseEntity.badRequest().body(e.getMessage());
+    }
+
+    // 존재하지 않는 사용자/상품 등 리소스를 찾을 수 없는 경우는 404로 응답 (전역 예외 처리기 도입 전 임시 처리)
+    @ExceptionHandler(ItemNotFoundException.class)
+    public ResponseEntity<String> handleItemNotFoundException(ItemNotFoundException e) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+    }
+
+     // 본인 상품이 아닌데 수정하려 하면 403으로 응답
+    @ExceptionHandler(ItemAccessDeniedException.class)
+    public ResponseEntity<String> handleItemAccessDeniedException(ItemAccessDeniedException e) {
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
+    }
+
+    // OPEN 상태가 아니거나 이미 입찰이 들어온 상품을 수정하려 하면 409(Conflict)로 응답
+    @ExceptionHandler(IllegalStateException.class)
+    public ResponseEntity<String> handleIllegalStateException(IllegalStateException e) {
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(e.getMessage());
+    }
 
 }

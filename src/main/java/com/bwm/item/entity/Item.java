@@ -170,7 +170,6 @@ public class Item {
         this.status = ItemStatus.UNSOLD;
     }
 
-    
     /**
      * 새로운 최고 입찰자와 현재가를 갱신함 
      *
@@ -201,6 +200,38 @@ public class Item {
 
         this.highestBidder = bidder;
         this.currentPrice = bidAmount;
+    }
+
+    /**
+     * 상품 정보를 수정한다. title/category/description 중 null이 아닌 값만 반영한다(PATCH 방식).
+     *
+     * 수정 가능 조건:
+     * - 경매가 OPEN 상태여야 함 (SOLD/UNSOLD/CANCELLED된 상품은 수정 불가)
+     * - 아직 입찰이 한 건도 없어야 함 (currentPrice가 startPrice와 같다는 건 입찰이 없다는 뜻)
+     *   입찰이 들어온 뒤 제목/설명이 바뀌면 입찰자가 보고 입찰한 상품 정보와 달라져서 혼란을 줄 수 있음
+     */
+    public void update(String title, String category, String description) {
+        if(this.status != ItemStatus.OPEN) {
+            throw new IllegalStateException("진행 중인 경매만 수정할 수 있습니다.");
+        }
+
+        if(!this.currentPrice.equals(this.startPrice)) {
+            throw new IllegalStateException("입찰이 시작된 상품은 수정할 수 없습니다.");
+        }
+
+        if(title != null) {
+            this.title = title;
+        }
+
+        if(category != null) {
+            this.category = category;
+        }
+
+        if(description != null) {
+            this.description = description;
+        }
+
+
     }
 
 }

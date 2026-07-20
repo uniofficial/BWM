@@ -5,6 +5,7 @@ import org.springframework.data.domain.Pageable;
 
 import com.bwm.item.dto.request.ItemCreateRequest;
 import com.bwm.item.dto.request.ItemSearchCondition;
+import com.bwm.item.dto.request.ItemUpdateRequest;
 import com.bwm.item.dto.response.ItemDetailResponse;
 import com.bwm.item.dto.response.ItemResponse;
 import com.bwm.item.dto.response.ItemSummaryResponse;
@@ -82,6 +83,13 @@ public interface ItemService {
      */
     Page<ItemSummaryResponse> getMyItems(Integer sellerId, Pageable pageable);
 
-
-
+    /**
+     * 상품 정보를 수정한다 (제목/카테고리/설명, 부분 수정).
+     *
+     * @param itemId 수정할 상품 id
+     * @param sellerId 요청자 id. 상품을 등록한 판매자 본인만 수정 가능
+     * @param request 수정할 값들 (PATCH이므로 null인 필드는 그대로 유지됨)
+     * @return 수정된 상품 정보
+     */
+    ItemResponse updateItem(Integer itemId, Integer sellerId, ItemUpdateRequest request);
 }
