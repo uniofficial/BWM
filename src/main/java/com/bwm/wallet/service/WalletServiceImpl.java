@@ -5,6 +5,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.bwm.item.entity.Item;
 import com.bwm.item.repository.ItemRepository;
+import com.bwm.user.entity.User;
+import com.bwm.user.repository.UserRepository;
 import com.bwm.wallet.dto.WalletResponseDto;
 import com.bwm.wallet.entity.Wallet;
 import com.bwm.wallet.entity.WalletHistory;
@@ -21,16 +23,31 @@ public class WalletServiceImpl implements WalletService {
     private final WalletRepository walletRepository;
     private final WalletHistoryRepository walletHistoryRepository;
     private final ItemRepository itemRepository;
+    private final UserRepository userRepository;
 
     @Override
-    public WalletResponseDto getMyWallet(Integer userId) {
-        Wallet wallet = walletRepository.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("해당 유저의 지갑을 찾을 수 없습니다."));
-        
+    public WalletResponseDto getMyWallet(String userEmail) {
+        User user = getUserByEmail(userEmail);
+        Wallet wallet = walletRepository.findById(user.getUserId())
+                .orElseGet(() -> { // 지갑이 없으면 신규 생성 후 저장
+                    Wallet newWallet = Wallet.builder()
+                            .user(user)
+                            .balance(0)
+                            .build();
+                    return walletRepository.save(newWallet);
+                });
         return new WalletResponseDto(wallet.getBalance());
     }
 
-    @Override
+    private User getUserByEmail(String email) {
+        if (email == null || email.isBlank()) {
+            throw new IllegalArgumentException("인증된 사용자 이메일이 없습니다.");
+        }
+        return userRepository.findByEmail(email)
+                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다. email=" + email));
+    }
+
+	@Override
     @Transactional
     public void chargeUserPoint(Integer userId, Integer amount) {
         Wallet wallet = walletRepository.findById(userId)
