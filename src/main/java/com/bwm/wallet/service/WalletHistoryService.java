@@ -9,5 +9,5 @@ import com.bwm.wallet.dto.WalletHistoryResponseDto;
 public interface WalletHistoryService {
     
     // 포인트 변동 내역 조회
-    List<WalletHistoryResponseDto> getMyHistory(Integer userId);
+	List<WalletHistoryResponseDto> getMyHistory(String userEmail);
 }

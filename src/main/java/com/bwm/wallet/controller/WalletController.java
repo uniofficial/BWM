@@ -3,6 +3,7 @@ package com.bwm.wallet.controller;
 import java.util.List;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -26,9 +27,10 @@ public class WalletController {
 	
 	@GetMapping("/me")
     public ResponseEntity<ResultDto<WalletResponseDto>> getMyWallet(
-            @RequestHeader("X-USER-ID") Integer userId 
+    		Authentication authentication 
     ) {
-        WalletResponseDto walletDto = walletService.getMyWallet(userId);
+		String userEmail = authentication.getName(); // 추가
+        WalletResponseDto walletDto = walletService.getMyWallet(userEmail);
         return ResponseEntity.ok(ResultDto.success(walletDto));
     }
 	
@@ -37,9 +39,10 @@ public class WalletController {
      */
 	@GetMapping("/me/histories")
     public ResponseEntity<ResultDto<List<WalletHistoryResponseDto>>>  getMyWalletHistories(
-            @RequestHeader("X-USER-ID") Integer userId 
+    		Authentication authentication
     ) {
-        List<WalletHistoryResponseDto> histories = walletHistoryService.getMyHistory(userId);
+		String userEmail = authentication.getName(); // 추가
+        List<WalletHistoryResponseDto> histories = walletHistoryService.getMyHistory(userEmail);
         return ResponseEntity.ok(ResultDto.success(histories));
     }
 }
