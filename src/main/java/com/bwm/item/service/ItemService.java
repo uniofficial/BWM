@@ -31,8 +31,7 @@ public interface ItemService {
      * 4) 저장된 엔티티를 ItemResponse로 변환해서 반환
      *
      * @param sellerId 판매자의 user_id.
-     *                 (인증 파트 연동 전이라 지금은 컨트롤러가 X-USER-ID 헤더에서 꺼내 넘겨줌.
-     *                  인증 완료되면 로그인한 사용자의 id가 자동으로 여기 들어오게 바뀔 예정)
+     *                 (컨트롤러가 JWT 인증 정보에서 조회한 로그인 사용자의 id를 넘겨줌)
      * @param request  상품 등록 요청 값 (제목/카테고리/시작가/마감시각/설명)
      * @return 등록된 상품 정보 (itemId 포함 - DB에 저장된 후의 결과)
      */
@@ -77,7 +76,7 @@ public interface ItemService {
     /**
      * 특정 판매자(=로그인한 나)가 등록한 상품 목록을 페이지 단위로 조회한다.
      *
-     * @param sellerId 조회할 판매자 id (X-USER-ID 헤더에서 꺼낸 값)
+     * @param sellerId 조회할 판매자 id (JWT 인증 정보에서 꺼낸 값)
      * @param pageable 페이지 번호/크기/정렬 조건
      * @return 그 판매자가 등록한 상품 목록 (요약 정보만 포함)
      */

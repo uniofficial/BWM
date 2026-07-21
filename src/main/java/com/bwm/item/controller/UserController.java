@@ -38,9 +38,8 @@ public class UserController {
     /**
      * 내가 등록한 상품 조회 API.
      *
-     * @param userIdHeader 요청자 user_id.
-     *        [임시 처리 - 인증 파트 미완성 상태] ItemController와 동일하게 X-USER-ID 헤더로 받는다.
-     *        TODO: 인증 파트 완성되면 SecurityContext에서 로그인한 사용자 id를 꺼내는 방식으로 교체할 것.
+     * @param authentication JWT 인증 정보. SecurityContext에서 로그인한 사용자의 email(subject)을 꺼내
+     *        UserRepository로 user_id를 조회한다.
      * @param pageable 페이지 조건 (기본값: 페이지당 20개, 등록 최신순)
      * @return 200 OK + 내가 등록한 상품 목록
      */
@@ -61,7 +60,7 @@ public class UserController {
     }
     
 
-    // X-USER-ID 헤더 누락 등 요청 자체가 잘못된 경우는 400으로 응답
+    // 잘못된 요청(존재하지 않는 인증 사용자 등)은 400으로 응답
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<String> handleIllegalArgumaentException(IllegalArgumentException e) {
         return ResponseEntity.badRequest().body(e.getMessage());
@@ -74,8 +73,7 @@ public class UserController {
      * 여기서는 새로 로직을 짜지 않고 AuctionService.getMySoldAuctions()를 그대로 재사용한다.
      * 스펙 명세서에 정의된 URL(/api/users/me/sales)로도 접근 가능하게 하기 위한 얇은 위임(delegate) 엔드포인트.
      *
-     * @param userIdHeader 요청자 user_id (X-USER-ID 헤더, 임시 인증 방식)
-     *       
+     * @param authentication JWT 인증 정보 (로그인한 사용자)
      */
     @GetMapping("/sales")
     public ResponseEntity<List<SoldAuctionResponse>> getMySales(
