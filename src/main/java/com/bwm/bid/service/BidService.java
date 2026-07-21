@@ -75,7 +75,7 @@ public class BidService {
          * JWT subject에서 가져온 이메일로
          * 로그인 사용자 엔티티를 조회합니다.
          */
-        User bidder = getUserByEmail(bidderEmail);
+        User bidder = getUserByUuid(bidderEmail);
         Integer bidderId = bidder.getUserId();
 
         validateOpenStatus(item);
@@ -179,7 +179,7 @@ public class BidService {
     public List<MyBidHistoryResponse> getMyBidHistory(
             String userEmail
     ) {
-        User user = getUserByEmail(userEmail);
+        User user = getUserByUuid(userEmail);
         Integer userId = user.getUserId();
 
         return bidRepository
@@ -199,19 +199,15 @@ public class BidService {
      * JWT subject에는 로그인 사용자의 이메일이 저장되어 있으므로
      * SecurityContext에서 얻은 이메일을 이 메서드에 전달합니다.
      */
-    private User getUserByEmail(String email) {
-        if (email == null || email.isBlank()) {
-            throw new IllegalArgumentException(
-                    "인증된 사용자 이메일이 없습니다."
-            );
+    private User getUserByUuid(String uuid) {
+        if (uuid == null || uuid.isBlank()) {
+            throw new IllegalArgumentException("인증된 사용자 식별자가 없습니다.");
         }
 
-        return userRepository.findByEmail(email)
-                .orElseThrow(() ->
-                        new IllegalArgumentException(
-                                "사용자를 찾을 수 없습니다. email="
-                                        + email
-                        ));
+        return userRepository.findByUserUuid(uuid)
+                .orElseThrow(() -> new IllegalArgumentException(
+                        "사용자를 찾을 수 없습니다. uuid="
+                                + uuid));
     }
 
     /**

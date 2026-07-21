@@ -53,7 +53,7 @@ public class ItemServiceImpl implements ItemService {
     public ItemResponse createItem(String sellerEmail, ItemCreateRequest request){
 
         // #1. 판매자 조회 - JWT 인증 정보의 이메일로 로그인 사용자를 조회
-        User seller = getUserByEmail(sellerEmail);
+        User seller = getUserByUuid(sellerEmail);
 
         // #2. Item 엔티티 생성
         Item item = Item.create(
@@ -118,7 +118,7 @@ public class ItemServiceImpl implements ItemService {
     @Transactional(readOnly = true)
     public Page<ItemSummaryResponse> getMyItems(String sellerEmail, Pageable pageable) {
         // getItems(전체 목록)와 거의 같은 흐름인데, seller_id 조건만 하나 더 걸려있는 버전
-        Integer sellerId = getUserByEmail(sellerEmail).getUserId();
+        Integer sellerId = getUserByUuid(sellerEmail).getUserId();
         return itemRepository.findAllBySeller_UserId(sellerId, pageable).map(ItemSummaryResponse::from);
     }
 
@@ -130,7 +130,7 @@ public class ItemServiceImpl implements ItemService {
                                   .orElseThrow(() -> new ItemNotFoundException("존재하지 않는 상품입니다. id = " + itemId));
 
         // #2. 권한 체크 - 본인이 등록한 상품만 수정 가능
-        Integer sellerId = getUserByEmail(sellerEmail).getUserId();
+        Integer sellerId = getUserByUuid(sellerEmail).getUserId();
         if(!item.getSeller().getUserId().equals(sellerId)) {
             throw new ItemAccessDeniedException("본인이 등록한 상품만 수정할 수 있습니다.");
         }
@@ -154,7 +154,7 @@ public class ItemServiceImpl implements ItemService {
                                   .orElseThrow(() -> new ItemNotFoundException("존재하지 않는 상품입니다. id = " + itemId));
 
         // #2. 권한 체크 - 본인이 등록한 상품만 취소 가능
-        Integer sellerId = getUserByEmail(sellerEmail).getUserId();
+        Integer sellerId = getUserByUuid(sellerEmail).getUserId();
         if (!item.getSeller().getUserId().equals(sellerId)) {
             throw new ItemAccessDeniedException("본인이 등록한 상품만 취소할 수 있습니다.");
         }
@@ -172,13 +172,13 @@ public class ItemServiceImpl implements ItemService {
      * JWT subject에는 로그인 사용자의 이메일이 저장되어 있으므로
      * SecurityContext에서 얻은 이메일을 이 메서드에 전달한다.
      */
-    private User getUserByEmail(String email) {
-        if (email == null || email.isBlank()) {
-            throw new IllegalArgumentException("인증된 사용자 이메일이 없습니다.");
+    private User getUserByUuid(String uuid) {
+        if (uuid == null || uuid.isBlank()) {
+            throw new IllegalArgumentException("인증된 사용자 식별자가 없습니다.");
         }
 
-        return userRepository.findByEmail(email)
-                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다. email=" + email));
+        return userRepository.findByUserUuid(uuid)
+                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다. uuid=" + uuid));
     }
 
 }

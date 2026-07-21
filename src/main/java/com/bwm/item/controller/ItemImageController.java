@@ -49,8 +49,7 @@ public class ItemImageController {
     public ResponseEntity<List<ItemImageResponse>> uploadImages(
         Authentication authentication,
 
-        @PathVariable
-        Integer itemId,
+        @PathVariable("itemId") Integer itemId,
 
         @RequestParam("images")
         List<MultipartFile> images,

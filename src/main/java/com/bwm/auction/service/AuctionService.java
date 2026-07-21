@@ -58,7 +58,7 @@ public class AuctionService {
                 .orElseThrow(() ->
                         new ItemNotFoundException(itemId));
 
-        User requester = getUserByEmail(requesterEmail);
+        User requester = getUserByUuid(requesterEmail);
         Integer requesterId = requester.getUserId();
 
         validateSeller(item, requesterId);
@@ -83,7 +83,7 @@ public class AuctionService {
     public List<WinningAuctionResponse> getMyWinningAuctions(
             String userEmail
     ) {
-        User user = getUserByEmail(userEmail);
+        User user = getUserByUuid(userEmail);
         Integer userId = user.getUserId();
 
         return itemRepository
@@ -109,7 +109,7 @@ public class AuctionService {
     public List<SoldAuctionResponse> getMySoldAuctions(
             String userEmail
     ) {
-        User user = getUserByEmail(userEmail);
+        User user = getUserByUuid(userEmail);
         Integer userId = user.getUserId();
 
         return itemRepository
@@ -165,19 +165,15 @@ public class AuctionService {
     /**
      * JWT subject의 이메일을 기준으로 로그인 사용자 엔티티를 조회합니다.
      */
-    private User getUserByEmail(String email) {
-        if (email == null || email.isBlank()) {
-            throw new IllegalArgumentException(
-                    "인증된 사용자 이메일이 없습니다."
-            );
+    private User getUserByUuid(String uuid) {
+        if (uuid == null || uuid.isBlank()) {
+            throw new IllegalArgumentException("인증된 사용자 식별자가 없습니다.");
         }
 
-        return userRepository.findByEmail(email)
-                .orElseThrow(() ->
-                        new IllegalArgumentException(
-                                "사용자를 찾을 수 없습니다. email="
-                                        + email
-                        ));
+        return userRepository.findByUserUuid(uuid)
+                .orElseThrow(() -> new IllegalArgumentException(
+                        "사용자를 찾을 수 없습니다. uuid="
+                                + uuid));
     }
 
     /**

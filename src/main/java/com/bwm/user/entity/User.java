@@ -19,6 +19,9 @@ public class User {
     @Column(name = "user_id")
     private Integer userId;
 
+    @Column(name = "user_uuid", nullable = false, unique = true, length = 36)
+    private String userUuid;
+
     @Column(name = "email", nullable = false, unique = true, length = 100)
     private String email;
 
@@ -36,4 +39,11 @@ public class User {
     )
     @Builder.Default
     private Set<UserRole> roles = new HashSet<>();
+
+    @PrePersist
+    public void generateUuid() {
+        if (this.userUuid == null) {
+            this.userUuid = java.util.UUID.randomUUID().toString();
+        }
+    }
 }

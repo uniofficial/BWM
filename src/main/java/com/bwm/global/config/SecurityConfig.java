@@ -39,8 +39,7 @@ public class SecurityConfig {
 
                 .httpBasic(AbstractHttpConfigurer::disable)
 
-                .sessionManagement(session ->
-                        session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 
                 .exceptionHandling(exception -> exception
                         .authenticationEntryPoint(authenticationEntryPoint)
@@ -50,19 +49,20 @@ public class SecurityConfig {
 
                         .requestMatchers(
                                 "/api/auth/login",
-                                "/api/auth/signup"
-                        ).permitAll()
+                                "/api/auth/signup", "/api/auth/reissue")
+                        .permitAll()
 
                         .requestMatchers(
                                 "/swagger-ui.html",
                                 "/swagger-ui/**",
-                                "/v3/api-docs/**"
-                        ).permitAll()
+                                "/v3/api-docs/**",
+                                "/swagger-ui/index.html")
+                        .permitAll()
 
                         .requestMatchers(
                                 "/images/**",
-                                "/error"
-                        ).permitAll()
+                                "/error")
+                        .permitAll()
 
                         // 관리자 전용
                         .requestMatchers("/api/admin/**")
@@ -71,11 +71,11 @@ public class SecurityConfig {
                         // 나머지는 로그인 필요
                         .anyRequest()
                         .authenticated())
+                // .permitAll())
 
                 .addFilterBefore(
                         jwtAuthenticationFilter,
-                        UsernamePasswordAuthenticationFilter.class
-                );
+                        UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }

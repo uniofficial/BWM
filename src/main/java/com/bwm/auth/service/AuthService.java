@@ -3,11 +3,12 @@ package com.bwm.auth.service;
 import com.bwm.auth.dto.LoginRequest;
 import com.bwm.auth.dto.LoginResult;
 import com.bwm.auth.dto.SignupRequest;
+import com.bwm.auth.entity.RefreshToken;
+import com.bwm.auth.repository.RefreshTokenRepository;
 import com.bwm.global.config.security.JwtProvider;
 import com.bwm.user.entity.User;
 import com.bwm.user.entity.UserRole;
 import com.bwm.user.repository.UserRepository;
-import com.bwm.user.repository.UserRoleRepository;
 import com.bwm.user.repository.UserRoleRepository;
 import lombok.RequiredArgsConstructor;
 
@@ -29,6 +30,7 @@ public class AuthService {
     private final UserRoleRepository userRoleRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtProvider jwtProvider;
+    private final RefreshTokenRepository refreshTokenRepository;
 
     @Transactional
     public void signup(SignupRequest request) {
@@ -54,6 +56,7 @@ public class AuthService {
         userRepository.save(user);
     }
 
+    @Transactional
     public LoginResult login(LoginRequest request) {
         User user = userRepository.findByEmail(request.getEmail())
                 .orElseThrow(() -> new IllegalArgumentException("이메일 또는 비밀번호가 일치하지 않습니다."));
@@ -65,25 +68,85 @@ public class AuthService {
 
         String roleStr = user.getRoles().stream()
                 .map(UserRole::getUserRole)
-                .findFirst()
-                .orElse("USER");
+                .collect(java.util.stream.Collectors.joining(","));
+        if (roleStr.isEmpty()) {
+            roleStr = "USER"; // 기본 권한 방어 코드
+        }
 
-        // 실제 JWT Token 발급
-        String accessToken = jwtProvider.generateAccessToken(user.getEmail(), roleStr);
-        String refreshToken = jwtProvider.generateRefreshToken();
+        // JTI 직접 생성 및 DB 먼저 저장 (트랜잭션 관점 최적화)
+        String jti = java.util.UUID.randomUUID().toString();
+        long nowMillis = System.currentTimeMillis(); // 생성 시간 완벽 동기화용
+        
+        RefreshToken refreshTokenEntity = RefreshToken.builder()
+                .jti(jti)
+                .userId(user.getUserId())
+                .validityDuration(jwtProvider.getRefreshExpiration())
+                .nowMillis(nowMillis)
+                .build();
+                
+        refreshTokenRepository.save(refreshTokenEntity);
+
+        // 실제 JWT Token 발급 (DB 저장 성공 시에만 연산 수행)
+        String accessToken = jwtProvider.generateAccessToken(user.getUserUuid(), roleStr, nowMillis);
+        String refreshToken = jwtProvider.generateRefreshToken(jti, nowMillis);
 
         return LoginResult.builder()
                 .accessToken(accessToken)
-                .refreshToken(refreshToken)
+                .refreshToken(refreshToken) // 클라이언트에게는 토큰 자체를 줌
                 .nickname(user.getNickname())
                 .role(roleStr)
                 .build();
     }
-    // @Override
-    // public Collection<? extends GrantedAuthority> getAuthorities() {
-    // return user.getRoles().stream()
-    // .map(userRole -> new SimpleGrantedAuthority("ROLE_" +
-    // userRole.getUserRole()))
-    // .collect(Collectors.toList());
-    // }
+
+    @Transactional
+    public LoginResult reissue(String refreshToken) {
+        // 1. Refresh Token 검증
+        if (!jwtProvider.validateToken(refreshToken)) {
+            throw new IllegalArgumentException("유효하지 않거나 만료된 Refresh Token 입니다. 다시 로그인해주세요.");
+        }
+
+        // 2. Refresh Token에서 JTI 추출
+        String jti = jwtProvider.getJtiFromToken(refreshToken);
+
+        // 3. DB에서 JTI 값으로 저장된 토큰 정보 찾기
+        RefreshToken tokenEntity = refreshTokenRepository.findById(jti)
+                .orElseThrow(() -> new IllegalArgumentException("DB에 존재하지 않는 갱신 토큰(JTI)입니다. 다시 로그인해주세요."));
+
+        // 4. 해당 ID로 유저 정보 조회
+        User user = userRepository.findById(tokenEntity.getUserId())
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 유저입니다."));
+
+        String roleStr = user.getRoles().stream()
+                .map(UserRole::getUserRole)
+                .collect(java.util.stream.Collectors.joining(","));
+        if (roleStr.isEmpty()) {
+            roleStr = "USER";
+        }
+
+        // 5. RTR (Refresh Token Rotation): 사용된 기존 토큰(JTI) 폐기
+        refreshTokenRepository.delete(tokenEntity);
+
+        // 6. 새 JTI 생성 및 DB 먼저 저장
+        String newJti = java.util.UUID.randomUUID().toString();
+        long nowMillis = System.currentTimeMillis(); // 생성 시간 완벽 동기화용
+        
+        RefreshToken newRefreshTokenEntity = RefreshToken.builder()
+                .jti(newJti)
+                .userId(user.getUserId())
+                .validityDuration(jwtProvider.getRefreshExpiration())
+                .nowMillis(nowMillis)
+                .build();
+        refreshTokenRepository.save(newRefreshTokenEntity);
+
+        // 7. 새로운 Access Token 및 Refresh Token 발급 (DB 저장 성공 시에만)
+        String newAccessToken = jwtProvider.generateAccessToken(user.getUserUuid(), roleStr, nowMillis);
+        String newRefreshToken = jwtProvider.generateRefreshToken(newJti, nowMillis);
+
+        return LoginResult.builder()
+                .accessToken(newAccessToken)
+                .refreshToken(newRefreshToken)
+                .nickname(user.getNickname())
+                .role(roleStr)
+                .build();
+    }
 }

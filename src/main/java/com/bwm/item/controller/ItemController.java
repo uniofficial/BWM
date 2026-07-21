@@ -79,7 +79,7 @@ public class ItemController {
      * @return 200 OK + 상품 상세 정보. 존재하지 않으면 404 (기존 ItemNotFoundException 핸들러가 처리)
      */
     @GetMapping("/{itemId}")
-    public ResponseEntity<ItemDetailResponse> getItem(@PathVariable Integer itemId){
+    public ResponseEntity<ItemDetailResponse> getItem(@PathVariable("itemId") Integer itemId){
         // 권한 체크가 없는 조회성 API라 Controller가 하는 일은 파라미터 받아서 Service 호출하고
         // 결과를 200으로 감싸는 것뿐 (createItem처럼 헤더 검증하는 코드가 없음)
         ItemDetailResponse response = itemService.getItem(itemId);
@@ -124,8 +124,7 @@ public class ItemController {
     public ResponseEntity<ItemResponse> updateItem(
         Authentication authentication,
         
-        @PathVariable
-        Integer itemId,
+        @PathVariable("itemId") Integer itemId,
 
         @Valid
         @RequestBody
@@ -146,9 +145,7 @@ public class ItemController {
     public ResponseEntity<ItemResponse> cancelItem(
         Authentication authentication,
     
-        @PathVariable
-        Integer itemId )
-        {
+        @PathVariable("itemId") Integer itemId) {
             ItemResponse response = itemService.cancelItem(itemId, authentication.getName());
 
             return ResponseEntity.ok(response);

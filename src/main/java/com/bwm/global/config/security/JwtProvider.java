@@ -6,7 +6,6 @@ import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.MalformedJwtException;
 import io.jsonwebtoken.UnsupportedJwtException;
-import io.jsonwebtoken.security.Keys;
 import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -17,6 +16,7 @@ import org.springframework.security.core.userdetails.User;
 import org.springframework.stereotype.Component;
 
 import javax.crypto.SecretKey;
+import javax.crypto.spec.SecretKeySpec;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Date;
@@ -39,35 +39,42 @@ public class JwtProvider {
 
     @PostConstruct
     public void init() {
-        this.key = Keys.hmacShaKeyFor(
-                secret.getBytes(StandardCharsets.UTF_8)
-        );
+        this.key = new SecretKeySpec(
+                secret.getBytes(StandardCharsets.UTF_8), Jwts.SIG.HS256.key().build().getAlgorithm());
     }
 
-    public String generateAccessToken(String email, String role) {
-        long now = System.currentTimeMillis();
-        Date issuedAt = new Date(now);
-        Date expiration = new Date(now + accessExpiration);
+    public String generateAccessToken(String userUuid, String role, long nowMillis) {
+        Date validity = new Date(nowMillis + this.accessExpiration);
 
         return Jwts.builder()
-                .subject(email)
+                .subject(userUuid)
                 .claim("auth", role)
-                .issuedAt(issuedAt)
-                .expiration(expiration)
+                .expiration(validity)
                 .signWith(key)
                 .compact();
     }
 
-    public String generateRefreshToken() {
-        long now = System.currentTimeMillis();
-        Date issuedAt = new Date(now);
-        Date expiration = new Date(now + refreshExpiration);
+    public String generateRefreshToken(String jti, long nowMillis) {
+        Date validity = new Date(nowMillis + this.refreshExpiration);
 
         return Jwts.builder()
-                .issuedAt(issuedAt)
-                .expiration(expiration)
+                .id(jti) // 외부에서 주입받은 JTI 사용
+                .expiration(validity)
                 .signWith(key)
                 .compact();
+    }
+
+    public long getRefreshExpiration() {
+        return this.refreshExpiration;
+    }
+
+    public String getJtiFromToken(String token) {
+        return Jwts.parser()
+                .verifyWith(key)
+                .build()
+                .parseSignedClaims(token)
+                .getPayload()
+                .getId();
     }
 
     public Authentication getAuthentication(String token) {

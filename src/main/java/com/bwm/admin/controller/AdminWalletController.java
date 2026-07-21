@@ -1,6 +1,7 @@
 package com.bwm.admin.controller;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -19,14 +20,18 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class AdminWalletController {
 	private final WalletService walletService;
-	
+
 	@PostMapping("/{userId}/wallet/charge")
 	public ResponseEntity<ResultDto<Void>> chargeUserPoint(
-			@PathVariable Integer userId,
-			@RequestBody @Valid PointChargeRequestDto requestDto
-	) {
+			@PathVariable("userId") Integer userId,
+			@RequestBody @Valid PointChargeRequestDto requestDto) {
 		walletService.chargeUserPoint(userId, requestDto.getAmount());
-		
+
 		return ResponseEntity.ok(ResultDto.success(null));
+	}
+
+	@GetMapping("/user-list")
+	public ResponseEntity<ResultDto<String>> getUserList() {
+		return ResponseEntity.ok(ResultDto.success("ADMIN"));
 	}
 }

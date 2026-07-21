@@ -64,7 +64,7 @@ public class ItemImageServiceImpl implements ItemImageService{
     
 
         // #3. 권한 체크 - 상품을 등록한 판매자 본인만 이미지 추가 가능
-        Integer sellerId = getUserByEmail(sellerEmail).getUserId();
+        Integer sellerId = getUserByUuid(sellerEmail).getUserId();
         if(!item.getSeller().getUserId().equals(sellerId)) {
             throw new ItemAccessDeniedException("본인이 등록한 상품에만 이미지를 추가할 수 있습니다.");
         }
@@ -133,12 +133,12 @@ public class ItemImageServiceImpl implements ItemImageService{
      * JWT subject에는 로그인 사용자의 이메일이 저장되어 있으므로
      * SecurityContext에서 얻은 이메일을 이 메서드에 전달한다.
      */
-    private User getUserByEmail(String email) {
-        if (email == null || email.isBlank()) {
-            throw new IllegalArgumentException("인증된 사용자 이메일이 없습니다.");
+    private User getUserByUuid(String uuid) {
+        if (uuid == null || uuid.isBlank()) {
+            throw new IllegalArgumentException("인증된 사용자 식별자가 없습니다.");
         }
 
-        return userRepository.findByEmail(email)
-                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다. email=" + email));
+        return userRepository.findByUserUuid(uuid)
+                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다. uuid=" + uuid));
     }
 }

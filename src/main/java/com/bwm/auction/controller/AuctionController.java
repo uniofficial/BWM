@@ -39,7 +39,7 @@ public class AuctionController {
      */
     @PostMapping("/api/items/{itemId}/close")
     public ResponseEntity<AuctionCloseResponse> closeAuction(
-            @PathVariable Integer itemId,
+            @PathVariable("itemId") Integer itemId,
             Authentication authentication
     ) {
         String requesterEmail = authentication.getName();
