@@ -5,7 +5,7 @@ import com.bwm.wallet.dto.WalletResponseDto;
 public interface WalletService {
     
     // 사용자의 현재 잔액을 조회
-    WalletResponseDto getMyWallet(Integer userId);
+    WalletResponseDto getMyWallet(String userEmail);
     
     // 사용자 포인트 충전
     void chargeUserPoint(Integer userId, Integer amount);
