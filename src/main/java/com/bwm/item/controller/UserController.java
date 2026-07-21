@@ -7,8 +7,6 @@ import com.bwm.auction.dto.SoldAuctionResponse;
 import com.bwm.auction.service.AuctionService;
 import com.bwm.item.dto.response.ItemSummaryResponse;
 import com.bwm.item.service.ItemService;
-import com.bwm.user.entity.User;
-import com.bwm.user.repository.UserRepository;
 
 import lombok.RequiredArgsConstructor;
 
@@ -34,12 +32,11 @@ import org.springframework.data.domain.Sort;
 public class UserController {
     private final ItemService itemService;
     private final AuctionService auctionService;
-    private final UserRepository userRepository;
     /**
      * 내가 등록한 상품 조회 API.
      *
-     * @param authentication JWT 인증 정보. SecurityContext에서 로그인한 사용자의 email(subject)을 꺼내
-     *        UserRepository로 user_id를 조회한다.
+     * @param authentication JWT 인증 정보. email(subject)을 그대로 서비스에 넘기면
+     *        서비스가 내부에서 로그인 사용자를 조회한다.
      * @param pageable 페이지 조건 (기본값: 페이지당 20개, 등록 최신순)
      * @return 200 OK + 내가 등록한 상품 목록
      */
@@ -47,18 +44,9 @@ public class UserController {
     public ResponseEntity<Page<ItemSummaryResponse>> getMyItems(
         Authentication authentication,
         @PageableDefault(size = 20, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
-            Integer userId = resolveUserId(authentication);
-            Page<ItemSummaryResponse> response = itemService.getMyItems(userId, pageable);
+            Page<ItemSummaryResponse> response = itemService.getMyItems(authentication.getName(), pageable);
             return ResponseEntity.ok(response);
         }
-
-    // JWT 인증 정보(email)로 로그인한 사용자의 user_id를 조회한다.
-    private Integer resolveUserId(Authentication authentication) {
-        return userRepository.findByEmail(authentication.getName())
-                             .map(User::getUserId)
-                             .orElseThrow(() -> new IllegalArgumentException("인증된 사용자를 찾을 수 없습니다."));
-    }
-    
 
     // 잘못된 요청(존재하지 않는 인증 사용자 등)은 400으로 응답
     @ExceptionHandler(IllegalArgumentException.class)
@@ -78,10 +66,8 @@ public class UserController {
     @GetMapping("/sales")
     public ResponseEntity<List<SoldAuctionResponse>> getMySales(
         Authentication authentication) {
-        
-            Integer userId = resolveUserId(authentication);
 
-            List<SoldAuctionResponse> response = auctionService.getMySoldAuctions(userId);
+            List<SoldAuctionResponse> response = auctionService.getMySoldAuctions(authentication.getName());
             return ResponseEntity.ok(response);
 
         }

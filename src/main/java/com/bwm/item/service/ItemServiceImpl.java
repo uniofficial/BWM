@@ -43,18 +43,17 @@ import org.springframework.transaction.annotation.Transactional;
 public class ItemServiceImpl implements ItemService {
 
     private final ItemRepository itemRepository;
-    private final UserRepository userRepository; // TODO: 인증 파트에서 만든 Repository로 교체
+    private final UserRepository userRepository;
     private final ItemImageRepository itemImageRepository;
     private final BidService bidService;
 
 
     @Override
     @Transactional
-    public ItemResponse createItem(Integer sellerId, ItemCreateRequest request){
+    public ItemResponse createItem(String sellerEmail, ItemCreateRequest request){
 
-        // #1. 판매자 조회 - 존재하지 않는 유저 id가 넘어오면 예외 발생 (404)
-        User seller = userRepository.findById(sellerId)
-                .orElseThrow(() -> new ItemNotFoundException("존재하지 않는 사용자입니다. id = " + sellerId));
+        // #1. 판매자 조회 - JWT 인증 정보의 이메일로 로그인 사용자를 조회
+        User seller = getUserByEmail(sellerEmail);
 
         // #2. Item 엔티티 생성
         Item item = Item.create(
@@ -117,19 +116,21 @@ public class ItemServiceImpl implements ItemService {
 
     @Override
     @Transactional(readOnly = true)
-    public Page<ItemSummaryResponse> getMyItems(Integer sellerId, Pageable pageable) {
+    public Page<ItemSummaryResponse> getMyItems(String sellerEmail, Pageable pageable) {
         // getItems(전체 목록)와 거의 같은 흐름인데, seller_id 조건만 하나 더 걸려있는 버전
+        Integer sellerId = getUserByEmail(sellerEmail).getUserId();
         return itemRepository.findAllBySeller_UserId(sellerId, pageable).map(ItemSummaryResponse::from);
     }
 
     @Override
     @Transactional
-    public ItemResponse updateItem(Integer itemId, Integer sellerId, ItemUpdateRequest request){
+    public ItemResponse updateItem(Integer itemId, String sellerEmail, ItemUpdateRequest request){
         // #1. 상품 조회 - 존재하지 않는 itemId면 제외
         Item item = itemRepository.findById(itemId)
                                   .orElseThrow(() -> new ItemNotFoundException("존재하지 않는 상품입니다. id = " + itemId));
 
         // #2. 권한 체크 - 본인이 등록한 상품만 수정 가능
+        Integer sellerId = getUserByEmail(sellerEmail).getUserId();
         if(!item.getSeller().getUserId().equals(sellerId)) {
             throw new ItemAccessDeniedException("본인이 등록한 상품만 수정할 수 있습니다.");
         }
@@ -144,7 +145,7 @@ public class ItemServiceImpl implements ItemService {
 
     @Override
     @Transactional
-    public ItemResponse cancelItem(Integer itemId, Integer sellerId) {
+    public ItemResponse cancelItem(Integer itemId, String sellerEmail) {
 
         // #1. 상품 조회 - 존재하지 않는 itemId면 예외
         // findByIdForUpdate로 비관적 락을 걸어서, 취소 처리 중에 동시에 입찰이 들어와
@@ -153,6 +154,7 @@ public class ItemServiceImpl implements ItemService {
                                   .orElseThrow(() -> new ItemNotFoundException("존재하지 않는 상품입니다. id = " + itemId));
 
         // #2. 권한 체크 - 본인이 등록한 상품만 취소 가능
+        Integer sellerId = getUserByEmail(sellerEmail).getUserId();
         if (!item.getSeller().getUserId().equals(sellerId)) {
             throw new ItemAccessDeniedException("본인이 등록한 상품만 취소할 수 있습니다.");
         }
@@ -162,6 +164,21 @@ public class ItemServiceImpl implements ItemService {
 
         // #4. save() 호출 안 해도 됨 - 영속 상태 엔티티라 커밋 시점에 JPA가 변경 감지해서 자동 UPDATE
         return ItemResponse.from(item);
+    }
+
+    /**
+     * 이메일을 기준으로 로그인 사용자 엔티티를 조회한다.
+     *
+     * JWT subject에는 로그인 사용자의 이메일이 저장되어 있으므로
+     * SecurityContext에서 얻은 이메일을 이 메서드에 전달한다.
+     */
+    private User getUserByEmail(String email) {
+        if (email == null || email.isBlank()) {
+            throw new IllegalArgumentException("인증된 사용자 이메일이 없습니다.");
+        }
+
+        return userRepository.findByEmail(email)
+                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다. email=" + email));
     }
 
 }

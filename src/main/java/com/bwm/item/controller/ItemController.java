@@ -9,8 +9,6 @@ import com.bwm.item.dto.response.ItemSummaryResponse;
 import com.bwm.item.exception.ItemAccessDeniedException;
 import com.bwm.item.exception.ItemNotFoundException;
 import com.bwm.item.service.ItemService;
-import com.bwm.user.entity.User;
-import com.bwm.user.repository.UserRepository;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -33,13 +31,12 @@ import org.springframework.web.bind.annotation.*;
 @RequiredArgsConstructor
 public class ItemController {
 
-    private final UserRepository userRepository;
     private final ItemService itemService;
     /**
      * 상품 등록 API.
      *
-     * @param authentication JWT 인증 정보. SecurityContext에서 로그인한 판매자의 email(subject)을 꺼내
-     *        UserRepository로 user_id를 조회한다.
+     * @param authentication JWT 인증 정보. email(subject)을 그대로 서비스에 넘기면
+     *        서비스가 내부에서 로그인 사용자를 조회한다.
      * @param request 상품 등록 요청 값. @Valid가 ItemCreateRequest에 붙은 검증 애너테이션들
      *                (@NotBlank, @Positive, @Future 등)을 자동으로 검사하고,
      *                실패 시 400 Bad Request를 응답한다 (별도 try-catch 필요 없음).
@@ -51,9 +48,7 @@ public class ItemController {
         Authentication authentication,
         @Valid @RequestBody ItemCreateRequest request) {
 
-        Integer sellerId = resolveUserId(authentication);
-
-        ItemResponse response = itemService.createItem(sellerId, request);
+        ItemResponse response = itemService.createItem(authentication.getName(), request);
 
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
         }
@@ -136,8 +131,7 @@ public class ItemController {
         @RequestBody
         ItemUpdateRequest request
         ){
-            Integer sellerId = resolveUserId(authentication);
-            ItemResponse response = itemService.updateItem(itemId, sellerId, request);
+            ItemResponse response = itemService.updateItem(itemId, authentication.getName(), request);
             return ResponseEntity.ok(response);
         }
 
@@ -153,19 +147,11 @@ public class ItemController {
         Authentication authentication,
     
         @PathVariable
-        Integer itemId ) 
+        Integer itemId )
         {
-            Integer sellerId = resolveUserId(authentication);
-
-            ItemResponse response = itemService.cancelItem(itemId, sellerId);
+            ItemResponse response = itemService.cancelItem(itemId, authentication.getName());
 
             return ResponseEntity.ok(response);
-    }
-
-    private Integer resolveUserId(Authentication authentication) {
-        return userRepository.findByEmail(authentication.getName())
-                             .map(User::getUserId)
-                             .orElseThrow(() -> new IllegalArgumentException("인증된 사용자를 찾을 수 없습니다."));
     }
 
     // 요청 자체가 잘못된 경우는 400으로 응답 (전역 예외 처리기 도입 전 임시 처리)
