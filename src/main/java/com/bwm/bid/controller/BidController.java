@@ -3,6 +3,7 @@ package com.bwm.bid.controller;
 import java.util.List;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -35,23 +36,28 @@ public class BidController {
      *
      * POST /api/items/{itemId}/bids
      *
+     * JWT 인증 정보에서 로그인 사용자의 이메일을 추출한 뒤,
+     * 해당 사용자를 입찰자로 사용합니다.
+     *
      * @param itemId 입찰 대상 상품 ID
      * @param request 입찰 요청 정보
+     * @param authentication Spring Security 인증 정보
      * @return 등록된 입찰 정보
      */
     @PostMapping("/{itemId}/bids")
     public ResponseEntity<BidResponse> createBid(
             @PathVariable Integer itemId,
-            @Valid @RequestBody BidCreateRequest request
+            @Valid @RequestBody BidCreateRequest request,
+            Authentication authentication
     ) {
-        /*
-         * TODO
-         * Spring Security 연동 후 로그인 사용자의 ID로 교체합니다.
-         */
-        Integer bidderId = 1;
+        String bidderEmail = authentication.getName();
 
         BidResponse response =
-                bidService.createBid(itemId, bidderId, request);
+                bidService.createBid(
+                        itemId,
+                        bidderEmail,
+                        request
+                );
 
         return ResponseEntity.ok(response);
     }
@@ -60,7 +66,7 @@ public class BidController {
      * 특정 상품의 전체 입찰 내역을 최신 입찰순으로 조회
      *
      * 사용자 ID나 이메일은 반환하지 않고
-     * 입찰자 닉네임만 반환함 
+     * 입찰자 닉네임만 반환합니다.
      *
      * GET /api/items/{itemId}/bids
      *

@@ -3,9 +3,8 @@ package com.bwm.bid.controller;
 import java.util.List;
 
 import org.springframework.http.ResponseEntity;
-import org.springframework.validation.annotation.Validated;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -15,12 +14,11 @@ import com.bwm.bid.service.BidService;
 import lombok.RequiredArgsConstructor;
 
 /**
- * 로그인 사용자의 입찰 관련 API를 처리하는 컨트롤러 
+ * 로그인 사용자의 입찰 관련 API를 처리하는 컨트롤러
  */
 @RestController
-@RequestMapping("/api/bids")
+@RequestMapping("/api/users/me")
 @RequiredArgsConstructor
-@Validated
 public class MyBidController {
 
     private final BidService bidService;
@@ -28,20 +26,22 @@ public class MyBidController {
     /**
      * 로그인 사용자의 전체 입찰 내역을 최신순으로 조회합니다.
      *
-     * GET /api/bids/me
+     * GET /api/users/me/bids
      *
-     * 인증 기능 연동 전까지 X-USER-ID 헤더를 통해
-     * 요청 사용자를 임시로 식별합니다.
+     * JWT 인증 정보에서 로그인 사용자의 이메일을 추출하므로
+     * X-USER-ID 헤더나 사용자 ID 파라미터를 받지 않습니다.
      *
-     * @param userId 요청 사용자 ID
-     * @return 사용자의 전체 입찰 내역
+     * @param authentication Spring Security 인증 정보
+     * @return 로그인 사용자의 전체 입찰 내역
      */
-    @GetMapping("/me")
+    @GetMapping("/bids")
     public ResponseEntity<List<MyBidHistoryResponse>> getMyBidHistory(
-            @RequestHeader("X-USER-ID") Integer userId
+            Authentication authentication
     ) {
+        String userEmail = authentication.getName();
+
         List<MyBidHistoryResponse> responses =
-                bidService.getMyBidHistory(userId);
+                bidService.getMyBidHistory(userEmail);
 
         return ResponseEntity.ok(responses);
     }
