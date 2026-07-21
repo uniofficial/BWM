@@ -47,7 +47,7 @@ public class BidController {
          */
         @PostMapping("/{itemId}/bids")
         public ResponseEntity<BidResponse> createBid(
-                        @Parameter(description = "상품 ID") @PathVariable("itemId") Integer itemId,
+                        @PathVariable("itemId") Integer itemId,
                         @Valid @RequestBody BidCreateRequest request,
                         Authentication authentication) {
                 String bidderEmail = authentication.getName();
@@ -73,7 +73,7 @@ public class BidController {
          */
         @GetMapping("/{itemId}/bids")
         public ResponseEntity<List<ItemBidHistoryResponse>> getItemBidHistory(
-                        @Parameter(description = "상품 ID") @PathVariable("itemId") Integer itemId) {
+                        @PathVariable Integer itemId) {
                 List<ItemBidHistoryResponse> responses = bidService.getItemBidHistory(itemId);
 
                 return ResponseEntity.ok(responses);
