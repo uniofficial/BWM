@@ -18,6 +18,8 @@ import com.bwm.auction.exception.ItemNotFoundException;
 import com.bwm.item.entity.Item;
 import com.bwm.item.entity.ItemStatus;
 import com.bwm.item.repository.ItemRepository;
+import com.bwm.user.entity.User;
+import com.bwm.user.repository.UserRepository;
 
 import lombok.RequiredArgsConstructor;
 
@@ -25,31 +27,39 @@ import lombok.RequiredArgsConstructor;
  * 경매 종료 및 낙찰 내역 관련 비즈니스 로직을 담당하는 서비스
  *
  * 판매자가 직접 요청하는 수동 종료와
- * 스케줄러가 수행하는 자동 종료를 모두 처리함
+ * 스케줄러가 수행하는 자동 종료를 모두 처리합니다.
  */
 @Service
 @RequiredArgsConstructor
 public class AuctionService {
 
     private final ItemRepository itemRepository;
+    private final UserRepository userRepository;
 
     /**
-     * 판매자의 요청으로 특정 경매를 종료합니다.
+     * 로그인한 판매자의 요청으로 특정 경매를 종료합니다.
+     *
+     * JWT 인증 정보에서 추출한 이메일로 로그인 사용자를 조회하고,
+     * 해당 사용자가 상품 판매자인지 검증합니다.
      *
      * 경매 종료 시 포인트를 다시 차감하지 않습니다.
      * 입찰 시점에 최고 입찰자의 포인트가 이미 처리되기 때문입니다.
      *
      * @param itemId 종료할 상품 ID
-     * @param requesterId 종료를 요청한 사용자 ID
+     * @param requesterEmail 종료를 요청한 로그인 사용자의 이메일
      * @return 경매 종료 결과
      */
     @Transactional
     public AuctionCloseResponse closeAuction(
             Integer itemId,
-            Integer requesterId
+            String requesterEmail
     ) {
         Item item = itemRepository.findById(itemId)
-                .orElseThrow(() -> new ItemNotFoundException(itemId));
+                .orElseThrow(() ->
+                        new ItemNotFoundException(itemId));
+
+        User requester = getUserByUuid(requesterEmail);
+        Integer requesterId = requester.getUserId();
 
         validateSeller(item, requesterId);
         validateOpenStatus(item);
@@ -63,21 +73,18 @@ public class AuctionService {
     /**
      * 로그인 사용자의 낙찰 내역을 조회합니다.
      *
-     * 최고 입찰자가 로그인 사용자이고,
-     * 경매 상태가 SOLD인 상품만 조회합니다.
+     * JWT 인증 정보에서 추출한 이메일로 사용자를 조회한 뒤,
+     * 해당 사용자가 최고 입찰자이고 경매 상태가 SOLD인 상품만 조회합니다.
      *
-     * @param userId 로그인 사용자 ID
+     * @param userEmail 로그인 사용자의 이메일
      * @return 최신 낙찰순으로 정렬된 낙찰 내역
      */
     @Transactional(readOnly = true)
     public List<WinningAuctionResponse> getMyWinningAuctions(
-            Integer userId
+            String userEmail
     ) {
-        if (userId == null) {
-            throw new IllegalArgumentException(
-                    "사용자 ID는 null일 수 없습니다."
-            );
-        }
+        User user = getUserByUuid(userEmail);
+        Integer userId = user.getUserId();
 
         return itemRepository
                 .findAllByHighestBidderUserIdAndStatusOrderByAuctionEndAtDesc(
@@ -92,21 +99,18 @@ public class AuctionService {
     /**
      * 로그인 사용자의 판매 완료 내역을 조회합니다.
      *
-     * 판매자가 로그인 사용자이고,
-     * 경매 상태가 SOLD인 상품만 조회합니다.
+     * JWT 인증 정보에서 추출한 이메일로 사용자를 조회한 뒤,
+     * 해당 사용자가 판매자이고 경매 상태가 SOLD인 상품만 조회합니다.
      *
-     * @param userId 로그인 사용자 ID
+     * @param userEmail 로그인 사용자의 이메일
      * @return 최신 판매 완료순으로 정렬된 상품 목록
      */
     @Transactional(readOnly = true)
     public List<SoldAuctionResponse> getMySoldAuctions(
-            Integer userId
+            String userEmail
     ) {
-        if (userId == null) {
-            throw new IllegalArgumentException(
-                    "사용자 ID는 null일 수 없습니다."
-            );
-        }
+        User user = getUserByUuid(userEmail);
+        Integer userId = user.getUserId();
 
         return itemRepository
                 .findAllBySellerUserIdAndStatusOrderByAuctionEndAtDesc(
@@ -137,11 +141,15 @@ public class AuctionService {
 
     /**
      * 스케줄러가 특정 만료 경매 한 건을 자동으로 종료합니다.
+     *
+     * 자동 마감은 HTTP 요청이나 로그인 사용자에 의해 실행되지 않으므로
+     * Authentication 또는 사용자 이메일을 받지 않습니다.
      */
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void closeExpiredAuction(Integer itemId) {
         Item item = itemRepository.findById(itemId)
-                .orElseThrow(() -> new ItemNotFoundException(itemId));
+                .orElseThrow(() ->
+                        new ItemNotFoundException(itemId));
 
         if (item.getStatus() != ItemStatus.OPEN) {
             return;
@@ -155,9 +163,26 @@ public class AuctionService {
     }
 
     /**
+     * JWT subject의 이메일을 기준으로 로그인 사용자 엔티티를 조회합니다.
+     */
+    private User getUserByUuid(String uuid) {
+        if (uuid == null || uuid.isBlank()) {
+            throw new IllegalArgumentException("인증된 사용자 식별자가 없습니다.");
+        }
+
+        return userRepository.findByUserUuid(uuid)
+                .orElseThrow(() -> new IllegalArgumentException(
+                        "사용자를 찾을 수 없습니다. uuid="
+                                + uuid));
+    }
+
+    /**
      * 요청자가 해당 상품의 판매자인지 검증합니다.
      */
-    private void validateSeller(Item item, Integer requesterId) {
+    private void validateSeller(
+            Item item,
+            Integer requesterId
+    ) {
         Integer sellerId = item.getSeller().getUserId();
 
         if (!Objects.equals(sellerId, requesterId)) {

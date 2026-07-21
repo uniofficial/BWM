@@ -1,12 +1,14 @@
 package com.bwm.admin.controller;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.bwm.global.dto.ResultDto;
 import com.bwm.wallet.dto.PointChargeRequestDto;
 import com.bwm.wallet.service.WalletService;
 
@@ -18,14 +20,18 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class AdminWalletController {
 	private final WalletService walletService;
-	
+
 	@PostMapping("/{userId}/wallet/charge")
-	public ResponseEntity<String> chargeUserPoint(
-			@PathVariable Integer userId,
-            @RequestBody @Valid PointChargeRequestDto requestDto
-			){
+	public ResponseEntity<ResultDto<Void>> chargeUserPoint(
+			@PathVariable("userId") Integer userId,
+			@RequestBody @Valid PointChargeRequestDto requestDto) {
 		walletService.chargeUserPoint(userId, requestDto.getAmount());
-		
-		return ResponseEntity.ok("포인트 충전이 성공적으로 완료되었습니다.");
+
+		return ResponseEntity.ok(ResultDto.success(null));
+	}
+
+	@GetMapping("/user-list")
+	public ResponseEntity<ResultDto<String>> getUserList() {
+		return ResponseEntity.ok(ResultDto.success("ADMIN"));
 	}
 }

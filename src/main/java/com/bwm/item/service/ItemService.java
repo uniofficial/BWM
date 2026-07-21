@@ -25,18 +25,16 @@ public interface ItemService {
      * 상품을 등록한다.
      *
      * 처리 흐름(ItemServiceImpl 기준):
-     * 1) sellerId로 User(판매자) 조회 - 없으면 예외
+     * 1) sellerEmail로 User(판매자) 조회 - 없으면 예외
      * 2) Item.create(...)로 엔티티 생성 (현재가=시작가, 상태=OPEN 자동 세팅)
      * 3) ItemRepository.save()로 저장
      * 4) 저장된 엔티티를 ItemResponse로 변환해서 반환
      *
-     * @param sellerId 판매자의 user_id.
-     *                 (인증 파트 연동 전이라 지금은 컨트롤러가 X-USER-ID 헤더에서 꺼내 넘겨줌.
-     *                  인증 완료되면 로그인한 사용자의 id가 자동으로 여기 들어오게 바뀔 예정)
+     * @param sellerEmail 판매자의 로그인 이메일 (JWT subject, 컨트롤러가 Authentication에서 꺼내 그대로 넘겨줌)
      * @param request  상품 등록 요청 값 (제목/카테고리/시작가/마감시각/설명)
      * @return 등록된 상품 정보 (itemId 포함 - DB에 저장된 후의 결과)
      */
-    ItemResponse createItem(Integer sellerId, ItemCreateRequest request);
+    ItemResponse createItem(String sellerEmail, ItemCreateRequest request);
 
 
     /**
@@ -77,28 +75,28 @@ public interface ItemService {
     /**
      * 특정 판매자(=로그인한 나)가 등록한 상품 목록을 페이지 단위로 조회한다.
      *
-     * @param sellerId 조회할 판매자 id (X-USER-ID 헤더에서 꺼낸 값)
+     * @param sellerEmail 조회할 판매자의 로그인 이메일 (JWT subject)
      * @param pageable 페이지 번호/크기/정렬 조건
      * @return 그 판매자가 등록한 상품 목록 (요약 정보만 포함)
      */
-    Page<ItemSummaryResponse> getMyItems(Integer sellerId, Pageable pageable);
+    Page<ItemSummaryResponse> getMyItems(String sellerEmail, Pageable pageable);
 
     /**
      * 상품 정보를 수정한다 (제목/카테고리/설명, 부분 수정).
      *
      * @param itemId 수정할 상품 id
-     * @param sellerId 요청자 id. 상품을 등록한 판매자 본인만 수정 가능
+     * @param sellerEmail 요청자의 로그인 이메일. 상품을 등록한 판매자 본인만 수정 가능
      * @param request 수정할 값들 (PATCH이므로 null인 필드는 그대로 유지됨)
      * @return 수정된 상품 정보
      */
-    ItemResponse updateItem(Integer itemId, Integer sellerId, ItemUpdateRequest request);
+    ItemResponse updateItem(Integer itemId, String sellerEmail, ItemUpdateRequest request);
 
     /**
      * 상품 등록을 취소한다 (상태를 CANCELLED로 변경).
      *
      * @param itemId 취소할 상품 id
-     * @param sellerId 요청자 id. 상품을 등록한 판매자 본인만 취소 가능
+     * @param sellerEmail 요청자의 로그인 이메일. 상품을 등록한 판매자 본인만 취소 가능
      * @return 취소된 상품 정보
      */
-    ItemResponse cancelItem(Integer itemId, Integer sellerId);
+    ItemResponse cancelItem(Integer itemId, String sellerEmail);
 }

@@ -24,12 +24,11 @@ public interface ItemImageService {
      * 5) 저장된 이미지들을 DTO로 변환해서 반환
      *
      * @param itemId 이미지가 속할 상품 id
-     * @param sellerId 요청자 id.
-     *                 (인증 파트 연동 전이라 지금은 컨트롤러가 X-USER-ID 헤더에서 꺼내 넘겨줌 - ItemService와 동일한 임시 방식)
+     * @param sellerEmail 요청자의 로그인 이메일 (JWT subject, ItemService와 동일한 방식)
      * @param images 업로드할 이미지 파일 목록 (1개 이상, 순서 = 등록 순서)
      * @param representativeIndex images 중 대표 이미지의 인덱스 (0-based). null이면 0번째를 대표로 지정
      * @return 등록된 이미지 목록 (요청에 넘긴 순서와 동일)
      */
 
-    List<ItemImageResponse> uploadItemImages(Integer itemId, Integer sellerId, List<MultipartFile> images, Integer representativeIndex);
+    List<ItemImageResponse> uploadItemImages(Integer itemId, String sellerEmail, List<MultipartFile> images, Integer representativeIndex);
 }

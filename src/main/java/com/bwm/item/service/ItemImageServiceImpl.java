@@ -22,6 +22,8 @@ import com.bwm.item.exception.ItemAccessDeniedException;
 import com.bwm.item.exception.ItemNotFoundException;
 import com.bwm.item.repository.ItemImageRepository;
 import com.bwm.item.repository.ItemRepository;
+import com.bwm.user.entity.User;
+import com.bwm.user.repository.UserRepository;
 
 import lombok.RequiredArgsConstructor;
 
@@ -36,6 +38,7 @@ public class ItemImageServiceImpl implements ItemImageService{
 
     private final ItemRepository itemRepository;
     private final ItemImageRepository itemImageRepository;
+    private final UserRepository userRepository;
 
     // application.properties의 file.upload-dir 값 주입 (예: uploads/items)
     @Value("${file.upload-dir}")
@@ -43,7 +46,7 @@ public class ItemImageServiceImpl implements ItemImageService{
 
     @Override
     @Transactional
-    public List<ItemImageResponse> uploadItemImages(Integer itemId, Integer sellerId, List<MultipartFile> images, Integer representativeIndex){
+    public List<ItemImageResponse> uploadItemImages(Integer itemId, String sellerEmail, List<MultipartFile> images, Integer representativeIndex){
         // #1. 이미지가 하나도 없으면 처리할게 없으므로 예외
         if(images == null || images.isEmpty()){
             throw new IllegalArgumentException("업로드할 이미지가 없습니다.");
@@ -61,9 +64,10 @@ public class ItemImageServiceImpl implements ItemImageService{
     
 
         // #3. 권한 체크 - 상품을 등록한 판매자 본인만 이미지 추가 가능
+        Integer sellerId = getUserByUuid(sellerEmail).getUserId();
         if(!item.getSeller().getUserId().equals(sellerId)) {
             throw new ItemAccessDeniedException("본인이 등록한 상품에만 이미지를 추가할 수 있습니다.");
-        } 
+        }
 
         List<ItemImage> savedImages = new ArrayList<>();
 
@@ -118,8 +122,23 @@ public class ItemImageServiceImpl implements ItemImageService{
                 throw new IllegalStateException("이미지 저장 중 오류가 발생했습니다.", e);
 
             }
-                
 
-        
+
+
+    }
+
+    /**
+     * 이메일을 기준으로 로그인 사용자 엔티티를 조회한다.
+     *
+     * JWT subject에는 로그인 사용자의 이메일이 저장되어 있으므로
+     * SecurityContext에서 얻은 이메일을 이 메서드에 전달한다.
+     */
+    private User getUserByUuid(String uuid) {
+        if (uuid == null || uuid.isBlank()) {
+            throw new IllegalArgumentException("인증된 사용자 식별자가 없습니다.");
+        }
+
+        return userRepository.findByUserUuid(uuid)
+                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다. uuid=" + uuid));
     }
 }
