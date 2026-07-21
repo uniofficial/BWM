@@ -47,7 +47,7 @@ public class SecurityConfig {
 
                 // 권한 규칙 설정
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/auth/login", "/api/auth/signup").permitAll()
+                        .requestMatchers("/api/auth/login", "/api/auth/signup", "/api/auth/reissue").permitAll()
                         .requestMatchers("/swagger/**", "/swagger-ui/**",
                                 "/v3/api-docs/**").permitAll()
                         .requestMatchers("/error").permitAll()

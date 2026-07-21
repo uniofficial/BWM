@@ -16,6 +16,9 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.stereotype.Component;
 
 import javax.crypto.SecretKey;
+import javax.crypto.spec.SecretKeySpec;
+
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
@@ -38,29 +41,42 @@ public class JwtProvider {
 
     @PostConstruct
     public void init() {
-        this.key = Keys.hmacShaKeyFor(secret.getBytes());
+        this.key = new SecretKeySpec(
+                secret.getBytes(StandardCharsets.UTF_8), Jwts.SIG.HS256.key().build().getAlgorithm());
     }
 
-    public String generateAccessToken(String email, String role) {
-        long now = (new Date()).getTime();
-        Date validity = new Date(now + this.accessExpiration);
+    public String generateAccessToken(String userUuid, String role, long nowMillis) {
+        Date validity = new Date(nowMillis + this.accessExpiration);
 
         return Jwts.builder()
-                .subject(email)
+                .subject(userUuid)
                 .claim("auth", role)
                 .expiration(validity)
                 .signWith(key)
                 .compact();
     }
 
-    public String generateRefreshToken() {
-        long now = (new Date()).getTime();
-        Date validity = new Date(now + this.refreshExpiration);
+    public String generateRefreshToken(String jti, long nowMillis) {
+        Date validity = new Date(nowMillis + this.refreshExpiration);
 
         return Jwts.builder()
+                .id(jti) // 외부에서 주입받은 JTI 사용
                 .expiration(validity)
                 .signWith(key)
                 .compact();
+    }
+
+    public long getRefreshExpiration() {
+        return this.refreshExpiration;
+    }
+
+    public String getJtiFromToken(String token) {
+        return Jwts.parser()
+                .verifyWith(key)
+                .build()
+                .parseSignedClaims(token)
+                .getPayload()
+                .getId();
     }
 
     public Authentication getAuthentication(String token) {
