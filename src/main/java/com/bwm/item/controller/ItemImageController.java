@@ -9,8 +9,6 @@ import com.bwm.item.dto.response.ItemImageResponse;
 import com.bwm.item.exception.ItemAccessDeniedException;
 import com.bwm.item.exception.ItemNotFoundException;
 import com.bwm.item.service.ItemImageService;
-import com.bwm.user.entity.User;
-import com.bwm.user.repository.UserRepository;
 
 import lombok.RequiredArgsConstructor;
 
@@ -36,12 +34,11 @@ import org.springframework.web.bind.annotation.RequestBody;
 public class ItemImageController {
 
     private final ItemImageService itemImageService;
-    private final UserRepository userRepository;
     /**
      * 상품 이미지 등록 API.
      *
-     * @param authentication JWT 인증 정보. SecurityContext에서 로그인한 판매자의 email(subject)을 꺼내
-     *        UserRepository로 user_id를 조회한다.
+     * @param authentication JWT 인증 정보. email(subject)을 그대로 서비스에 넘기면
+     *        서비스가 내부에서 로그인 사용자를 조회한다.
      * @param itemId 이미지를 등록할 상품 id (URL 경로 변수)
      * @param images 업로드할 이미지 파일들. multipart/form-data로 같은 필드명("images")에 여러 개 담아서 보냄
      * @param representativeIndex images 중 대표 이미지의 인덱스 (0-based, 기본값 0)
@@ -60,17 +57,10 @@ public class ItemImageController {
 
         @RequestParam(value = "representativeIndex", required = false, defaultValue = "0")
         Integer representativeIndex) {
-            Integer sellerId = resolveUserId(authentication);
-
-            List<ItemImageResponse> response = itemImageService.uploadItemImages(itemId, sellerId, images, representativeIndex);
+            List<ItemImageResponse> response = itemImageService.uploadItemImages(itemId, authentication.getName(), images, representativeIndex);
             return ResponseEntity.status(HttpStatus.CREATED).body(response);
         }
 
-        private Integer resolveUserId(Authentication authentication){
-            return userRepository.findByEmail(authentication.getName())
-                                 .map(User::getUserId)
-                                 .orElseThrow(() -> new IllegalArgumentException("인증된 사용자를 찾을 수 없습니다."));
-        }
         // representativeIndex 범위 오류 등 잘못된 요청은 400으로 응답
 
         @ExceptionHandler(IllegalArgumentException.class)
