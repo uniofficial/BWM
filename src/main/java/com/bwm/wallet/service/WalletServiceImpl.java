@@ -11,6 +11,7 @@ import com.bwm.wallet.dto.WalletResponseDto;
 import com.bwm.wallet.entity.Wallet;
 import com.bwm.wallet.entity.WalletHistory;
 import com.bwm.wallet.entity.WalletHistoryType;
+import com.bwm.wallet.exception.WalletNotFoundException;
 import com.bwm.wallet.repository.WalletHistoryRepository;
 import com.bwm.wallet.repository.WalletRepository;
 
@@ -51,7 +52,7 @@ public class WalletServiceImpl implements WalletService {
     @Transactional
     public void chargeUserPoint(Integer userId, Integer amount) {
         Wallet wallet = walletRepository.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("해당 유저의 지갑을 찾을 수 없습니다."));
+                .orElseThrow(() -> new WalletNotFoundException("해당 유저의 지갑을 찾을 수 없습니다."));
         
         wallet.charge(amount);
         
@@ -70,7 +71,7 @@ public class WalletServiceImpl implements WalletService {
     @Transactional
     public void deductBidPoint(Integer userId, Integer itemId, Integer amount) {
         Wallet wallet = walletRepository.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("해당 유저의 지갑을 찾을 수 없습니다."));
+                .orElseThrow(() -> new WalletNotFoundException("해당 유저의 지갑을 찾을 수 없습니다."));
 
         Item item = itemRepository.findById(itemId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 상품을 찾을 수 없습니다."));
@@ -92,7 +93,7 @@ public class WalletServiceImpl implements WalletService {
     @Transactional
     public void refundBidPoint(Integer userId, Integer itemId, Integer amount) {
         Wallet wallet = walletRepository.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("해당 유저의 지갑을 찾을 수 없습니다."));
+                .orElseThrow(() -> new WalletNotFoundException("해당 유저의 지갑을 찾을 수 없습니다."));
 
         Item item = itemRepository.findById(itemId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 상품을 찾을 수 없습니다."));
