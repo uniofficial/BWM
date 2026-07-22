@@ -20,6 +20,7 @@ import com.bwm.item.entity.ItemStatus;
 import com.bwm.item.repository.ItemRepository;
 import com.bwm.user.entity.User;
 import com.bwm.user.repository.UserRepository;
+import com.bwm.wallet.service.WalletService;
 
 import lombok.RequiredArgsConstructor;
 
@@ -35,6 +36,7 @@ public class AuctionService {
 
     private final ItemRepository itemRepository;
     private final UserRepository userRepository;
+    private final WalletService walletService;
 
     /**
      * 로그인한 판매자의 요청으로 특정 경매를 종료합니다.
@@ -228,6 +230,11 @@ public class AuctionService {
     private void closeItem(Item item) {
         if (item.getHighestBidder() != null) {
             item.closeAsSold();
+            walletService.depositSalesRevenue(
+                    item.getSeller().getUserId(),
+                    item.getItemId(),
+                    item.getCurrentPrice()
+            );
             return;
         }
 
