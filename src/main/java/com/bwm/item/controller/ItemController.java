@@ -6,8 +6,6 @@ import com.bwm.item.dto.request.ItemUpdateRequest;
 import com.bwm.item.dto.response.ItemDetailResponse;
 import com.bwm.item.dto.response.ItemResponse;
 import com.bwm.item.dto.response.ItemSummaryResponse;
-import com.bwm.item.exception.ItemAccessDeniedException;
-import com.bwm.item.exception.ItemNotFoundException;
 import com.bwm.item.service.ItemService;
 
 import jakarta.validation.Valid;
@@ -42,7 +40,6 @@ public class ItemController {
      *                실패 시 400 Bad Request를 응답한다 (별도 try-catch 필요 없음).
      * @return 201 Created + 등록된 상품 정보(ItemResponse)
      */
-
     @PostMapping
     public ResponseEntity<ItemResponse> createItem(
         Authentication authentication,
@@ -76,7 +73,7 @@ public class ItemController {
      * (로그인 안 한 사용자도 상품 상세는 볼 수 있어야 자연스러우므로).
      *
      * @param itemId 조회할 상품 id (URL 경로 변수, 예: /api/items/5 -> itemId=5)
-     * @return 200 OK + 상품 상세 정보. 존재하지 않으면 404 (기존 ItemNotFoundException 핸들러가 처리)
+     * @return 200 OK + 상품 상세 정보. 존재하지 않으면 404 (GlobalExceptionHandler가 처리)
      */
     @GetMapping("/{itemId}")
     public ResponseEntity<ItemDetailResponse> getItem(@PathVariable("itemId") Integer itemId){
@@ -112,7 +109,7 @@ public class ItemController {
             return ResponseEntity.ok(response);
         }
 
-     /**
+    /**
      * 상품 수정 API.
      *
      * @param authentication JWT 인증 정보 (요청자, createItem과 동일)
@@ -151,27 +148,5 @@ public class ItemController {
             return ResponseEntity.ok(response);
     }
 
-    // 요청 자체가 잘못된 경우는 400으로 응답 (전역 예외 처리기 도입 전 임시 처리)
-    @ExceptionHandler(IllegalArgumentException.class)
-    public ResponseEntity<String> handleIllegalArgumentException(IllegalArgumentException e) {
-        return ResponseEntity.badRequest().body(e.getMessage());
-    }
-
-    // 존재하지 않는 사용자/상품 등 리소스를 찾을 수 없는 경우는 404로 응답 (전역 예외 처리기 도입 전 임시 처리)
-    @ExceptionHandler(ItemNotFoundException.class)
-    public ResponseEntity<String> handleItemNotFoundException(ItemNotFoundException e) {
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
-    }
-
-    // 본인 상품이 아닌데 수정/취소하려 하면 403으로 응답
-    @ExceptionHandler(ItemAccessDeniedException.class)
-    public ResponseEntity<String> handleItemAccessDeniedException(ItemAccessDeniedException e) {
-        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
-    }
-
-    // OPEN 상태가 아니거나 이미 입찰이 들어온 상품을 수정/취소하려 하면 409(Conflict)로 응답
-    @ExceptionHandler(IllegalStateException.class)
-    public ResponseEntity<String> handleIllegalStateException(IllegalStateException e) {
-        return ResponseEntity.status(HttpStatus.CONFLICT).body(e.getMessage());
-    }
+    // 예외 처리는 GlobalExceptionHandler(전역)에서 일괄 처리한다.
 }
