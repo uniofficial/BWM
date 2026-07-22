@@ -36,6 +36,12 @@ button,
   outline-offset: 2px;
 }
 
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible {
+  outline: none;
+}
+
 ::selection {
   background: var(--ds-primary-light);
   color: var(--ds-primary-text-dark);

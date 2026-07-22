@@ -8,6 +8,7 @@ export interface InputProps extends Omit<InputHTMLAttributes<HTMLInputElement>, 
   error?: string
   prefix?: ReactNode
   suffix?: ReactNode
+  suffixAttached?: boolean
   containerClassName?: string
 }
 
@@ -19,6 +20,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
     error,
     prefix,
     suffix,
+    suffixAttached = false,
     required,
     disabled,
     className,
@@ -62,15 +64,15 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
           aria-invalid={error ? true : undefined}
           aria-describedby={describedBy}
           className={cx(
-            'h-11 min-w-0 flex-1 border-0 bg-transparent px-3 text-sm text-ink outline-none',
+            'h-11 min-w-0 flex-1 border-0 bg-transparent px-3 text-sm text-ink outline-none focus-visible:outline-none',
             'placeholder:text-ink-muted disabled:cursor-not-allowed',
             Boolean(prefix) && 'pl-2',
-            Boolean(suffix) && 'pr-2',
+            Boolean(suffix) && (suffixAttached ? 'pr-0' : 'pr-2'),
             className,
           )}
           {...props}
         />
-        {suffix && <span className="pr-3 text-sm text-ink-muted">{suffix}</span>}
+        {suffix && <span className="shrink-0 pr-3 text-sm text-ink-muted">{suffix}</span>}
       </div>
     </FieldFrame>
   )

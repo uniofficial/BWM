@@ -126,9 +126,11 @@ export function DesignSystemPage() {
             />
             <Input
               label="입찰 금액"
-              defaultValue="125000"
+              defaultValue="125,000"
               error="현재 최고가보다 높은 금액을 입력해주세요."
               suffix="원"
+              suffixAttached
+              className="text-right font-semibold tabular-nums"
             />
             <Input label="검색" placeholder="키워드 입력" prefix="⌕" disabled />
             <Select

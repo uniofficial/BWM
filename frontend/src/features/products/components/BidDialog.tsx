@@ -3,7 +3,7 @@ import { Button, Dialog, Input } from '../../../components/ui'
 import type { ProductDetail } from '../../../types/product'
 import type { BidSubmissionResult } from '../hooks/useBidSubmission'
 import { validateBidAmount } from '../utils/bidValidation'
-import { formatPrice } from '../utils/priceFormat'
+import { formatPrice, formatPriceInput } from '../utils/priceFormat'
 
 interface BidDialogProps {
   open: boolean
@@ -126,13 +126,15 @@ export function BidDialog({ open, product, isSubmitting, onSubmit, onClose }: Bi
           inputMode="numeric"
           autoComplete="off"
           placeholder="입찰 금액을 숫자로 입력해주세요"
-          value={amount}
+          value={formatPriceInput(amount)}
           error={displayedError}
           disabled={isSubmitting}
           required
           suffix="원"
+          suffixAttached
+          className="text-right text-lg font-semibold tabular-nums"
           onChange={(event) => {
-            setAmount(event.target.value)
+            setAmount(event.target.value.replace(/\D/g, ''))
             setSubmittedError(undefined)
             setCommonError(null)
           }}

@@ -56,7 +56,7 @@ export const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(function 
         aria-invalid={error ? true : undefined}
         aria-describedby={error ? `${id}-error` : undefined}
         className={cx(
-          'min-h-28 w-full resize-y rounded-compact border bg-surface px-3 py-3 text-sm leading-6 text-ink outline-none',
+          'min-h-28 w-full resize-y rounded-compact border bg-surface px-3 py-3 text-sm leading-6 text-ink outline-none focus-visible:outline-none',
           'placeholder:text-ink-muted transition-colors duration-200',
           'focus:border-brand focus:ring-3 focus:ring-brand/15',
           'disabled:cursor-not-allowed disabled:bg-surface-secondary disabled:opacity-70',
