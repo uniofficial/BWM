@@ -10,7 +10,6 @@ import com.bwm.item.dto.response.ItemResponse;
 import com.bwm.item.dto.response.ItemSummaryResponse;
 import com.bwm.item.entity.Item;
 import com.bwm.item.entity.ItemImage;
-import com.bwm.item.entity.ItemStatus;
 import com.bwm.item.exception.ItemAccessDeniedException;
 import com.bwm.item.exception.ItemNotFoundException;
 import com.bwm.item.repository.ItemImageRepository;
@@ -18,6 +17,7 @@ import com.bwm.item.repository.ItemRepository;
 import com.bwm.item.repository.ItemSpecification;
 import com.bwm.user.entity.User;
 import com.bwm.user.repository.UserRepository;
+
 import lombok.RequiredArgsConstructor;
 
 import java.util.List;
@@ -27,19 +27,12 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
- 
 
 /**
  * ItemService의 실제 구현체.
- *
- * @Service : 이 클래스를 Spring이 관리하는 Bean으로 등록. ItemController가 생성자 주입으로
- *            ItemService 타입을 요청하면, 스프링이 이 클래스의 인스턴스를 넣어준다.
- * @RequiredArgsConstructor : final 필드(itemRepository, userRepository)를 매개변수로 받는
- *            생성자를 Lombok이 자동 생성. 이 생성자를 스프링이 보고 의존성을 주입한다.
  */
-
 @Service
-@RequiredArgsConstructor    
+@RequiredArgsConstructor
 public class ItemServiceImpl implements ItemService {
 
     private final ItemRepository itemRepository;
@@ -47,15 +40,17 @@ public class ItemServiceImpl implements ItemService {
     private final ItemImageRepository itemImageRepository;
     private final BidService bidService;
 
-
+    /**
+     * 상품 등록.
+     */
     @Override
     @Transactional
-    public ItemResponse createItem(String sellerUuid, ItemCreateRequest request){
-
-        // #1. 판매자 조회 - JWT 인증 정보의 이메일로 로그인 사용자를 조회
+    public ItemResponse createItem(
+            String sellerUuid,
+            ItemCreateRequest request
+    ) {
         User seller = getUserByUuid(sellerUuid);
 
-        // #2. Item 엔티티 생성
         Item item = Item.create(
                 seller,
                 request.title(),
@@ -65,120 +60,164 @@ public class ItemServiceImpl implements ItemService {
                 request.description()
         );
 
-        // #3. DB save
         Item saved = itemRepository.save(item);
 
-        // #4. 엔티티를 그대로 반환하지 않고 DTO로 변환해 반환
         return ItemResponse.from(saved);
     }
 
-
+    /**
+     * 상품 목록 및 검색.
+     *
+     * ItemSearchCondition에 들어온 조건만 동적으로 적용한다.
+     * 조건을 보내지 않은 경우 ItemSpecification에서 기본적으로
+     * OPEN 상태 조건을 적용한다.
+     */
     @Override
     @Transactional(readOnly = true)
-    public Page<ItemSummaryResponse> getItems(Pageable pageable) {
-        // "상품 목록 조회"는 스펙상 진행 중(OPEN)인 상품만 보여줌
-        return itemRepository.findAllByStatus(ItemStatus.OPEN, pageable).map(ItemSummaryResponse::from);
+    public Page<ItemSummaryResponse> getItems(
+            ItemSearchCondition condition,
+            Pageable pageable
+    ) {
+        Specification<Item> specification =
+                ItemSpecification.from(condition);
+
+        return itemRepository
+                .findAll(specification, pageable)
+                .map(ItemSummaryResponse::from);
     }
 
-    @Override
-    @Transactional(readOnly = true) // 조회 전용 트랜잭션. 데이터 변경이 없으므로 읽기 최적화 힌트 제공
-    public ItemDetailResponse getItem(Integer itemId){
-
-        // #1. 상품 조회 - 존재하지 않는 itemId면 예외
-        Item item = itemRepository.findById(itemId).orElseThrow(() -> new ItemNotFoundException("존재하지 않는 상품입니다. id = " + itemId));
-
-        // #2. 이 상품에 등록된 이미지들을 따로 조회(Item 엔티티엔 이미지 목록을 직접 들고있지 않음)
-        /// 대표 이미지가 맨 앞에 오도록 정렬된 상태로 가져와서 URL 문자열만 뽑아 리스트로 변환
-        List<String> imageUrls = itemImageRepository.findAllByItem_ItemIdOrderByIsRepresentativeDescCreatedAtAsc(itemId)
-                                                    .stream()
-                                                    .map(ItemImage::getImageUrl)
-                                                    .toList();
-
-        // #3. 이 상품에 들어온 입찰 내역도 조회 - 새로 로직 안 짜고 BidService에 이미 있는 걸 그대로 재사용
-        List<ItemBidHistoryResponse> bidHistory = bidService.getItemBidHistory(itemId);
-
-         // #4. Item 엔티티 + 이미지 URL 목록 + 입찰 내역을 하나의 응답 DTO로 조립해 반환
-         return ItemDetailResponse.from(item, imageUrls, bidHistory);
-    }
-
-    @Override
-    @Transactional(readOnly = true) // 조회만 하고 데이터는 안 바꾸는 API라 읽기 전용 트랜잭션으로 최적화
-    public Page<ItemSummaryResponse> searchItems(ItemSearchCondition condition, Pageable pageable) {
-
-        // #1. DTO(검색 조건)을  실제 JPA가 이해하는 WHERE 절 형태로 변환
-        Specification<Item> spec = ItemSpecification.from(condition);
-
-        // #2. JpaSpecificationExecutor가 제공하는 findAll(spec, pageable) 로
-        // "동적 조건 필터링 + 페이징" 을 한 번의 쿼리로 처리하고
-        // 결과로 나온 Item 엔티티들을 곧바로 ItemSummaryResponse 로 변환
-        return itemRepository.findAll(spec,pageable).map(ItemSummaryResponse::from);
-    }
-
+    /**
+     * 상품 상세 조회.
+     */
     @Override
     @Transactional(readOnly = true)
-    public Page<ItemSummaryResponse> getMyItems(String sellerUuid, Pageable pageable) {
-        // getItems(전체 목록)와 거의 같은 흐름인데, seller_id 조건만 하나 더 걸려있는 버전
-        Integer sellerId = getUserByUuid(sellerUuid).getUserId();
-        return itemRepository.findAllBySeller_UserId(sellerId, pageable).map(ItemSummaryResponse::from);
-    }
+    public ItemDetailResponse getItem(Integer itemId) {
 
-    @Override
-    @Transactional
-    public ItemResponse updateItem(Integer itemId, String sellerUuid, ItemUpdateRequest request){
-        // #1. 상품 조회 - 존재하지 않는 itemId면 제외
         Item item = itemRepository.findById(itemId)
-                                  .orElseThrow(() -> new ItemNotFoundException("존재하지 않는 상품입니다. id = " + itemId));
+                .orElseThrow(() ->
+                        new ItemNotFoundException(
+                                "존재하지 않는 상품입니다. id = " + itemId
+                        )
+                );
 
-        // #2. 권한 체크 - 본인이 등록한 상품만 수정 가능
-        Integer sellerId = getUserByUuid(sellerUuid).getUserId();
-        if(!item.getSeller().getUserId().equals(sellerId)) {
-            throw new ItemAccessDeniedException("본인이 등록한 상품만 수정할 수 있습니다.");
-        }
+        List<String> imageUrls =
+                itemImageRepository
+                        .findAllByItem_ItemIdOrderByIsRepresentativeDescCreatedAtAsc(
+                                itemId
+                        )
+                        .stream()
+                        .map(ItemImage::getImageUrl)
+                        .toList();
 
-        // #3. 도메인 메서드에 위임 - 상테/입찰 여부 검증 + 실제 필드 반영은 Item 엔티티 책임
-        item.update(request.title(), request.category(), request.description(), request.startPrice(), request.auctionEndAt());
+        List<ItemBidHistoryResponse> bidHistory =
+                bidService.getItemBidHistory(itemId);
 
-        // #4. save() 호출 안 해도 됨 - 트랜잭션 안에서 조회한 영속상태 엔티티라
-        // 커밋 시점에 JPA가 변경 감지(dirty checking)해서 자동으로 UPDATE 쿼리를 날림
-        return ItemResponse.from(item);
+        return ItemDetailResponse.from(
+                item,
+                imageUrls,
+                bidHistory
+        );
     }
 
+    /**
+     * 로그인 사용자가 등록한 상품 목록 조회.
+     */
+    @Override
+    @Transactional(readOnly = true)
+    public Page<ItemSummaryResponse> getMyItems(
+            String sellerUuid,
+            Pageable pageable
+    ) {
+        Integer sellerId =
+                getUserByUuid(sellerUuid).getUserId();
+
+        return itemRepository
+                .findAllBySeller_UserId(sellerId, pageable)
+                .map(ItemSummaryResponse::from);
+    }
+
+    /**
+     * 상품 수정.
+     */
     @Override
     @Transactional
-    public ItemResponse cancelItem(Integer itemId, String sellerUuid) {
+    public ItemResponse updateItem(
+            Integer itemId,
+            String sellerUuid,
+            ItemUpdateRequest request
+    ) {
+        Item item = itemRepository.findById(itemId)
+                .orElseThrow(() ->
+                        new ItemNotFoundException(
+                                "존재하지 않는 상품입니다. id = " + itemId
+                        )
+                );
 
-        // #1. 상품 조회 - 존재하지 않는 itemId면 예외
-        // findByIdForUpdate로 비관적 락을 걸어서, 취소 처리 중에 동시에 입찰이 들어와
-        // 상태가 바뀌는 경합을 방지함 (updateItem은 이런 동시성 이슈가 상대적으로 덜 중요해서 findById 그대로 둠)
-        Item item = itemRepository.findByIdForUpdate(itemId)
-                                  .orElseThrow(() -> new ItemNotFoundException("존재하지 않는 상품입니다. id = " + itemId));
+        Integer sellerId =
+                getUserByUuid(sellerUuid).getUserId();
 
-        // #2. 권한 체크 - 본인이 등록한 상품만 취소 가능
-        Integer sellerId = getUserByUuid(sellerUuid).getUserId();
         if (!item.getSeller().getUserId().equals(sellerId)) {
-            throw new ItemAccessDeniedException("본인이 등록한 상품만 취소할 수 있습니다.");
+            throw new ItemAccessDeniedException(
+                    "본인이 등록한 상품만 수정할 수 있습니다."
+            );
         }
 
-        // #3. 도메인 메서드에 위임 - 상태/입찰 여부 검증 + 실제 상태 변경은 Item 엔티티가 책임짐
-        item.cancel();
+        item.update(
+                request.title(),
+                request.category(),
+                request.description(),
+                request.startPrice(),
+                request.auctionEndAt()
+        );
 
-        // #4. save() 호출 안 해도 됨 - 영속 상태 엔티티라 커밋 시점에 JPA가 변경 감지해서 자동 UPDATE
         return ItemResponse.from(item);
     }
 
     /**
-     * 이메일을 기준으로 로그인 사용자 엔티티를 조회한다.
-     *
-     * JWT subject에는 로그인 사용자의 이메일이 저장되어 있으므로
-     * SecurityContext에서 얻은 이메일을 이 메서드에 전달한다.
+     * 상품 취소.
+     */
+    @Override
+    @Transactional
+    public ItemResponse cancelItem(
+            Integer itemId,
+            String sellerUuid
+    ) {
+        Item item = itemRepository.findByIdForUpdate(itemId)
+                .orElseThrow(() ->
+                        new ItemNotFoundException(
+                                "존재하지 않는 상품입니다. id = " + itemId
+                        )
+                );
+
+        Integer sellerId =
+                getUserByUuid(sellerUuid).getUserId();
+
+        if (!item.getSeller().getUserId().equals(sellerId)) {
+            throw new ItemAccessDeniedException(
+                    "본인이 등록한 상품만 취소할 수 있습니다."
+            );
+        }
+
+        item.cancel();
+
+        return ItemResponse.from(item);
+    }
+
+    /**
+     * JWT에서 전달받은 사용자 UUID로 사용자를 조회한다.
      */
     private User getUserByUuid(String uuid) {
         if (uuid == null || uuid.isBlank()) {
-            throw new IllegalArgumentException("인증된 사용자 식별자가 없습니다.");
+            throw new IllegalArgumentException(
+                    "인증된 사용자 식별자가 없습니다."
+            );
         }
 
         return userRepository.findByUserUuid(uuid)
-                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다. userUuid=" + uuid));
+                .orElseThrow(() ->
+                        new IllegalArgumentException(
+                                "사용자를 찾을 수 없습니다. userUuid=" + uuid
+                        )
+                );
     }
-
 }

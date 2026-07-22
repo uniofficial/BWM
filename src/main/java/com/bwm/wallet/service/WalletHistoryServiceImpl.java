@@ -18,31 +18,34 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
 public class WalletHistoryServiceImpl implements WalletHistoryService {
-    
+
     private final WalletHistoryRepository walletHistoryRepository;
-    
+
     private final UserRepository userRepository;
-    
+
     @Override
     public List<WalletHistoryResponseDto> getMyHistory(String userUuid) { // 파라미터 변경
         User user = getUserByUserUuid(userUuid); // UUID로 유저 정보 조회
-        List<WalletHistory> histories = walletHistoryRepository.findByWalletUserIdOrderByCreatedAtDesc(user.getUserId()); // 기존 userId 대신 user.getUserId() 사용
-        
-        return histories.stream().map( history -> WalletHistoryResponseDto.builder()
-                                                                          .type(history.getType().name())
-                                                                          .itemId(history.getItem() != null ? history.getItem().getItemId() : null)
-                                                                          .amount(history.getAmount())
-                                                                          .balanceAfter(history.getBalanceAfter())
-                                                                          .createdAt(history.getCreatedAt())
-                                                                          .build())
-                        .collect(Collectors.toList());
+        List<WalletHistory> histories = walletHistoryRepository
+                .findByWalletUserIdOrderByCreatedAtDesc(user.getUserId()); // 기존 userId 대신 user.getUserId() 사용
+
+        return histories.stream().map(history -> WalletHistoryResponseDto.builder()
+                .type(history.getType().name())
+                .itemId(history.getItem() != null ? history.getItem().getItemId() : null)
+                .amount(history.getAmount())
+                .balanceAfter(history.getBalanceAfter())
+                .createdAt(history.getCreatedAt())
+                .build())
+                .collect(Collectors.toList());
     }
+
     // UUID 기반 유저 조회 공통 헬퍼 메서드 추가
     private User getUserByUserUuid(String userUuid) {
         if (userUuid == null || userUuid.isBlank()) {
             throw new IllegalArgumentException("인증된 사용자 식별자가 없습니다.");
         }
-        return userRepository.findByUserUuid(userUuid)
+        User user = userRepository.findByUserUuid(userUuid)
                 .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다. userUuid=" + userUuid));
+        return user;
     }
 }

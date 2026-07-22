@@ -38,11 +38,7 @@ public class User {
     private boolean isDeleted = false;
 
     @ManyToMany(fetch = FetchType.LAZY)
-    @JoinTable(
-            name = "user_user_role",
-            joinColumns = @JoinColumn(name = "user_id"),
-            inverseJoinColumns = @JoinColumn(name = "user_role_id")
-    )
+    @JoinTable(name = "user_user_role", joinColumns = @JoinColumn(name = "user_id"), inverseJoinColumns = @JoinColumn(name = "user_role_id"))
     @Builder.Default
     private Set<UserRole> roles = new HashSet<>();
 
