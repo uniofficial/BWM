@@ -113,6 +113,7 @@ public class WalletServiceImpl implements WalletService {
 
     @Override
     @Transactional
+<<<<<<< Updated upstream
     public void depositSalesRevenue(Integer sellerId, Integer itemId, Integer amount) {
         User seller = userRepository.findById(sellerId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 유저를 찾을 수 없습니다."));
@@ -140,5 +141,13 @@ public class WalletServiceImpl implements WalletService {
                 .build();
 
         walletHistoryRepository.save(history);
+=======
+    public void createWallet(User user) {
+        Wallet newWallet = Wallet.builder()
+                .user(user)
+                .balance(0)
+                .build();
+        walletRepository.save(newWallet);
+>>>>>>> Stashed changes
     }
 }
