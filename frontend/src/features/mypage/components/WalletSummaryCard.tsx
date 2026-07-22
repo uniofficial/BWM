@@ -23,7 +23,7 @@ export function WalletSummaryCard({ wallet, isLoading = false, compact = false }
   }
 
   return (
-    <Card variant="highlight" className={compact ? 'p-4' : undefined}>
+    <Card variant="highlight" className={`border-l-4 border-l-brand ${compact ? 'p-4' : ''}`}>
       <p className="text-sm font-semibold text-brand-dark">현재 보유 포인트</p>
       <p className="mt-2 break-words text-3xl font-bold text-ink">
         {wallet?.isValid ? formatPoints(wallet.balance) : '잔액 정보를 확인할 수 없습니다.'}

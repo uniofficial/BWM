@@ -131,9 +131,9 @@ export function ProductDetailPage() {
   }
 
   return (
-    <div className="min-h-screen bg-surface-secondary">
+    <div className="min-h-screen bg-surface">
       <AppHeader />
-      <main className="mx-auto max-w-6xl px-4 py-7 sm:px-8 sm:py-9 lg:px-10">
+      <main className="mx-auto max-w-7xl px-4 py-7 sm:px-8 sm:py-10 lg:px-10">
         <Link to={listPath} className={listLinkClass}>
           <span aria-hidden="true">←</span>
           <span className="ml-2">상품 목록으로</span>

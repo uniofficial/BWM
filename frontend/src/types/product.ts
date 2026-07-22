@@ -137,7 +137,10 @@ export interface ProductCreateFormState {
   title: string
   category: string
   startPrice: string
-  auctionEndAt: string
+  auctionDate: string
+  auctionMeridiem: string
+  auctionHour: string
+  auctionMinute: string
   description: string
 }
 

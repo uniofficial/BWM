@@ -1,6 +1,5 @@
 import type { ReactNode } from 'react'
 import { AppHeader } from '../../../components/common/AppHeader'
-import { Card } from '../../../components/ui'
 
 interface AuthLayoutProps {
   title: string
@@ -12,14 +11,13 @@ interface AuthLayoutProps {
 
 export function AuthLayout({ title, description, children, footer, notice }: AuthLayoutProps) {
   return (
-    <div className="min-h-screen bg-surface-secondary">
+    <div className="min-h-screen bg-surface">
       <AppHeader />
-      <main className="flex min-h-[calc(100dvh-4rem)] items-start justify-center px-4 py-10 sm:items-center sm:px-6 sm:py-14">
-        <Card className="w-full max-w-[460px] p-6 sm:p-8">
-          <div className="mb-7">
-            <p className="text-sm font-semibold text-brand-dark">BWM 계정</p>
-            <h1 className="mt-2 text-3xl font-bold text-ink">{title}</h1>
-            <p className="mt-2 text-sm leading-6 text-ink-secondary">{description}</p>
+      <main className="flex min-h-[calc(100dvh-4.5rem)] items-start justify-center px-4 py-12 sm:items-center sm:px-6 sm:py-16">
+        <section className="w-full max-w-[420px]" aria-labelledby="auth-heading">
+          <div className="mb-9">
+            <h1 id="auth-heading" className="text-4xl font-bold leading-tight text-ink">{title}</h1>
+            <p className="mt-3 text-sm leading-6 text-ink-secondary">{description}</p>
           </div>
 
           {notice && (
@@ -29,8 +27,10 @@ export function AuthLayout({ title, description, children, footer, notice }: Aut
           )}
 
           {children}
-          <div className="mt-7 border-t border-line pt-5 text-center text-sm text-ink-secondary">{footer}</div>
-        </Card>
+          <div className="mt-8 flex min-h-11 flex-wrap items-center justify-center gap-x-1 border-t border-line pt-5 text-center text-sm text-ink-secondary">
+            {footer}
+          </div>
+        </section>
       </main>
     </div>
   )

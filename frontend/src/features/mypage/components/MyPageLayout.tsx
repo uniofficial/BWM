@@ -10,12 +10,13 @@ export function MyPageLayout() {
   return (
     <div className="min-h-screen bg-surface-secondary">
       <AppHeader />
-      <main className="mx-auto max-w-6xl px-4 py-7 sm:px-8 sm:py-9 lg:px-10">
-        <header className="mb-6">
-          <p className="text-sm font-semibold text-brand-dark">{displayName}</p>
-          <h1 className="mt-2 text-3xl font-bold text-ink">마이페이지</h1>
-        </header>
-
+      <header className="border-b border-line bg-surface">
+        <div className="mx-auto max-w-7xl px-4 py-10 sm:px-8 sm:py-12 lg:px-10">
+          <h1 className="text-4xl font-bold leading-tight text-ink">마이페이지</h1>
+          <p className="mt-3 text-sm leading-6 text-ink-secondary">{displayName}님의 경매와 지갑 정보를 관리합니다.</p>
+        </div>
+      </header>
+      <main className="mx-auto max-w-7xl px-4 py-7 sm:px-8 sm:py-9 lg:px-10">
         <div className="lg:hidden">
           <MyPageNavigation variant="mobile" />
         </div>

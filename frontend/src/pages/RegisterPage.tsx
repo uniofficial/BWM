@@ -79,7 +79,7 @@ export function RegisterPage() {
       footer={
         <>
           이미 계정이 있으신가요?{' '}
-          <Link className="font-semibold text-brand-dark hover:text-brand-hover" to="/login">
+          <Link className="inline-flex min-h-11 items-center font-semibold text-brand-dark hover:text-brand-hover" to="/login">
             로그인
           </Link>
         </>

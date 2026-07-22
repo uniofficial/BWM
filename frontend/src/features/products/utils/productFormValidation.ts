@@ -5,12 +5,16 @@ import {
   PRODUCT_DESCRIPTION_MAX_LENGTH,
   PRODUCT_TITLE_MAX_LENGTH,
 } from '../constants/productForm'
+import { buildAuctionEndAt } from './auctionSchedule'
 
 export const INITIAL_PRODUCT_FORM: ProductCreateFormState = {
   title: '',
   category: '',
   startPrice: '',
-  auctionEndAt: '',
+  auctionDate: '',
+  auctionMeridiem: '',
+  auctionHour: '',
+  auctionMinute: '',
   description: '',
 }
 
@@ -45,9 +49,10 @@ export function validateProductCreateForm(
     }
   }
 
-  if (!values.auctionEndAt) errors.auctionEndAt = '경매 종료 시각을 선택해주세요.'
+  const auctionEndAt = buildAuctionEndAt(values)
+  if (!auctionEndAt) errors.auctionEndAt = '날짜와 오전·오후, 시, 분을 모두 선택해주세요.'
   else {
-    const endTime = Date.parse(values.auctionEndAt)
+    const endTime = Date.parse(auctionEndAt)
     if (!Number.isFinite(endTime)) errors.auctionEndAt = '유효한 종료 시각을 선택해주세요.'
     else if (endTime <= now) errors.auctionEndAt = '경매 종료 시각은 현재보다 이후여야 합니다.'
   }
@@ -66,4 +71,3 @@ export function hasProductFormErrors(errors: ProductCreateFormErrors) {
 export function isProductFormDirty(values: ProductCreateFormState, images: File[]) {
   return Object.values(values).some((value) => value.length > 0) || images.length > 0
 }
-

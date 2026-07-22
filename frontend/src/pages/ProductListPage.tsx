@@ -76,7 +76,11 @@ export function ProductListPage() {
 
   const handlePageChange = (page: number) => {
     updateSearchParams({ page: page <= 1 ? undefined : String(page) })
-    document.getElementById('products-heading')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    document.getElementById('products-heading')?.scrollIntoView({
+      behavior: reduceMotion ? 'auto' : 'smooth',
+      block: 'start',
+    })
   }
 
   const handleReset = () => setSearchParams({})
@@ -86,68 +90,73 @@ export function ProductListPage() {
   return (
     <div className="min-h-screen bg-surface-secondary">
       <AppHeader />
-      <main className="mx-auto max-w-6xl px-4 py-8 sm:px-8 sm:py-10 lg:px-10">
-        <section aria-labelledby="products-heading">
-          <div className="mb-7">
-            <p className="text-sm font-semibold text-brand-dark">BWM 경매</p>
-            <h1 id="products-heading" className="mt-2 scroll-mt-4 text-3xl font-bold text-ink">
+      <main>
+        <section className="border-b border-line bg-surface" aria-labelledby="products-heading">
+          <div className="mx-auto max-w-7xl px-4 py-12 sm:px-8 sm:py-16 lg:px-10">
+            <h1 id="products-heading" className="scroll-mt-4 text-4xl font-bold leading-tight text-ink sm:text-5xl">
               상품 둘러보기
             </h1>
-            <p className="mt-2 text-sm leading-6 text-ink-secondary">원하는 상품을 찾아 경매에 참여해보세요.</p>
-          </div>
-
-          <ProductFilters
-            query={query}
-            disabled={showInitialLoading}
-            onSearch={handleSearch}
-            onStatusChange={handleStatusChange}
-            onSortChange={handleSortChange}
-            onReset={handleReset}
-          />
-
-          <div className="flex min-h-12 items-center justify-between gap-3 py-4" aria-live="polite">
-            <p className="text-sm text-ink-secondary">
-              {result ? `${result.totalElements.toLocaleString('ko-KR')}개의 상품` : '상품을 확인하고 있습니다.'}
+            <p className="mt-4 max-w-xl text-base leading-7 text-ink-secondary">
+              현재 진행 중인 경매를 살펴보고 원하는 상품에 입찰해보세요.
             </p>
-            {isLoading && result && (
-              <span className="inline-flex items-center gap-2 text-xs text-ink-muted">
-                <Spinner size="sm" label="상품 목록 갱신 중" />
-                갱신 중
-              </span>
-            )}
           </div>
+        </section>
 
-          {showInitialLoading ? (
-            <ProductListSkeleton />
-          ) : errorMessage ? (
-            <ErrorState
-              title="상품을 불러오지 못했습니다."
-              description={errorMessage}
-              onRetry={() => setRetryKey((current) => current + 1)}
+        <section aria-label="경매 상품 목록">
+          <div className="mx-auto max-w-7xl px-4 py-8 sm:px-8 sm:py-10 lg:px-10">
+            <ProductFilters
+              query={query}
+              disabled={showInitialLoading}
+              onSearch={handleSearch}
+              onStatusChange={handleStatusChange}
+              onSortChange={handleSortChange}
+              onReset={handleReset}
             />
-          ) : isEmpty ? (
-            <EmptyState
-              title={hasActiveProductFilters(query) ? '조건에 맞는 상품이 없습니다.' : '등록된 상품이 없습니다.'}
-              description={hasActiveProductFilters(query) ? '검색어나 필터를 변경해보세요.' : undefined}
-              action={
-                hasActiveProductFilters(query) ? (
-                  <Button type="button" variant="secondary" onClick={handleReset}>
-                    조건 초기화
-                  </Button>
-                ) : undefined
-              }
-            />
-          ) : result ? (
-            <div className={isLoading ? 'opacity-60' : undefined} aria-busy={isLoading}>
-              <ProductGrid products={result.items} now={now} />
-              <ProductPagination
-                currentPage={result.page + 1}
-                totalPages={result.totalPages}
-                disabled={isLoading}
-                onPageChange={handlePageChange}
-              />
+
+            <div className="flex min-h-14 items-center justify-between gap-3" aria-live="polite">
+              <p className="text-sm font-medium text-ink-secondary">
+                {result ? `${result.totalElements.toLocaleString('ko-KR')}개의 상품` : '상품을 확인하고 있습니다.'}
+              </p>
+              {isLoading && result && (
+                <span className="inline-flex items-center gap-2 text-xs text-ink-muted">
+                  <Spinner size="sm" label="상품 목록 갱신 중" />
+                  갱신 중
+                </span>
+              )}
             </div>
-          ) : null}
+
+            {showInitialLoading ? (
+              <ProductListSkeleton />
+            ) : errorMessage ? (
+              <ErrorState
+                title="상품을 불러오지 못했습니다."
+                description={errorMessage}
+                onRetry={() => setRetryKey((current) => current + 1)}
+              />
+            ) : isEmpty ? (
+              <EmptyState
+                title={hasActiveProductFilters(query) ? '조건에 맞는 상품이 없습니다.' : '등록된 상품이 없습니다.'}
+                description={hasActiveProductFilters(query) ? '검색어나 필터를 변경해보세요.' : undefined}
+                action={
+                  hasActiveProductFilters(query) ? (
+                    <Button type="button" variant="secondary" onClick={handleReset}>
+                      조건 초기화
+                    </Button>
+                  ) : undefined
+                }
+              />
+            ) : result ? (
+              <div className={isLoading ? 'opacity-60' : undefined} aria-busy={isLoading}>
+                <ProductGrid products={result.items} now={now} />
+                <ProductPagination
+                  currentPage={result.page + 1}
+                  totalPages={result.totalPages}
+                  disabled={isLoading}
+                  onPageChange={handlePageChange}
+                />
+              </div>
+            ) : null}
+          </div>
         </section>
       </main>
     </div>

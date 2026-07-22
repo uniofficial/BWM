@@ -5,13 +5,18 @@ export function ProductCreatePage() {
   return (
     <div className="min-h-screen bg-surface-secondary">
       <AppHeader />
-      <main className="mx-auto max-w-4xl px-4 py-8 sm:px-8 sm:py-10 lg:px-10">
-        <div className="mb-7">
-          <p className="text-sm font-semibold text-brand-dark">판매 시작</p>
-          <h1 className="mt-2 text-3xl font-bold text-ink">상품 등록</h1>
-          <p className="mt-2 text-sm leading-6 text-ink-secondary">경매에 등록할 상품 정보를 입력해주세요.</p>
+      <main>
+        <header className="border-b border-line bg-surface">
+          <div className="mx-auto max-w-4xl px-4 py-12 sm:px-8 sm:py-14 lg:px-10">
+            <h1 className="text-4xl font-bold leading-tight text-ink">상품 등록</h1>
+            <p className="mt-3 max-w-xl text-base leading-7 text-ink-secondary">
+              상품 정보와 경매 마감 시각을 입력해 판매를 시작하세요.
+            </p>
+          </div>
+        </header>
+        <div className="mx-auto max-w-4xl px-4 py-8 sm:px-8 sm:py-10 lg:px-10">
+          <ProductForm />
         </div>
-        <ProductForm />
       </main>
     </div>
   )

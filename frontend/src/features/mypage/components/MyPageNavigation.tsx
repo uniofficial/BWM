@@ -2,14 +2,16 @@ import { NavLink, useLocation } from 'react-router-dom'
 import { MY_PAGE_MENU } from '../constants/myPageMenu'
 import { cx } from '../../../utils/cx'
 
-const linkClass = ({ isActive }: { isActive: boolean }) =>
-  cx(
-    'inline-flex min-h-11 items-center rounded-card px-3 text-sm font-semibold whitespace-nowrap transition-colors duration-200',
-    'focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-brand/30',
-    isActive
-      ? 'bg-brand-light text-brand-dark'
-      : 'text-ink-secondary hover:bg-surface-secondary hover:text-ink',
-  )
+const getLinkClass = (mobile: boolean) =>
+  ({ isActive }: { isActive: boolean }) =>
+    cx(
+      'inline-flex min-h-11 items-center border-transparent px-3 text-sm font-semibold whitespace-nowrap transition-colors duration-200',
+      'focus-visible:rounded-card focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-brand/30',
+      mobile ? 'border-b-2' : 'border-l-2',
+      isActive
+        ? 'border-brand text-ink'
+        : 'text-ink-secondary hover:border-line hover:text-ink',
+    )
 
 function NavigationLinks({ mobile = false }: { mobile?: boolean }) {
   const location = useLocation()
@@ -26,7 +28,7 @@ function NavigationLinks({ mobile = false }: { mobile?: boolean }) {
             {item.group}
           </p>
         )}
-        <NavLink to={item.to} end className={linkClass}>
+        <NavLink to={item.to} end className={getLinkClass(mobile)}>
           {item.label}
         </NavLink>
       </div>
@@ -44,7 +46,7 @@ export function MyPageNavigation({ variant }: { variant: 'desktop' | 'mobile' })
   }
 
   return (
-    <nav className="-mx-4 overflow-x-auto border-y border-line bg-surface px-4 sm:-mx-8 sm:px-8" aria-label="마이페이지 메뉴">
+    <nav className="-mx-4 overflow-x-auto border-b border-line bg-surface-secondary px-4 sm:-mx-8 sm:px-8" aria-label="마이페이지 메뉴">
       <div className="flex min-w-max gap-1 py-2">
         <NavigationLinks mobile />
       </div>

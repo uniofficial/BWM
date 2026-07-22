@@ -23,7 +23,7 @@ export function ProductCard({ product, now }: ProductCardProps) {
       className="group block h-full rounded-card focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-brand/30"
       aria-label={`${product.title} 상품 상세 보기`}
     >
-      <Card className="h-full overflow-hidden p-0 transition-colors duration-200 group-hover:border-brand-border group-hover:shadow-[var(--ds-shadow-card)]">
+      <Card className="h-full overflow-hidden p-0 transition-colors duration-200 group-hover:border-brand-border">
         <div className="aspect-[4/3] overflow-hidden bg-surface-secondary">
           {showImage ? (
             <img
@@ -40,7 +40,7 @@ export function ProductCard({ product, now }: ProductCardProps) {
           )}
         </div>
 
-        <div className="flex min-h-52 flex-col p-4">
+        <div className="flex min-h-48 flex-col p-4">
           <div className="flex items-start justify-between gap-3">
             <AuctionStatusBadge status={product.status} />
             <span className="min-w-0 truncate text-xs text-ink-muted">{product.category}</span>
@@ -50,7 +50,7 @@ export function ProductCard({ product, now }: ProductCardProps) {
 
           <div className="mt-auto pt-4">
             <p className="text-xs text-ink-muted">현재가</p>
-            <p className="mt-1 break-words text-xl font-bold text-ink">{formatPrice(product.currentPrice)}</p>
+            <p className="mt-1 break-words text-xl font-bold leading-tight text-ink">{formatPrice(product.currentPrice)}</p>
             <div className="mt-3 flex items-center justify-between gap-3 border-t border-line pt-3 text-xs text-ink-secondary">
               <span className="truncate">{product.highestBidderNickname ? '최고 입찰 있음' : '첫 입찰 대기'}</span>
               <span className="shrink-0 font-medium text-brand-dark">{formatRemainingTime(product, now)}</span>

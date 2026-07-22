@@ -1,6 +1,6 @@
 import { useEffect, useState, type FormEvent } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
-import { Button, Card, ConfirmDialog, Input, Textarea } from '../../../components/ui'
+import { Button, Card, ConfirmDialog, Input, Select, Textarea } from '../../../components/ui'
 import { useAuth } from '../../../hooks/useAuth'
 import { useToast } from '../../../hooks/useToast'
 import type { ProductCreateFormState } from '../../../types/product'
@@ -20,9 +20,31 @@ import {
 } from '../utils/productFormValidation'
 import { ProductImageUploader } from './ProductImageUploader'
 
-function toDateTimeLocalMinimum(date: Date) {
+const MERIDIEM_OPTIONS = [
+  { value: 'AM', label: '오전' },
+  { value: 'PM', label: '오후' },
+]
+
+const HOUR_OPTIONS = Array.from({ length: 12 }, (_, index) => {
+  const hour = String(index + 1)
+  return { value: hour, label: `${hour}시` }
+})
+
+const MINUTE_OPTIONS = Array.from({ length: 12 }, (_, index) => {
+  const minute = String(index * 5).padStart(2, '0')
+  return { value: minute, label: `${minute}분` }
+})
+
+const AUCTION_SCHEDULE_FIELDS = new Set<keyof ProductCreateFormState>([
+  'auctionDate',
+  'auctionMeridiem',
+  'auctionHour',
+  'auctionMinute',
+])
+
+function toDateInputValue(date: Date) {
   const pad = (value: number) => String(value).padStart(2, '0')
-  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`
 }
 
 export function ProductForm() {
@@ -38,7 +60,7 @@ export function ProductForm() {
     isAuthenticated && !isInitializing && Boolean(accessToken),
   )
   const dirty = isProductFormDirty(values, images)
-  const minimumEndAt = toDateTimeLocalMinimum(new Date(Date.now() + 60_000))
+  const minimumEndDate = toDateInputValue(new Date())
 
   useEffect(() => {
     if (!dirty || isSubmitting) return undefined
@@ -52,7 +74,8 @@ export function ProductForm() {
 
   const updateField = (field: keyof ProductCreateFormState, value: string) => {
     setValues((current) => ({ ...current, [field]: value }))
-    setErrors((current) => ({ ...current, [field]: undefined, form: undefined }))
+    const errorField = AUCTION_SCHEDULE_FIELDS.has(field) ? 'auctionEndAt' : field
+    setErrors((current) => ({ ...current, [errorField]: undefined, form: undefined }))
   }
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
@@ -167,19 +190,68 @@ export function ProductForm() {
           <section className="border-t border-line p-5 sm:p-7" aria-labelledby="auction-schedule-heading">
             <h2 id="auction-schedule-heading" className="text-xl font-semibold text-ink">경매 일정</h2>
             <p className="mt-2 text-sm leading-6 text-ink-secondary">등록 즉시 경매가 시작됩니다.</p>
-            <Input
-              containerClassName="mt-5 max-w-md"
-              label="경매 종료 시각"
-              name="auctionEndAt"
-              type="datetime-local"
-              min={minimumEndAt}
-              value={values.auctionEndAt}
-              error={errors.auctionEndAt}
-              helperText="현재 기기에 표시되는 현지 시각 기준으로 입력합니다."
-              disabled={isSubmitting}
-              required
-              onChange={(event) => updateField('auctionEndAt', event.target.value)}
-            />
+            <fieldset className="mt-5" aria-describedby={errors.auctionEndAt ? 'auction-end-error' : 'auction-end-help'}>
+              <legend className="text-sm font-semibold text-ink">
+                경매 종료 시각 <span className="text-danger" aria-hidden="true">*</span>
+                <span className="sr-only">필수</span>
+              </legend>
+              <div className="mt-2 grid grid-cols-3 gap-3 sm:max-w-2xl sm:grid-cols-[minmax(200px,1fr)_100px_100px_100px]">
+                <Input
+                  containerClassName="col-span-3 sm:col-span-1"
+                  label="날짜"
+                  name="auctionDate"
+                  type="date"
+                  min={minimumEndDate}
+                  value={values.auctionDate}
+                  disabled={isSubmitting}
+                  aria-describedby={errors.auctionEndAt ? 'auction-end-error' : 'auction-end-help'}
+                  required
+                  onChange={(event) => updateField('auctionDate', event.target.value)}
+                />
+                <Select
+                  label="오전·오후"
+                  name="auctionMeridiem"
+                  placeholder="선택"
+                  options={MERIDIEM_OPTIONS}
+                  value={values.auctionMeridiem}
+                  disabled={isSubmitting}
+                  aria-describedby={errors.auctionEndAt ? 'auction-end-error' : 'auction-end-help'}
+                  required
+                  onChange={(event) => updateField('auctionMeridiem', event.target.value)}
+                />
+                <Select
+                  label="시"
+                  name="auctionHour"
+                  placeholder="선택"
+                  options={HOUR_OPTIONS}
+                  value={values.auctionHour}
+                  disabled={isSubmitting}
+                  aria-describedby={errors.auctionEndAt ? 'auction-end-error' : 'auction-end-help'}
+                  required
+                  onChange={(event) => updateField('auctionHour', event.target.value)}
+                />
+                <Select
+                  label="분"
+                  name="auctionMinute"
+                  placeholder="선택"
+                  options={MINUTE_OPTIONS}
+                  value={values.auctionMinute}
+                  disabled={isSubmitting}
+                  aria-describedby={errors.auctionEndAt ? 'auction-end-error' : 'auction-end-help'}
+                  required
+                  onChange={(event) => updateField('auctionMinute', event.target.value)}
+                />
+              </div>
+              {errors.auctionEndAt ? (
+                <p id="auction-end-error" className="mt-2 text-xs leading-5 text-danger" role="alert">
+                  {errors.auctionEndAt}
+                </p>
+              ) : (
+                <p id="auction-end-help" className="mt-2 text-xs leading-5 text-ink-muted">
+                  현재 기기에 표시되는 현지 시각 기준이며, 분은 5분 단위로 선택합니다.
+                </p>
+              )}
+            </fieldset>
           </section>
 
           <section className="border-t border-line p-5 sm:p-7" aria-labelledby="product-images-heading">

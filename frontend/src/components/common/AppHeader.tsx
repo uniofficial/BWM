@@ -5,9 +5,11 @@ import { Button, Spinner } from '../ui'
 
 const navLinkClass = ({ isActive }: { isActive: boolean }) =>
   cx(
-    'inline-flex min-h-11 items-center rounded-card px-2 text-sm font-semibold transition-colors duration-200 sm:px-3',
-    'focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-brand/30',
-    isActive ? 'bg-brand-light text-brand-dark' : 'text-ink-secondary hover:bg-surface-secondary hover:text-ink',
+    'inline-flex min-h-11 items-center border-b-2 px-1 text-sm font-semibold transition-colors duration-200 sm:px-2',
+    'focus-visible:rounded-card focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-brand/30',
+    isActive
+      ? 'border-brand text-ink'
+      : 'border-transparent text-ink-secondary hover:border-line hover:text-ink',
   )
 
 export function AppHeader() {
@@ -15,10 +17,10 @@ export function AppHeader() {
 
   return (
     <header className="border-b border-line bg-surface">
-      <div className="mx-auto flex min-h-16 max-w-6xl items-center justify-between gap-3 px-4 sm:px-8 lg:px-10">
+      <div className="mx-auto flex min-h-[72px] max-w-7xl items-center justify-between gap-3 px-4 sm:px-8 lg:px-10">
         <Link
           to="/products"
-          className="inline-flex min-h-11 items-center text-xl font-bold text-brand-dark focus-visible:rounded-card"
+          className="inline-flex min-h-11 items-center border-l-4 border-brand pl-3 text-xl font-bold text-ink focus-visible:rounded-card"
           aria-label="BWM 홈"
         >
           BWM

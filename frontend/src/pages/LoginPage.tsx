@@ -79,7 +79,7 @@ export function LoginPage() {
       footer={
         <>
           계정이 없으신가요?{' '}
-          <Link className="font-semibold text-brand-dark hover:text-brand-hover" to="/register">
+          <Link className="inline-flex min-h-11 items-center font-semibold text-brand-dark hover:text-brand-hover" to="/register">
             회원가입
           </Link>
         </>

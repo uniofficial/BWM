@@ -11,7 +11,7 @@ const variantClasses: Record<CardVariant, string> = {
   default: 'border-line bg-surface',
   clickable:
     'cursor-pointer border-line bg-surface hover:border-brand-border hover:bg-brand-light/30 active:bg-brand-light',
-  highlight: 'border-brand-border bg-brand-light/45',
+  highlight: 'border-brand-border bg-surface',
   danger: 'border-danger/35 bg-[var(--ds-error-light)]',
 }
 

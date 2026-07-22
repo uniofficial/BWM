@@ -1,4 +1,5 @@
 import type { ItemCreateRequest, ProductCreateFormState } from '../../../types/product'
+import { buildAuctionEndAt } from './auctionSchedule'
 
 export function mapProductFormToRequest(values: ProductCreateFormState): ItemCreateRequest {
   const description = values.description.trim()
@@ -6,8 +7,7 @@ export function mapProductFormToRequest(values: ProductCreateFormState): ItemCre
     title: values.title.trim(),
     category: values.category.trim(),
     startPrice: Number(values.startPrice),
-    auctionEndAt: values.auctionEndAt,
+    auctionEndAt: buildAuctionEndAt(values),
     description: description || null,
   }
 }
-
