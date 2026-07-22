@@ -40,7 +40,6 @@ public class ItemController {
      *                실패 시 400 Bad Request를 응답한다 (별도 try-catch 필요 없음).
      * @return 201 Created + 등록된 상품 정보(ItemResponse)
      */
-
     @PostMapping
     public ResponseEntity<ItemResponse> createItem(
         Authentication authentication,
@@ -110,7 +109,7 @@ public class ItemController {
             return ResponseEntity.ok(response);
         }
 
-     /**
+    /**
      * 상품 수정 API.
      *
      * @param authentication JWT 인증 정보 (요청자, createItem과 동일)
