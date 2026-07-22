@@ -1,6 +1,7 @@
 package com.bwm.global.exception;
 
 import com.bwm.global.dto.ResultDto;
+import com.bwm.wallet.exception.WalletException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
@@ -44,6 +45,12 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(BusinessException.class)
     public ResponseEntity<ResultDto<Void>> handleBusinessException(BusinessException e) {
         return ResponseEntity.status(e.getStatus())
+                .body(ResultDto.error(e.getErrorCode(), e.getMessage()));
+    }
+
+    @ExceptionHandler(WalletException.class)
+    public ResponseEntity<ResultDto<Void>> handleWalletException(WalletException e) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                 .body(ResultDto.error(e.getErrorCode(), e.getMessage()));
     }
 
