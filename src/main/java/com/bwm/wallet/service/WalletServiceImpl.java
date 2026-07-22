@@ -56,7 +56,7 @@ public class WalletServiceImpl implements WalletService {
         @Override
         @Transactional
         public void chargeUserPoint(Integer userId, Integer amount) {
-                Wallet wallet = walletRepository.findById(userId)
+                Wallet wallet = walletRepository.findByIdForUpdate(userId)
                                 .orElseThrow(() -> new WalletNotFoundException("해당 유저의 지갑을 찾을 수 없습니다."));
 
                 if (wallet.getUser().getStatus() == UserStatus.WITHDRAWN) {
@@ -79,7 +79,7 @@ public class WalletServiceImpl implements WalletService {
         @Override
         @Transactional
         public void deductBidPoint(Integer userId, Integer itemId, Integer amount) {
-                Wallet wallet = walletRepository.findById(userId)
+                Wallet wallet = walletRepository.findByIdForUpdate(userId)
                                 .orElseThrow(() -> new WalletNotFoundException("해당 유저의 지갑을 찾을 수 없습니다."));
 
                 if (wallet.getUser().getStatus() == UserStatus.WITHDRAWN) {
@@ -105,7 +105,7 @@ public class WalletServiceImpl implements WalletService {
         @Override
         @Transactional
         public void refundBidPoint(Integer userId, Integer itemId, Integer amount) {
-                Wallet wallet = walletRepository.findById(userId)
+                Wallet wallet = walletRepository.findByIdForUpdate(userId)
                                 .orElseThrow(() -> new WalletNotFoundException("해당 유저의 지갑을 찾을 수 없습니다."));
 
                 Item item = itemRepository.findById(itemId)
@@ -130,7 +130,7 @@ public class WalletServiceImpl implements WalletService {
         User seller = userRepository.findById(sellerId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 유저를 찾을 수 없습니다."));
 
-        Wallet wallet = walletRepository.findById(sellerId)
+        Wallet wallet = walletRepository.findByIdForUpdate(sellerId)
                 .orElseGet(() -> {
                     Wallet newWallet = Wallet.builder()
                             .user(seller)
