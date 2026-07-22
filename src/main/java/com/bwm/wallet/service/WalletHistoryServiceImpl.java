@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.bwm.user.entity.User;
+import com.bwm.user.entity.UserStatus;
 import com.bwm.user.repository.UserRepository;
 import com.bwm.wallet.dto.WalletHistoryResponseDto;
 import com.bwm.wallet.entity.WalletHistory;
@@ -42,7 +43,11 @@ public class WalletHistoryServiceImpl implements WalletHistoryService {
         if (email == null || email.isBlank()) {
             throw new IllegalArgumentException("인증된 사용자 이메일이 없습니다.");
         }
-        return userRepository.findByEmail(email)
+        User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다. email=" + email));
+        if (user.getStatus() == UserStatus.WITHDRAWN) {
+            throw new IllegalArgumentException("탈퇴한 회원입니다.");
+        }
+        return user;
     }
 }
