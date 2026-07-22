@@ -17,4 +17,7 @@ public interface WalletService {
     // 최고 입찰자 경신 시 이전 최고 입찰자에게 포인트를 환불
 
     void refundBidPoint(Integer userId, Integer itemId, Integer amount);
+
+    // 판매 대금 정산 (경매 종료 시 입금)
+    void depositSalesRevenue(Integer sellerId, Integer itemId, Integer amount);
 }

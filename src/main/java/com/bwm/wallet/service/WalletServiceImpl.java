@@ -110,4 +110,35 @@ public class WalletServiceImpl implements WalletService {
 
         walletHistoryRepository.save(history);
     }
+
+    @Override
+    @Transactional
+    public void depositSalesRevenue(Integer sellerId, Integer itemId, Integer amount) {
+        User seller = userRepository.findById(sellerId)
+                .orElseThrow(() -> new IllegalArgumentException("해당 유저를 찾을 수 없습니다."));
+
+        Wallet wallet = walletRepository.findById(sellerId)
+                .orElseGet(() -> {
+                    Wallet newWallet = Wallet.builder()
+                            .user(seller)
+                            .balance(0)
+                            .build();
+                    return walletRepository.save(newWallet);
+                });
+
+        wallet.charge(amount);
+
+        Item item = itemRepository.findById(itemId)
+                .orElseThrow(() -> new IllegalArgumentException("해당 상품을 찾을 수 없습니다."));
+
+        WalletHistory history = WalletHistory.builder()
+                .wallet(wallet)
+                .item(item)
+                .type(WalletHistoryType.SALES_REVENUE)
+                .amount(amount)
+                .balanceAfter(wallet.getBalance())
+                .build();
+
+        walletHistoryRepository.save(history);
+    }
 }
