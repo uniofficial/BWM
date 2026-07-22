@@ -10,6 +10,7 @@ import com.bwm.user.entity.User;
 import com.bwm.user.entity.UserRole;
 import com.bwm.user.repository.UserRepository;
 import com.bwm.user.repository.UserRoleRepository;
+import com.bwm.wallet.service.WalletService;
 import lombok.RequiredArgsConstructor;
 
 import java.util.Collection;
@@ -31,6 +32,7 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final JwtProvider jwtProvider;
     private final RefreshTokenRepository refreshTokenRepository;
+    private final WalletService walletService;
 
     @Transactional
     public void signup(SignupRequest request) {
@@ -54,6 +56,9 @@ public class AuthService {
         user.getRoles().add(userRole);
 
         userRepository.save(user);
+
+        // 회원가입 시 지갑 생성
+        walletService.createWallet(user);
     }
 
     @Transactional
