@@ -10,86 +10,172 @@ import com.bwm.item.entity.Item;
 import com.bwm.item.entity.ItemStatus;
 
 /**
- * ItemSearchCondition의 각 필드를 동적 WHERE 조건(Specification)으로 변환하는 유틸리티.
+ * ItemSearchCondition을 JPA Specification으로 변환하는 유틸리티 클래스.
  *
- * 왜 쿼리 메서드 이름 방식(findByTitleContainingAndCategory...) 대신 이 방식을 쓰냐면:
- * 검색 조건 5개가 전부 "있을 수도, 없을 수도" 있는 조합이라, 쿼리 메서드로 다 커버하려면
- * 이론상 2^5 = 32개 메서드 조합이 필요하다. Specification은 조건을 하나씩 만들어서
- * "있는 것만" 런타임에 AND로 이어붙이는 방식이라 이런 조합 폭발을 피할 수 있다.
+ * 전달된 검색 조건만 동적으로 WHERE 절에 추가한다.
  */
+public final class ItemSpecification {
 
-public class ItemSpecification {
-    // 정적 메서드만 제공하는 유틸리티 클래스. new ItemSpecification() 하는 걸 막으려고
-    // 생성자를 private으로 숨김 (Item, ItemImage 엔티티의 private 생성자와는 다른 이유:
-    // 여긴 상태를 가진 객체를 만드는 게 아니라 그냥 정적 메서드 모음이라서 인스턴스 자체가 필요 없음)
     private ItemSpecification() {
-        // 정적 메서드만 제공하는 유틸리티 클래스라 인스턴스화 막아둠
     }
 
-    public static Specification<Item> from(ItemSearchCondition condition) {
-        // 지금 쓰는 Spring Data JPA 버전은 .and(null)을 호출하면
-        // "Other specification must not be null" 예외를 던진다 (예전엔 null-safe였는데 동작이 바뀜).
-        // 그래서 .and()로 체이닝하는 대신, null이 아닌 조건만 리스트에 모아서
-        // Specification.allOf(...)로 한 번에 AND 조합한다. 리스트가 비어있으면
-        // allOf가 자동으로 "조건 없음(전체 매칭)" Specification을 반환해준다.
-        List<Specification<Item>> specs = new ArrayList<>();
+    /**
+     * 검색 조건을 Specification으로 변환한다.
+     *
+     * status가 전달되지 않은 경우 기본적으로 OPEN 상태만 조회한다.
+     */
+    public static Specification<Item> from(
+            ItemSearchCondition condition
+    ) {
+        List<Specification<Item>> specifications =
+                new ArrayList<>();
 
-        addIfPresent(specs, keywordContains(condition.keyword()));
-        addIfPresent(specs, categoryEquals(condition.category()));
-        addIfPresent(specs, statusEquals(condition.status()));
-        addIfPresent(specs, priceGreaterThanOrEqual(condition.minPrice()));
-        addIfPresent(specs, priceLessThanOrEqual(condition.maxPrice()));
+        /*
+         * @ModelAttribute를 사용하면 일반적으로 빈 조건 객체가 만들어지지만,
+         * 서비스 단위 테스트나 다른 내부 호출에서 null이 전달될 가능성까지 방어한다.
+         */
+        if (condition == null) {
+            specifications.add(statusEquals(ItemStatus.OPEN));
+            return Specification.allOf(specifications);
+        }
 
-        return Specification.allOf(specs);
+        addIfPresent(
+                specifications,
+                keywordContains(condition.keyword())
+        );
+
+        addIfPresent(
+                specifications,
+                categoryEquals(condition.category())
+        );
+
+        /*
+         * status를 명시하지 않으면 목록 화면의 기본 정책인 OPEN을 적용한다.
+         * status를 명시하면 OPEN 대신 전달받은 상태를 적용한다.
+         */
+        ItemStatus status = condition.status() == null
+                ? ItemStatus.OPEN
+                : condition.status();
+
+        addIfPresent(
+                specifications,
+                statusEquals(status)
+        );
+
+        addIfPresent(
+                specifications,
+                priceGreaterThanOrEqual(condition.minPrice())
+        );
+
+        addIfPresent(
+                specifications,
+                priceLessThanOrEqual(condition.maxPrice())
+        );
+
+        return Specification.allOf(specifications);
     }
 
-    private static void addIfPresent(List<Specification<Item>> specs, Specification<Item> spec) {
-        if (spec != null) {
-            specs.add(spec);
+    /**
+     * null이 아닌 조건만 목록에 추가한다.
+     */
+    private static void addIfPresent(
+            List<Specification<Item>> specifications,
+            Specification<Item> specification
+    ) {
+        if (specification != null) {
+            specifications.add(specification);
         }
     }
 
-// Specification<Item>의 람다 파라미터 3개 의미:
-    //   root  - "Item 테이블"을 가리키는 참조. root.get("필드명")으로 컬럼에 접근
-    //   query - 생성 중인 쿼리 자체 (여기선 안 씀, distinct/orderBy 등 커스텀할 때 필요)
-    //   cb    - CriteriaBuilder. like/equal/greaterThan 같은 조건 연산자를 만들어주는 도구
-
-
-    private static Specification<Item> keywordContains(String keyword) {
+    /**
+     * 상품명에 검색어가 포함되는지 검사한다.
+     *
+     * 영문 검색은 대소문자를 구분하지 않도록 양쪽 모두 소문자로 변환한다.
+     */
+    private static Specification<Item> keywordContains(
+            String keyword
+    ) {
         if (keyword == null || keyword.isBlank()) {
-            return null; // 검색어 없으면 이 조건 자체를 안 건다.
-        }
-        return (root, query, cb) -> cb.like(root.get("title"), "%" + keyword + "%");
-
-    }
-
-    private static Specification<Item> categoryEquals(String category) {
-        if (category == null || category.isBlank()){
             return null;
         }
 
-        return (root, query, cb) -> cb.equal(root.get("category"), category);
+        String normalizedKeyword =
+                keyword.trim().toLowerCase();
+
+        return (root, query, criteriaBuilder) ->
+                criteriaBuilder.like(
+                        criteriaBuilder.lower(root.get("title")),
+                        "%" + normalizedKeyword + "%"
+                );
     }
 
-    private static Specification<Item> statusEquals(ItemStatus status) {
+    /**
+     * 카테고리가 정확히 일치하는지 검사한다.
+     */
+    private static Specification<Item> categoryEquals(
+            String category
+    ) {
+        if (category == null || category.isBlank()) {
+            return null;
+        }
+
+        String normalizedCategory = category.trim();
+
+        return (root, query, criteriaBuilder) ->
+                criteriaBuilder.equal(
+                        root.get("category"),
+                        normalizedCategory
+                );
+    }
+
+    /**
+     * 상품 상태가 일치하는지 검사한다.
+     */
+    private static Specification<Item> statusEquals(
+            ItemStatus status
+    ) {
         if (status == null) {
             return null;
         }
-        return (root, query, cb) -> cb.equal(root.get("status"), status);
+
+        return (root, query, criteriaBuilder) ->
+                criteriaBuilder.equal(
+                        root.get("status"),
+                        status
+                );
     }
 
-    private static Specification<Item> priceGreaterThanOrEqual(Integer minPrice) {
-        if(minPrice == null){
+    /**
+     * 현재가가 최소 가격 이상인지 검사한다.
+     */
+    private static Specification<Item> priceGreaterThanOrEqual(
+            Integer minPrice
+    ) {
+        if (minPrice == null) {
             return null;
         }
 
-        return (root, query, cb) -> cb.greaterThanOrEqualTo(root.get("currentPrice"), minPrice);
+        return (root, query, criteriaBuilder) ->
+                criteriaBuilder.greaterThanOrEqualTo(
+                        root.get("currentPrice"),
+                        minPrice
+                );
     }
 
-    private static Specification<Item> priceLessThanOrEqual(Integer maxPrice) {
-        if(maxPrice == null) {
+    /**
+     * 현재가가 최대 가격 이하인지 검사한다.
+     */
+    private static Specification<Item> priceLessThanOrEqual(
+            Integer maxPrice
+    ) {
+        if (maxPrice == null) {
             return null;
         }
-        return (root, query, cb) -> cb.lessThanOrEqualTo(root.get("currentPrice"), maxPrice);
+
+        return (root, query, criteriaBuilder) ->
+                criteriaBuilder.lessThanOrEqualTo(
+                        root.get("currentPrice"),
+                        maxPrice
+                );
     }
 }
