@@ -1,6 +1,10 @@
 package com.bwm.wallet.exception;
 
-public class WalletException extends RuntimeException {
+import com.bwm.global.exception.BusinessException;
+import org.springframework.http.HttpStatus;
+
+public class WalletException extends BusinessException {
+
     private final String errorCode;
 
     public WalletException(String errorCode, String message) {
@@ -8,6 +12,12 @@ public class WalletException extends RuntimeException {
         this.errorCode = errorCode;
     }
 
+    @Override
+    public HttpStatus getStatus() {
+        return HttpStatus.BAD_REQUEST;
+    }
+
+    @Override
     public String getErrorCode() {
         return errorCode;
     }
