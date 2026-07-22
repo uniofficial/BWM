@@ -6,15 +6,22 @@ import org.springframework.transaction.annotation.Transactional;
 import com.bwm.item.entity.Item;
 import com.bwm.item.repository.ItemRepository;
 import com.bwm.user.entity.User;
-import com.bwm.user.entity.UserStatus;
 import com.bwm.user.repository.UserRepository;
 import com.bwm.wallet.dto.WalletResponseDto;
+import com.bwm.wallet.dto.WalletChargeRequestResponseDto;
 import com.bwm.wallet.entity.Wallet;
 import com.bwm.wallet.entity.WalletHistory;
 import com.bwm.wallet.entity.WalletHistoryType;
+import com.bwm.wallet.entity.WalletChargeRequest;
+import com.bwm.wallet.entity.ChargeRequestStatus;
 import com.bwm.wallet.exception.WalletNotFoundException;
 import com.bwm.wallet.repository.WalletHistoryRepository;
 import com.bwm.wallet.repository.WalletRepository;
+import com.bwm.wallet.repository.WalletChargeRequestRepository;
+
+import java.util.List;
+import java.util.stream.Collectors;
+import java.time.LocalDateTime;
 
 import lombok.RequiredArgsConstructor;
 
@@ -26,6 +33,7 @@ public class WalletServiceImpl implements WalletService {
         private final WalletHistoryRepository walletHistoryRepository;
         private final ItemRepository itemRepository;
         private final UserRepository userRepository;
+        private final WalletChargeRequestRepository walletChargeRequestRepository;
 
         @Override
         public WalletResponseDto getMyWallet(String userEmail) {
@@ -41,13 +49,80 @@ public class WalletServiceImpl implements WalletService {
                 return new WalletResponseDto(wallet.getBalance());
         }
 
+        @Override
+        @Transactional
+        public WalletChargeRequestResponseDto requestPointCharge(String userEmail, Integer amount) {
+                User user = getUserByEmail(userEmail);
+                if (amount <= 0) {
+                        throw new IllegalArgumentException("충전 요청 금액은 1원 이상이어야 합니다.");
+                }
+
+                WalletChargeRequest request = WalletChargeRequest.builder()
+                                .user(user)
+                                .amount(amount)
+                                .status(ChargeRequestStatus.PENDING)
+                                .createdAt(LocalDateTime.now())
+                                .build();
+
+                WalletChargeRequest saved = walletChargeRequestRepository.save(request);
+                return convertToResponseDto(saved);
+        }
+
+        @Override
+        public List<WalletChargeRequestResponseDto> getMyChargeRequests(String userEmail) {
+                getUserByEmail(userEmail); // 유저 존재 및 탈퇴 여부 검증
+                List<WalletChargeRequest> requests = walletChargeRequestRepository.findByUserEmailOrderByCreatedAtDesc(userEmail);
+                return requests.stream()
+                                .map(this::convertToResponseDto)
+                                .collect(Collectors.toList());
+        }
+
+        @Override
+        public List<WalletChargeRequestResponseDto> getAllChargeRequests() {
+                List<WalletChargeRequest> requests = walletChargeRequestRepository.findAllByOrderByCreatedAtDesc();
+                return requests.stream()
+                                .map(this::convertToResponseDto)
+                                .collect(Collectors.toList());
+        }
+
+        @Override
+        @Transactional
+        public void approvePointCharge(Integer requestId) {
+                WalletChargeRequest request = walletChargeRequestRepository.findById(requestId)
+                                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 충전 요청입니다. ID=" + requestId));
+
+                request.approve();
+                chargeUserPoint(request.getUser().getUserId(), request.getAmount());
+        }
+
+        @Override
+        @Transactional
+        public void rejectPointCharge(Integer requestId) {
+                WalletChargeRequest request = walletChargeRequestRepository.findById(requestId)
+                                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 충전 요청입니다. ID=" + requestId));
+
+                request.reject();
+        }
+
+        private WalletChargeRequestResponseDto convertToResponseDto(WalletChargeRequest request) {
+                return WalletChargeRequestResponseDto.builder()
+                                .chargeRequestId(request.getChargeRequestId())
+                                .userId(request.getUser().getUserId())
+                                .userEmail(request.getUser().getEmail())
+                                .amount(request.getAmount())
+                                .status(request.getStatus().name())
+                                .createdAt(request.getCreatedAt())
+                                .processedAt(request.getProcessedAt())
+                                .build();
+        }
+
         private User getUserByEmail(String email) {
                 if (email == null || email.isBlank()) {
                         throw new IllegalArgumentException("인증된 사용자 이메일이 없습니다.");
                 }
                 User user = userRepository.findByEmail(email)
                                 .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다. email=" + email));
-                if (user.getStatus() == UserStatus.WITHDRAWN) {
+                if (user.isDeleted()) {
                         throw new IllegalArgumentException("탈퇴한 회원입니다.");
                 }
                 return user;
@@ -56,10 +131,10 @@ public class WalletServiceImpl implements WalletService {
         @Override
         @Transactional
         public void chargeUserPoint(Integer userId, Integer amount) {
-                Wallet wallet = walletRepository.findByIdForUpdate(userId)
+                Wallet wallet = walletRepository.findById(userId)
                                 .orElseThrow(() -> new WalletNotFoundException("해당 유저의 지갑을 찾을 수 없습니다."));
 
-                if (wallet.getUser().getStatus() == UserStatus.WITHDRAWN) {
+                if (wallet.getUser().isDeleted()) {
                         throw new IllegalArgumentException("탈퇴한 회원의 지갑입니다.");
                 }
 
@@ -79,10 +154,10 @@ public class WalletServiceImpl implements WalletService {
         @Override
         @Transactional
         public void deductBidPoint(Integer userId, Integer itemId, Integer amount) {
-                Wallet wallet = walletRepository.findByIdForUpdate(userId)
+                Wallet wallet = walletRepository.findById(userId)
                                 .orElseThrow(() -> new WalletNotFoundException("해당 유저의 지갑을 찾을 수 없습니다."));
 
-                if (wallet.getUser().getStatus() == UserStatus.WITHDRAWN) {
+                if (wallet.getUser().isDeleted()) {
                         throw new IllegalArgumentException("탈퇴한 회원의 지갑입니다.");
                 }
 
@@ -105,7 +180,7 @@ public class WalletServiceImpl implements WalletService {
         @Override
         @Transactional
         public void refundBidPoint(Integer userId, Integer itemId, Integer amount) {
-                Wallet wallet = walletRepository.findByIdForUpdate(userId)
+                Wallet wallet = walletRepository.findById(userId)
                                 .orElseThrow(() -> new WalletNotFoundException("해당 유저의 지갑을 찾을 수 없습니다."));
 
                 Item item = itemRepository.findById(itemId)
@@ -124,44 +199,44 @@ public class WalletServiceImpl implements WalletService {
                 walletHistoryRepository.save(history);
         }
 
-    @Override
-    @Transactional
-    public void depositSalesRevenue(Integer sellerId, Integer itemId, Integer amount) {
-        User seller = userRepository.findById(sellerId)
-                .orElseThrow(() -> new IllegalArgumentException("해당 유저를 찾을 수 없습니다."));
+        @Override
+        @Transactional
+        public void depositSalesRevenue(Integer sellerId, Integer itemId, Integer amount) {
+                User seller = userRepository.findById(sellerId)
+                                .orElseThrow(() -> new IllegalArgumentException("해당 유저를 찾을 수 없습니다."));
 
-        Wallet wallet = walletRepository.findByIdForUpdate(sellerId)
-                .orElseGet(() -> {
-                    Wallet newWallet = Wallet.builder()
-                            .user(seller)
-                            .balance(0)
-                            .build();
-                    return walletRepository.save(newWallet);
-                });
+                Wallet wallet = walletRepository.findById(sellerId)
+                                .orElseGet(() -> {
+                                        Wallet newWallet = Wallet.builder()
+                                                        .user(seller)
+                                                        .balance(0)
+                                                        .build();
+                                        return walletRepository.save(newWallet);
+                                });
 
-        wallet.charge(amount);
+                wallet.charge(amount);
 
-        Item item = itemRepository.findById(itemId)
-                .orElseThrow(() -> new IllegalArgumentException("해당 상품을 찾을 수 없습니다."));
+                Item item = itemRepository.findById(itemId)
+                                .orElseThrow(() -> new IllegalArgumentException("해당 상품을 찾을 수 없습니다."));
 
-        WalletHistory history = WalletHistory.builder()
-                .wallet(wallet)
-                .item(item)
-                .type(WalletHistoryType.SALES_REVENUE)
-                .amount(amount)
-                .balanceAfter(wallet.getBalance())
-                .build();
+                WalletHistory history = WalletHistory.builder()
+                                .wallet(wallet)
+                                .item(item)
+                                .type(WalletHistoryType.SALES_REVENUE)
+                                .amount(amount)
+                                .balanceAfter(wallet.getBalance())
+                                .build();
 
-        walletHistoryRepository.save(history);
-    }
+                walletHistoryRepository.save(history);
+        }
 
-    @Override
-    @Transactional
-    public void createWallet(User user) {
-        Wallet newWallet = Wallet.builder()
-                .user(user)
-                .balance(0)
-                .build();
-        walletRepository.save(newWallet);
-    }
+        @Override
+        @Transactional
+        public void createWallet(User user) {
+                Wallet newWallet = Wallet.builder()
+                                .user(user)
+                                .balance(0)
+                                .build();
+                walletRepository.save(newWallet);
+        }
 }
