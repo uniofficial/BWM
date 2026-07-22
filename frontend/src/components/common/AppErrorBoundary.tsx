@@ -32,12 +32,12 @@ export class AppErrorBoundary extends Component<AppErrorBoundaryProps, AppErrorB
     return (
       <main className="grid min-h-screen place-items-center bg-surface-secondary px-4 py-10">
         <section
-          className="w-full max-w-lg rounded-card border border-line bg-surface p-6 text-center shadow-[var(--ds-shadow-card)] sm:p-8"
+          className="w-full max-w-lg rounded-content border border-line bg-surface p-6 text-center shadow-[var(--ds-shadow-card)] sm:p-8"
           aria-labelledby="app-error-title"
           role="alert"
         >
           <div
-            className="mx-auto grid min-h-12 min-w-12 max-w-12 place-items-center rounded-full bg-[var(--ds-error-light)] font-bold text-danger"
+            className="mx-auto grid min-h-12 min-w-12 max-w-12 place-items-center rounded-pill bg-[var(--ds-error-light)] font-bold text-danger"
             aria-hidden="true"
           >
             !
@@ -53,14 +53,14 @@ export class AppErrorBoundary extends Component<AppErrorBoundaryProps, AppErrorB
           <div className="mt-6 flex flex-col gap-2 sm:flex-row sm:justify-center">
             <button
               type="button"
-              className="inline-flex min-h-11 items-center justify-center rounded-card border border-line bg-surface-secondary px-4 text-sm font-semibold text-ink transition-colors duration-200 hover:bg-brand-light focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-brand/30"
+              className="inline-flex min-h-11 items-center justify-center rounded-block border border-line bg-surface-secondary px-4 text-sm font-semibold text-ink transition-colors duration-200 hover:bg-brand-light focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-brand/30"
               onClick={this.reload}
             >
               다시 시도
             </button>
             <a
               href="/products"
-              className="inline-flex min-h-11 items-center justify-center rounded-card bg-brand px-4 text-sm font-semibold text-white transition-colors duration-200 hover:bg-brand-hover active:bg-brand-active focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-brand/30"
+              className="inline-flex min-h-11 items-center justify-center rounded-block bg-brand px-4 text-sm font-semibold text-white transition-colors duration-200 hover:bg-brand-hover active:bg-brand-active focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-brand/30"
             >
               상품 목록으로
             </a>

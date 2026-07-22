@@ -54,7 +54,7 @@ export function Button({
       disabled={isDisabled}
       aria-busy={isLoading || undefined}
       className={cx(
-        'inline-flex items-center justify-center gap-2 rounded-card border font-semibold transition-colors duration-200',
+        'inline-flex items-center justify-center gap-2 rounded-block border font-semibold transition-colors duration-200',
         'focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-brand/30',
         'disabled:cursor-not-allowed disabled:border-line disabled:bg-line disabled:text-ink-muted disabled:opacity-100',
         variantClasses[variant],

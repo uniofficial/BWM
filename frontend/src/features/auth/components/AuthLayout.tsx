@@ -21,7 +21,7 @@ export function AuthLayout({ title, description, children, footer, notice }: Aut
           </div>
 
           {notice && (
-            <div className="mb-5 rounded-card border border-positive/30 bg-[var(--ds-success-light)] px-4 py-3 text-sm leading-6 text-ink" role="status">
+            <div className="mb-5 rounded-inline border border-positive/30 bg-[var(--ds-success-light)] px-4 py-3 text-sm leading-6 text-ink" role="status">
               {notice}
             </div>
           )}

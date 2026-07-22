@@ -94,7 +94,7 @@ export function DesignSystemPage() {
             </p>
           </div>
           <div className="flex items-center gap-2 text-xs text-ink-muted">
-            <span className="h-3 w-3 rounded-full bg-brand" aria-hidden="true" />
+            <span className="h-3 w-3 rounded-pill bg-brand" aria-hidden="true" />
             Primary #7353EA
           </div>
         </header>
@@ -262,7 +262,7 @@ export function DesignSystemPage() {
 
         <Section title="Empty & Error state">
           <div className="grid gap-4 md:grid-cols-2">
-            <div className="rounded-card border border-line">
+            <div className="rounded-content border border-line">
               <EmptyState
                 title="아직 등록된 항목이 없습니다."
                 description="새로운 항목이 생기면 이곳에서 확인할 수 있습니다."
@@ -270,7 +270,7 @@ export function DesignSystemPage() {
                 action={<Button variant="secondary">선택적 액션</Button>}
               />
             </div>
-            <div className="rounded-card border border-line">
+            <div className="rounded-content border border-line">
               <ErrorState
                 description="정보를 불러오지 못했습니다. 잠시 후 다시 시도해주세요."
                 onRetry={() => showToast({ message: '다시 시도했습니다.', variant: 'info' })}

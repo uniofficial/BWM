@@ -3,7 +3,7 @@ import { AppHeader } from '../components/common/AppHeader'
 import { EmptyState } from '../components/ui'
 
 const homeLinkClass =
-  'inline-flex min-h-11 items-center rounded-card bg-brand px-5 text-sm font-semibold text-white transition-colors duration-200 hover:bg-brand-hover active:bg-brand-active focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-brand/30 focus-visible:ring-offset-2'
+  'inline-flex min-h-11 items-center rounded-block bg-brand px-5 text-sm font-semibold text-white transition-colors duration-200 hover:bg-brand-hover active:bg-brand-active focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-brand/30 focus-visible:ring-offset-2'
 
 export function NotFoundPage() {
   return (

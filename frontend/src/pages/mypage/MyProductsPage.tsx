@@ -16,7 +16,7 @@ const tabs = [
   { value: 'ended', label: '종료', panelId: 'my-products-panel' },
 ]
 
-const linkClass = 'inline-flex min-h-11 items-center justify-center rounded-card bg-brand px-4 text-sm font-semibold text-white transition-colors duration-200 hover:bg-brand-hover focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-brand/30'
+const linkClass = 'inline-flex min-h-11 items-center justify-center rounded-block bg-brand px-4 text-sm font-semibold text-white transition-colors duration-200 hover:bg-brand-hover focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-brand/30'
 
 export function MyProductsPage() {
   const [searchParams, setSearchParams] = useSearchParams()

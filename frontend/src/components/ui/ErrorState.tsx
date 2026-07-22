@@ -15,7 +15,7 @@ export function ErrorState({
 }: ErrorStateProps) {
   return (
     <div className="flex min-h-56 flex-col items-center justify-center px-5 py-10 text-center" role="alert">
-      <div className="mb-4 grid min-h-12 min-w-12 place-items-center rounded-full bg-[var(--ds-error-light)] font-bold text-danger" aria-hidden="true">
+      <div className="mb-4 grid min-h-12 min-w-12 place-items-center rounded-pill bg-[var(--ds-error-light)] font-bold text-danger" aria-hidden="true">
         !
       </div>
       <h3 className="text-base font-semibold text-ink">{title}</h3>

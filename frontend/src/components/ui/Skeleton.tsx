@@ -9,7 +9,7 @@ export interface SkeletonProps extends HTMLAttributes<HTMLDivElement> {
 }
 
 function Block({ className }: { className: string }) {
-  return <span className={cx('ds-skeleton block rounded-card', className)} aria-hidden="true" />
+  return <span className={cx('ds-skeleton block rounded-block', className)} aria-hidden="true" />
 }
 
 export function Skeleton({ variant = 'line', lines = 3, className, ...props }: SkeletonProps) {
@@ -58,7 +58,7 @@ export function Skeleton({ variant = 'line', lines = 3, className, ...props }: S
   }[variant]
 
   return (
-    <div className={cx(variant === 'product-card' && 'overflow-hidden rounded-card border border-line', className)} {...props}>
+    <div className={cx(variant === 'product-card' && 'overflow-hidden rounded-content border border-line', className)} {...props}>
       <span className="sr-only">콘텐츠를 불러오는 중입니다.</span>
       {content}
     </div>

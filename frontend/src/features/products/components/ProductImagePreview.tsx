@@ -26,7 +26,7 @@ export function ProductImagePreview({
   useEffect(() => setLoadFailed(false), [previewUrl])
 
   return (
-    <li className="min-w-0 overflow-hidden rounded-card border border-line bg-surface">
+    <li className="min-w-0 overflow-hidden rounded-content border border-line bg-surface">
       <div className="relative aspect-square bg-surface-secondary">
         {loadFailed ? (
           <div className="grid h-full place-items-center px-3 text-center text-xs text-ink-muted">
@@ -49,7 +49,7 @@ export function ProductImagePreview({
           type="button"
           disabled={disabled}
           onClick={onRemove}
-          className="absolute top-1 right-1 inline-flex min-h-11 min-w-11 items-center justify-center rounded-card bg-surface/90 text-xl text-ink-secondary shadow-[var(--ds-shadow-card)] transition-colors duration-200 hover:bg-surface hover:text-danger focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-brand/30 disabled:cursor-not-allowed disabled:opacity-60"
+          className="absolute top-1 right-1 inline-flex min-h-11 min-w-11 items-center justify-center rounded-compact bg-surface/90 text-xl text-ink-secondary shadow-[var(--ds-shadow-card)] transition-colors duration-200 hover:bg-surface hover:text-danger focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-brand/30 disabled:cursor-not-allowed disabled:opacity-60"
           aria-label={`${file.name} 이미지 제거`}
         >
           <span aria-hidden="true">×</span>
@@ -62,4 +62,3 @@ export function ProductImagePreview({
     </li>
   )
 }
-

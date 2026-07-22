@@ -6,7 +6,7 @@ import { Button, Spinner } from '../ui'
 const navLinkClass = ({ isActive }: { isActive: boolean }) =>
   cx(
     'inline-flex min-h-11 items-center border-b-2 px-1 text-sm font-semibold transition-colors duration-200 sm:px-2',
-    'focus-visible:rounded-card focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-brand/30',
+    'focus-visible:rounded-compact focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-brand/30',
     isActive
       ? 'border-brand text-ink'
       : 'border-transparent text-ink-secondary hover:border-line hover:text-ink',
@@ -20,16 +20,16 @@ export function AppHeader() {
       <div className="mx-auto flex min-h-[72px] max-w-7xl items-center justify-between gap-3 px-4 sm:px-8 lg:px-10">
         <Link
           to="/products"
-          className="inline-flex min-h-11 items-center border-l-4 border-brand pl-3 text-xl font-bold text-ink focus-visible:rounded-card"
+          className="inline-flex min-h-11 items-center border-l-4 border-brand pl-3 text-xl font-bold text-ink focus-visible:rounded-compact"
           aria-label="BWM 홈"
         >
           BWM
         </Link>
 
         <nav className="flex min-w-0 items-center gap-1" aria-label="주요 메뉴">
-          <NavLink to="/products" end className={navLinkClass} aria-label="상품 둘러보기">
-            <span className="sm:hidden">상품</span>
-            <span className="hidden sm:inline">상품 둘러보기</span>
+          <NavLink to="/products" end className={navLinkClass} aria-label="경매 둘러보기">
+            <span className="sm:hidden">경매</span>
+            <span className="hidden sm:inline">경매 둘러보기</span>
           </NavLink>
           {isInitializing ? (
             <div className="flex min-h-11 min-w-24 items-center justify-end" aria-label="인증 상태 확인 중">

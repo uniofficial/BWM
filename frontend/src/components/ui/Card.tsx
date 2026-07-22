@@ -29,7 +29,7 @@ export function Card({ variant = 'default', className, onClick, onKeyDown, child
   return (
     <article
       className={cx(
-        'rounded-card border p-5 shadow-[var(--ds-shadow-card)] transition-colors duration-200',
+        'rounded-content border p-5 shadow-[var(--ds-shadow-card)] transition-colors duration-200',
         'focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-brand/30',
         variantClasses[variant],
         className,

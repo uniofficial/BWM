@@ -62,7 +62,7 @@ export function MyProductCard({ product, now, isEnding, onEndAuction }: MyProduc
           <Link
             to={`/products/${product.id}`}
             state={{ from: location }}
-            className="inline-flex min-h-11 items-center justify-center rounded-card border border-line bg-surface px-3 text-sm font-semibold text-ink transition-colors duration-200 hover:border-brand-border hover:bg-brand-light focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-brand/30"
+            className="inline-flex min-h-11 items-center justify-center rounded-block border border-line bg-surface px-3 text-sm font-semibold text-ink transition-colors duration-200 hover:border-brand-border hover:bg-brand-light focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-brand/30"
           >
             상품 보기
           </Link>

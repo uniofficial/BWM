@@ -9,7 +9,7 @@ import { MyPageSectionHeader } from '../../features/mypage/components/MyPageSect
 import { getMyPageErrorMessage } from '../../features/mypage/utils/myPageFormat'
 import type { MyBidItem } from '../../types/myBid'
 
-const linkClass = 'inline-flex min-h-11 items-center justify-center rounded-card bg-brand px-4 text-sm font-semibold text-white transition-colors duration-200 hover:bg-brand-hover focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-brand/30'
+const linkClass = 'inline-flex min-h-11 items-center justify-center rounded-block bg-brand px-4 text-sm font-semibold text-white transition-colors duration-200 hover:bg-brand-hover focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-brand/30'
 
 export function MyBidsPage() {
   const [bids, setBids] = useState<MyBidItem[] | null>(null)
@@ -47,7 +47,7 @@ export function MyBidsPage() {
       {isLoading && bids === null ? <MyPageListSkeleton cards /> : error && bids === null ? (
         <ErrorState title="내 입찰 내역을 불러오지 못했습니다." description={error} onRetry={() => setRetryKey((value) => value + 1)} />
       ) : (bids || []).length === 0 ? (
-        <EmptyState title="입찰한 상품이 없습니다." action={<Link to="/products" className={linkClass}>상품 둘러보기</Link>} />
+        <EmptyState title="입찰한 상품이 없습니다." action={<Link to="/products" className={linkClass}>경매 둘러보기</Link>} />
       ) : (
         <div aria-busy={isLoading} className={isLoading ? 'opacity-60' : undefined}>
           {error && <p className="mb-3 text-sm text-danger" role="alert">{error}</p>}

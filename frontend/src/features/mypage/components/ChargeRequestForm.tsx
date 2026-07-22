@@ -63,7 +63,7 @@ export function ChargeRequestForm({ onRequestCreated, onHistoryCheckNeeded }: Ch
           충전 요청은 관리자 승인 후 잔액에 반영됩니다. 요청 직후에는 현재 잔액과 거래 내역이 변경되지 않습니다.
         </p>
         {formError && (
-          <p className="rounded-card border border-danger/30 bg-[var(--ds-error-light)] px-4 py-3 text-sm leading-6 text-danger" role="alert">
+          <p className="rounded-inline border border-danger/30 bg-[var(--ds-error-light)] px-4 py-3 text-sm leading-6 text-danger" role="alert">
             {formError}
           </p>
         )}

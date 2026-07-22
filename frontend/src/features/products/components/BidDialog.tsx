@@ -98,7 +98,7 @@ export function BidDialog({ open, product, isSubmitting, onSubmit, onClose }: Bi
       }
     >
       <form id="bid-form" onSubmit={handleSubmit} noValidate aria-busy={isSubmitting || undefined}>
-        <dl className="grid gap-3 rounded-card bg-surface-secondary p-4 text-sm">
+        <dl className="grid gap-3 rounded-inline bg-surface-secondary p-4 text-sm">
           <div className="flex items-center justify-between gap-4">
             <dt className="text-ink-secondary">{product.bidCount > 0 ? '현재 최고 입찰가' : '시작가'}</dt>
             <dd className="font-semibold text-ink">{formatPrice(product.currentPrice)}</dd>
@@ -111,7 +111,7 @@ export function BidDialog({ open, product, isSubmitting, onSubmit, onClose }: Bi
 
         {minimumBidChanged && (
           <div
-            className="mt-4 rounded-card border border-caution/30 bg-[var(--ds-warning-light)] px-4 py-3 text-sm leading-6 text-ink"
+            className="mt-4 rounded-inline border border-caution/30 bg-[var(--ds-warning-light)] px-4 py-3 text-sm leading-6 text-ink"
             role="status"
           >
             다른 사용자의 입찰로 최소 입찰 금액이 변경되었습니다. 입력한 금액을 다시 확인해주세요.
@@ -144,7 +144,7 @@ export function BidDialog({ open, product, isSubmitting, onSubmit, onClose }: Bi
         <p className="mt-3 text-xs leading-5 text-ink-muted">입찰 후에는 취소할 수 없습니다.</p>
         {commonError && (
           <div
-            className="mt-4 rounded-card border border-danger/30 bg-[var(--ds-error-light)] px-4 py-3 text-sm leading-6 text-danger"
+            className="mt-4 rounded-inline border border-danger/30 bg-[var(--ds-error-light)] px-4 py-3 text-sm leading-6 text-danger"
             role="alert"
           >
             {commonError}

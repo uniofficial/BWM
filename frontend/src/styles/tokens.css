@@ -10,6 +10,7 @@
   --ds-text-muted: #999999;
   --ds-background: #ffffff;
   --ds-background-secondary: #fafafc;
+  --ds-background-hero: #f8f8fa;
   --ds-border: #e5e7eb;
   --ds-error: #e5484d;
   --ds-error-light: color-mix(in srgb, var(--ds-error) 9%, white);
@@ -21,7 +22,12 @@
   --ds-overlay: color-mix(in srgb, var(--ds-text-primary) 48%, transparent);
   --ds-shadow-card: 0 1px 3px color-mix(in srgb, var(--ds-text-primary) 7%, transparent);
   --ds-shadow-dialog: 0 12px 32px color-mix(in srgb, var(--ds-text-primary) 16%, transparent);
-  --ds-radius: 12px;
+  --ds-radius-compact: 8px;
+  --ds-radius-block: 11px;
+  --ds-radius-inline: 15px;
+  --ds-radius-content: 20px;
+  --ds-radius-pill: 999px;
+  --ds-radius: var(--ds-radius-content);
   --ds-control-height: 44px;
   --ds-transition: 180ms;
   --ds-font-sans: Pretendard, system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
@@ -39,10 +45,16 @@
   --color-ink-muted: var(--ds-text-muted);
   --color-surface: var(--ds-background);
   --color-surface-secondary: var(--ds-background-secondary);
+  --color-surface-hero: var(--ds-background-hero);
   --color-line: var(--ds-border);
   --color-danger: var(--ds-error);
   --color-caution: var(--ds-warning);
   --color-positive: var(--ds-success);
   --font-sans: var(--ds-font-sans);
-  --radius-card: var(--ds-radius);
+  --radius-compact: var(--ds-radius-compact);
+  --radius-block: var(--ds-radius-block);
+  --radius-inline: var(--ds-radius-inline);
+  --radius-content: var(--ds-radius-content);
+  --radius-pill: var(--ds-radius-pill);
+  --radius-card: var(--ds-radius-content);
 }

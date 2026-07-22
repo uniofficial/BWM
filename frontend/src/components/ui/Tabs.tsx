@@ -77,7 +77,7 @@ export function Tabs({ items, value, onChange, ariaLabel, className }: TabsProps
                 selected ? 'text-brand-dark' : 'text-ink-muted hover:text-ink',
                 'disabled:cursor-not-allowed disabled:text-line',
                 selected &&
-                  'after:absolute after:right-2 after:bottom-0 after:left-2 after:h-0.5 after:rounded-full after:bg-brand',
+                  'after:absolute after:right-2 after:bottom-0 after:left-2 after:h-0.5 after:rounded-pill after:bg-brand',
               )}
             >
               {item.label}

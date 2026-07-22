@@ -6,7 +6,7 @@ const getLinkClass = (mobile: boolean) =>
   ({ isActive }: { isActive: boolean }) =>
     cx(
       'inline-flex min-h-11 items-center border-transparent px-3 text-sm font-semibold whitespace-nowrap transition-colors duration-200',
-      'focus-visible:rounded-card focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-brand/30',
+      'focus-visible:rounded-compact focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-brand/30',
       mobile ? 'border-b-2' : 'border-l-2',
       isActive
         ? 'border-brand text-ink'

@@ -107,7 +107,7 @@ export function Dialog({
         aria-describedby={description ? descriptionId : undefined}
         tabIndex={-1}
         className={cx(
-          'relative w-full max-w-md rounded-card border border-line bg-surface p-6 shadow-[var(--ds-shadow-dialog)] outline-none',
+          'relative w-full max-w-md rounded-content border border-line bg-surface p-6 shadow-[var(--ds-shadow-dialog)] outline-none',
           className,
         )}
       >
@@ -115,7 +115,7 @@ export function Dialog({
           <button
             type="button"
             onClick={onClose}
-            className="absolute top-3 right-3 inline-flex min-h-11 min-w-11 items-center justify-center rounded-card text-xl text-ink-muted hover:bg-surface-secondary hover:text-ink"
+            className="absolute top-3 right-3 inline-flex min-h-11 min-w-11 items-center justify-center rounded-compact text-xl text-ink-muted hover:bg-surface-secondary hover:text-ink"
             aria-label="대화상자 닫기"
           >
             <span aria-hidden="true">×</span>

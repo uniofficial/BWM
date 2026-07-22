@@ -55,7 +55,7 @@ export function ConfirmDialog({
       }
     >
       {errorMessage && (
-        <p className="rounded-card border border-danger/30 bg-[var(--ds-error-light)] px-4 py-3 text-sm leading-6 text-danger" role="alert">
+        <p className="rounded-inline border border-danger/30 bg-[var(--ds-error-light)] px-4 py-3 text-sm leading-6 text-danger" role="alert">
           {errorMessage}
         </p>
       )}

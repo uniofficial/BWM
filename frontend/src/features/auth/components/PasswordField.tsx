@@ -15,7 +15,7 @@ export function PasswordField(props: PasswordFieldProps) {
         <button
           type="button"
           onClick={() => setIsVisible((current) => !current)}
-          className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-card text-ink-muted transition-colors duration-200 hover:bg-surface-secondary hover:text-ink focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-brand/30"
+          className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-compact text-ink-muted transition-colors duration-200 hover:bg-surface-secondary hover:text-ink focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-brand/30"
           aria-label={label}
           aria-pressed={isVisible}
           title={label}

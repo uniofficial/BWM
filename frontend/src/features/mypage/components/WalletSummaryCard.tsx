@@ -11,7 +11,7 @@ interface WalletSummaryCardProps {
 }
 
 const actionLinkClass =
-  'inline-flex min-h-11 items-center justify-center rounded-card px-4 text-sm font-semibold transition-colors duration-200 focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-brand/30'
+  'inline-flex min-h-11 items-center justify-center rounded-block px-4 text-sm font-semibold transition-colors duration-200 focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-brand/30'
 
 export function WalletSummaryCard({ wallet, isLoading = false, compact = false }: WalletSummaryCardProps) {
   if (isLoading) {

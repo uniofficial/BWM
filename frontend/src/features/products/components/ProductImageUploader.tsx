@@ -73,7 +73,7 @@ export function ProductImageUploader({
           htmlFor={inputId}
           aria-disabled={disabled || undefined}
           className={cx(
-            'inline-flex min-h-11 cursor-pointer items-center justify-center rounded-card border border-line bg-surface px-4 text-sm font-semibold text-ink transition-colors duration-200',
+            'inline-flex min-h-11 cursor-pointer items-center justify-center rounded-block border border-line bg-surface px-4 text-sm font-semibold text-ink transition-colors duration-200',
             'hover:border-brand hover:text-brand-dark focus-within:ring-3 focus-within:ring-brand/30',
             disabled && 'cursor-not-allowed bg-surface-secondary text-ink-muted opacity-70',
           )}
@@ -110,7 +110,7 @@ export function ProductImageUploader({
           ))}
         </ul>
       ) : (
-        <div className="mt-4 grid min-h-32 place-items-center rounded-card border border-dashed border-line bg-surface-secondary px-5 text-center text-sm leading-6 text-ink-muted">
+        <div className="mt-4 grid min-h-32 place-items-center rounded-content border border-dashed border-line bg-surface-secondary px-5 text-center text-sm leading-6 text-ink-muted">
           상품을 잘 보여주는 이미지를 선택해주세요.
         </div>
       )}

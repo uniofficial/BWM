@@ -31,7 +31,7 @@ export function MyBidCard({ bid }: { bid: MyBidItem }) {
     <Link
       to={`/products/${bid.productId}`}
       state={{ from: location }}
-      className="group block h-full rounded-card focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-brand/30"
+      className="group block h-full rounded-content focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-brand/30"
       aria-label={`${bid.productName} 상품 상세 보기`}
     >
       <Card className="flex h-full flex-col overflow-hidden p-0 transition-colors duration-200 group-hover:border-brand-border">
@@ -54,7 +54,7 @@ export function MyBidCard({ bid }: { bid: MyBidItem }) {
             <div className="flex justify-between gap-3"><dt className="text-ink-muted">남은 시간</dt><dd className="text-right text-ink-secondary">{formatDuration(bid.remainingSeconds, bid.auctionStatus === 'OPEN')}</dd></div>
             <div className="flex justify-between gap-3"><dt className="text-ink-muted">최근 입찰</dt><dd className="text-right text-ink-secondary">{formatDateTime(bid.bidAt)}</dd></div>
           </dl>
-          <span className="mt-5 inline-flex min-h-11 items-center justify-center rounded-card border border-line bg-surface text-sm font-semibold text-ink group-hover:bg-brand-light">
+          <span className="mt-5 inline-flex min-h-11 items-center justify-center rounded-block border border-line bg-surface text-sm font-semibold text-ink group-hover:bg-brand-light">
             상품 보기
           </span>
         </div>

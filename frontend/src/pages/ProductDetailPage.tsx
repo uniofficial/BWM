@@ -29,7 +29,7 @@ function readProductListReturnPath(value: unknown) {
 }
 
 const listLinkClass =
-  'inline-flex min-h-11 items-center rounded-card px-3 text-sm font-semibold text-brand-dark transition-colors duration-200 hover:bg-brand-light focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-brand/30'
+  'inline-flex min-h-11 items-center rounded-block px-3 text-sm font-semibold text-brand-dark transition-colors duration-200 hover:bg-brand-light focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-brand/30'
 
 export function ProductDetailPage() {
   const { productId } = useParams()
@@ -175,7 +175,7 @@ export function ProductDetailPage() {
           ) : product ? (
             <>
               {refreshError && (
-                <div className="mb-4 rounded-card border border-caution/30 bg-[var(--ds-warning-light)] px-4 py-3 text-sm leading-6 text-ink" role="status">
+                <div className="mb-4 rounded-inline border border-caution/30 bg-[var(--ds-warning-light)] px-4 py-3 text-sm leading-6 text-ink" role="status">
                   최신 정보를 갱신하지 못했습니다. 기존 정보를 표시합니다. {refreshError}
                 </div>
               )}

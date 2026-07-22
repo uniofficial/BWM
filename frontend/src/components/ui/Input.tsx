@@ -47,7 +47,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
     >
       <div
         className={cx(
-          'flex min-h-11 items-center rounded-card border bg-surface transition-colors duration-200',
+          'flex min-h-11 items-center rounded-compact border bg-surface transition-colors duration-200',
           error ? 'border-danger' : 'border-line focus-within:border-brand',
           'focus-within:ring-3 focus-within:ring-brand/15',
           disabled && 'cursor-not-allowed bg-surface-secondary opacity-70',

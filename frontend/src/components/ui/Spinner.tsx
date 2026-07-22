@@ -32,7 +32,7 @@ export function Spinner({
       <span
         aria-hidden="true"
         className={cx(
-          'ds-spinner block rounded-full border-current border-r-transparent',
+          'ds-spinner block rounded-pill border-current border-r-transparent',
           sizeClasses[size],
         )}
       />

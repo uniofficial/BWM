@@ -45,7 +45,7 @@ export function Table<T>({
     <div
       className={cx(
         mobileMode === 'scroll' && 'overflow-x-auto',
-        'rounded-card border border-line bg-surface',
+        'rounded-content border border-line bg-surface',
         className,
       )}
     >

@@ -43,19 +43,19 @@ function ToastItem({ toast, onDismiss }: ToastItemProps) {
   return (
     <div
       className={cx(
-        'flex w-full items-start gap-3 rounded-card border p-4 shadow-[var(--ds-shadow-card)]',
+        'flex w-full items-start gap-3 rounded-inline border p-4 shadow-[var(--ds-shadow-card)]',
         variantStyles[toast.variant],
       )}
       role={toast.variant === 'error' ? 'alert' : 'status'}
     >
-      <span className={cx('rounded-full px-2 py-1 text-xs font-semibold', variantLabelStyles[toast.variant])}>
+      <span className={cx('rounded-pill px-2 py-1 text-xs font-semibold', variantLabelStyles[toast.variant])}>
         {variantLabel[toast.variant]}
       </span>
       <p className="min-w-0 flex-1 pt-0.5 text-sm leading-5">{toast.message}</p>
       <button
         type="button"
         onClick={() => onDismiss(toast.id)}
-        className="-m-2 inline-flex min-h-11 min-w-11 items-center justify-center rounded-card text-xl text-ink-muted hover:bg-surface-secondary hover:text-ink"
+        className="-m-2 inline-flex min-h-11 min-w-11 items-center justify-center rounded-compact text-xl text-ink-muted hover:bg-surface-secondary hover:text-ink"
         aria-label="알림 닫기"
       >
         <span aria-hidden="true">×</span>

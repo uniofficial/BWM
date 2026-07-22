@@ -20,7 +20,7 @@ export function ProductCard({ product, now }: ProductCardProps) {
     <Link
       to={`/products/${product.id}`}
       state={{ from: location }}
-      className="group block h-full rounded-card focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-brand/30"
+      className="group block h-full rounded-content focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-brand/30"
       aria-label={`${product.title} 상품 상세 보기`}
     >
       <Card className="h-full overflow-hidden p-0 transition-colors duration-200 group-hover:border-brand-border">

@@ -10,7 +10,7 @@ export function MyPageListSkeleton({ cards = false }: { cards?: boolean }) {
   }
 
   return (
-    <div className="rounded-card border border-line bg-surface p-5" aria-busy="true">
+    <div className="rounded-content border border-line bg-surface p-5" aria-busy="true">
       <Skeleton variant="list" lines={5} />
     </div>
   )

@@ -267,7 +267,7 @@ export function ProductForm() {
 
           <div className="border-t border-line p-5 sm:p-7">
             {errors.form && (
-              <div className="mb-5 rounded-card border border-danger/30 bg-[var(--ds-error-light)] px-4 py-3 text-sm leading-6 text-danger" role="alert">
+              <div className="mb-5 rounded-inline border border-danger/30 bg-[var(--ds-error-light)] px-4 py-3 text-sm leading-6 text-danger" role="alert">
                 {errors.form}
               </div>
             )}

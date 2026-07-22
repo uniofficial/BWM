@@ -13,7 +13,7 @@ export function WalletPage() {
         <ErrorState title="지갑 정보를 불러오지 못했습니다." description={error} onRetry={retry} />
       ) : (
         <>
-          {error && <p className="mb-3 rounded-card border border-caution/30 bg-[var(--ds-warning-light)] px-4 py-3 text-sm text-ink" role="status">최신 잔액을 갱신하지 못했습니다. 기존 정보를 표시합니다. {error}</p>}
+          {error && <p className="mb-3 rounded-inline border border-caution/30 bg-[var(--ds-warning-light)] px-4 py-3 text-sm text-ink" role="status">최신 잔액을 갱신하지 못했습니다. 기존 정보를 표시합니다. {error}</p>}
           <WalletSummaryCard wallet={wallet} isLoading={isLoading && !wallet} />
         </>
       )}

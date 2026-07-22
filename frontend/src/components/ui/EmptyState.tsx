@@ -14,7 +14,7 @@ export function EmptyState({ title, description, icon, action, headingLevel = 'h
   return (
     <div className="flex min-h-56 flex-col items-center justify-center px-5 py-10 text-center">
       {icon && (
-        <div className="mb-4 grid min-h-12 min-w-12 place-items-center rounded-full bg-surface-secondary text-ink-muted" aria-hidden="true">
+        <div className="mb-4 grid min-h-12 min-w-12 place-items-center rounded-pill bg-surface-secondary text-ink-muted" aria-hidden="true">
           {icon}
         </div>
       )}

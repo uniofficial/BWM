@@ -33,7 +33,7 @@ export function ProductFilters({
 
   return (
     <form
-      className="grid gap-4 rounded-card border border-line bg-surface p-4 sm:p-5 lg:grid-cols-[minmax(0,2fr)_minmax(180px,1fr)_160px_160px_auto] lg:items-end"
+      className="grid gap-4 rounded-content border border-line bg-surface p-4 sm:p-5 lg:grid-cols-[minmax(0,2fr)_minmax(180px,1fr)_160px_160px_auto] lg:items-end"
       onSubmit={handleSubmit}
     >
       <Input
