@@ -48,12 +48,6 @@ public class GlobalExceptionHandler {
                 .body(ResultDto.error(e.getErrorCode(), e.getMessage()));
     }
 
-    @ExceptionHandler(WalletException.class)
-    public ResponseEntity<ResultDto<Void>> handleWalletException(WalletException e) {
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                .body(ResultDto.error(e.getErrorCode(), e.getMessage()));
-    }
-
     // 그 외 모든 예외 처리
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ResultDto<Void>> handleException(Exception e) {
