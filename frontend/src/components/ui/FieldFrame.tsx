@@ -23,7 +23,7 @@ export function FieldFrame({
   trailingLabel,
 }: FieldFrameProps) {
   return (
-    <div className={cx('grid gap-2', className)}>
+    <div className={cx('grid min-w-0 gap-2', className)}>
       {(label || trailingLabel) && (
         <div className="flex min-h-5 items-center justify-between gap-3">
           {label ? (

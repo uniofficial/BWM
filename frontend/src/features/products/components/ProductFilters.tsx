@@ -33,7 +33,7 @@ export function ProductFilters({
 
   return (
     <form
-      className="grid gap-4 rounded-content border border-line bg-surface p-4 sm:p-5 lg:grid-cols-[minmax(0,2fr)_minmax(180px,1fr)_160px_160px_auto] lg:items-end"
+      className="grid grid-cols-1 gap-4 rounded-content border border-line bg-surface p-4 sm:p-5 md:grid-cols-2 xl:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)_minmax(150px,0.8fr)_minmax(150px,0.8fr)_auto] xl:items-end"
       onSubmit={handleSubmit}
     >
       <Input
@@ -69,7 +69,7 @@ export function ProductFilters({
         disabled={disabled}
         onChange={(event) => onSortChange(event.target.value as ProductSortOption)}
       />
-      <div className="grid grid-cols-2 gap-2 lg:flex lg:justify-end">
+      <div className="grid grid-cols-2 gap-2 md:col-span-2 xl:col-span-1 xl:flex xl:justify-end">
         <Button type="submit" disabled={disabled}>
           검색
         </Button>

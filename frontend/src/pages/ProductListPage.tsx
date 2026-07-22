@@ -106,17 +106,17 @@ export function ProductListPage() {
               maskImage: 'linear-gradient(to bottom, transparent 0, black 12%)',
             }}
           />
-          <div className="mx-auto flex min-h-[500px] max-w-7xl items-start px-4 py-12 sm:min-h-[520px] sm:px-8 sm:py-14 lg:min-h-[540px] lg:items-center lg:px-10 lg:py-16">
-            <div className="max-w-xs lg:max-w-sm">
+          <div className="flex min-h-[500px] w-full items-start px-4 py-12 sm:min-h-[520px] sm:px-8 lg:min-h-[540px] lg:px-10">
+            <div className="grid w-full max-w-sm grid-rows-[56px_56px_48px] gap-y-4">
               <h1 id="products-heading" className="scroll-mt-4 text-4xl font-bold leading-tight text-ink sm:text-5xl">
                 경매 둘러보기
               </h1>
-              <p className="mt-4 text-base leading-7 text-ink-secondary">
+              <p className="text-base leading-7 text-ink-secondary">
                 현재 진행 중인 경매를 살펴보고 원하는 상품에 입찰해보세요.
               </p>
               <a
                 href="#auction-products"
-                className="mt-7 inline-flex min-h-12 items-center justify-center rounded-block border border-brand bg-brand px-5 text-sm font-semibold text-white transition-colors duration-200 hover:border-brand-hover hover:bg-brand-hover active:border-brand-active active:bg-brand-active focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-brand/30"
+                className="inline-flex min-h-12 items-center justify-center justify-self-start rounded-block border border-brand bg-brand px-5 text-sm font-semibold text-white transition-colors duration-200 hover:border-brand-hover hover:bg-brand-hover active:border-brand-active active:bg-brand-active focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-brand/30"
               >
                 진행 중인 경매 보기
               </a>
