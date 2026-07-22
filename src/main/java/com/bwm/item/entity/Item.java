@@ -2,6 +2,7 @@ package com.bwm.item.entity;
 
 import java.time.LocalDateTime;
 
+import com.bwm.item.exception.ItemStateConflictException;
 import com.bwm.user.entity.User;
 
 import jakarta.persistence.Column;
@@ -55,7 +56,7 @@ public class Item {
     private Integer startPrice;
 
     // 현재가. 등록 시점엔 startPrice와 동일, 입찰마다 갱신
-   @Column(name = "current_price", nullable = false)
+    @Column(name = "current_price", nullable = false)
     private Integer currentPrice;
 
     // 경매 마감 시각. 이 시각 이후 입찰 불가 
@@ -137,13 +138,13 @@ public class Item {
      */
     public void closeAsSold() {
         if (this.status != ItemStatus.OPEN) {
-            throw new IllegalStateException(
+            throw new ItemStateConflictException(
                     "OPEN 상태의 경매만 SOLD로 변경할 수 있습니다."
             );
         }
 
         if (this.highestBidder == null) {
-            throw new IllegalStateException(
+            throw new ItemStateConflictException(
                     "최고 입찰자가 없는 경매는 SOLD로 변경할 수 없습니다."
             );
         }
@@ -156,13 +157,13 @@ public class Item {
      */
     public void closeAsUnsold() {
         if (this.status != ItemStatus.OPEN) {
-            throw new IllegalStateException(
+            throw new ItemStateConflictException(
                     "OPEN 상태의 경매만 UNSOLD로 변경할 수 있습니다."
             );
         }
 
         if (this.highestBidder != null) {
-            throw new IllegalStateException(
+            throw new ItemStateConflictException(
                     "최고 입찰자가 있는 경매는 UNSOLD로 변경할 수 없습니다."
             );
         }
@@ -179,7 +180,7 @@ public class Item {
     public void updateHighestBidder(User bidder, Integer bidAmount) {
 
         if (this.status != ItemStatus.OPEN) {
-            throw new IllegalStateException(
+            throw new ItemStateConflictException(
                     "진행 중인 경매만 최고 입찰자를 변경할 수 있습니다."
             );
         }
@@ -211,14 +212,14 @@ public class Item {
      */
     public void update(String title, String category, String description, Integer startPrice, LocalDateTime auctionEndAt) {
         if (this.status != ItemStatus.OPEN) {
-            throw new IllegalStateException("진행 중인 경매만 수정할 수 있습니다.");
+            throw new ItemStateConflictException("진행 중인 경매만 수정할 수 있습니다.");
         }
 
         boolean hasBid = !this.currentPrice.equals(this.startPrice);
 
         if (hasBid) {
             if (title != null || category != null || startPrice != null || auctionEndAt != null) {
-                throw new IllegalStateException("입찰이 시작된 상품은 설명만 수정할 수 있습니다.");
+                throw new ItemStateConflictException("입찰이 시작된 상품은 설명만 수정할 수 있습니다.");
             }
             if (description != null) {
                 this.description = description;
@@ -254,11 +255,11 @@ public class Item {
      */
     public void cancel() {
         if(this.status != ItemStatus.OPEN) {
-            throw new IllegalStateException("진행 중인 경매만 취소할 수 있습니다.");
+            throw new ItemStateConflictException("진행 중인 경매만 취소할 수 있습니다.");
         }
 
         if(!this.currentPrice.equals(this.startPrice)){
-            throw new IllegalStateException("입찰이 시작된 상품은 취소할 수 없습니다.");
+            throw new ItemStateConflictException("입찰이 시작된 상품은 취소할 수 없습니다.");
         }
 
         this.status = ItemStatus.CANCELLED;

@@ -4,19 +4,19 @@ import org.springframework.http.HttpStatus;
 
 import com.bwm.global.exception.BusinessException;
 
-public class ItemNotFoundException extends BusinessException {
+public class ItemStateConflictException extends BusinessException{
 
-    public ItemNotFoundException(String message){
+    public ItemStateConflictException(String message) {
         super(message);
     }
 
     @Override
     public HttpStatus getStatus() {
-        return HttpStatus.NOT_FOUND;
+        return HttpStatus.CONFLICT;
     }
 
     @Override
     public String getErrorCode() {
-        return "ITEM_NOT_FOUND";
+        return "ITEM_STATE_CONFLICT";
     }
 }

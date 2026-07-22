@@ -6,8 +6,6 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.bwm.item.dto.response.ItemImageResponse;
-import com.bwm.item.exception.ItemAccessDeniedException;
-import com.bwm.item.exception.ItemNotFoundException;
 import com.bwm.item.service.ItemImageService;
 
 import lombok.RequiredArgsConstructor;
@@ -17,7 +15,6 @@ import java.util.List;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
-import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -60,25 +57,5 @@ public class ItemImageController {
             return ResponseEntity.status(HttpStatus.CREATED).body(response);
         }
 
-        // representativeIndex 범위 오류 등 잘못된 요청은 400으로 응답
-
-        @ExceptionHandler(IllegalArgumentException.class)
-        public ResponseEntity<String> handleIllegalArgumentException(IllegalArgumentException e){
-            return ResponseEntity.badRequest().body(e.getMessage());
-        }
-
-        // 존재하지 않는 상품 id로 요청하면 404로 응답
-        @ExceptionHandler(ItemNotFoundException.class)
-        public ResponseEntity<String> handleItemNotFoundException(ItemNotFoundException e){
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
-        }
-
-        // 본인 이미지 아닌데 이미지를 추가하려 하면 403으로 응답
-        @ExceptionHandler(ItemAccessDeniedException.class)
-        public ResponseEntity<String> handleItemAccessDeniedException(ItemAccessDeniedException e){
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
-        }
-    
-    
-    
+        // 예외 처리는 GlobalExceptionHandler(전역)에서 일괄 처리한다.
 }

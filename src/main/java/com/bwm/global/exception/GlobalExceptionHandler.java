@@ -39,6 +39,14 @@ public class GlobalExceptionHandler {
                 .body(ResultDto.error("BAD_REQUEST", e.getMessage()));
     }
 
+    // ItemNotFoundException, ItemAccessDeniedException, ItemStateConflictException 등
+    // BusinessException을 상속한 도메인 예외를 한 곳에서 처리
+    @ExceptionHandler(BusinessException.class)
+    public ResponseEntity<ResultDto<Void>> handleBusinessException(BusinessException e) {
+        return ResponseEntity.status(e.getStatus())
+                .body(ResultDto.error(e.getErrorCode(), e.getMessage()));
+    }
+
     // 그 외 모든 예외 처리
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ResultDto<Void>> handleException(Exception e) {

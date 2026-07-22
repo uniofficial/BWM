@@ -17,7 +17,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
-import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
 
 import org.springframework.data.domain.Sort;
@@ -48,12 +47,8 @@ public class UserController {
             return ResponseEntity.ok(response);
         }
 
-    // 잘못된 요청(존재하지 않는 인증 사용자 등)은 400으로 응답
-    @ExceptionHandler(IllegalArgumentException.class)
-    public ResponseEntity<String> handleIllegalArgumaentException(IllegalArgumentException e) {
-        return ResponseEntity.badRequest().body(e.getMessage());
-    }
-    
+    // 예외 처리는 GlobalExceptionHandler(전역)에서 일괄 처리한다.
+
     /**
      * 내가 등록한 상품 중 판매 완료(SOLD)된 것만 조회하는 API.
      *
