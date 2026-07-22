@@ -19,11 +19,12 @@ public interface WalletService {
 
     void refundBidPoint(Integer userId, Integer itemId, Integer amount);
 
-<<<<<<< Updated upstream
     // 판매 대금 정산 (경매 종료 시 입금)
     void depositSalesRevenue(Integer sellerId, Integer itemId, Integer amount);
-=======
+
     // 지갑 생성 (회원가입 시)
     void createWallet(com.bwm.user.entity.User user);
->>>>>>> Stashed changes
+
+    // 지갑 삭제 (회원탈퇴 시)
+    void deleteWallet(Integer userId);
 }
