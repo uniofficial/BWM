@@ -18,8 +18,10 @@ import org.springframework.web.multipart.MultipartFile;
 import com.bwm.item.dto.response.ItemImageResponse;
 import com.bwm.item.entity.Item;
 import com.bwm.item.entity.ItemImage;
+import com.bwm.item.entity.ItemStatus;
 import com.bwm.item.exception.ItemAccessDeniedException;
 import com.bwm.item.exception.ItemNotFoundException;
+import com.bwm.item.exception.ItemStateConflictException;
 import com.bwm.item.repository.ItemImageRepository;
 import com.bwm.item.repository.ItemRepository;
 import com.bwm.user.entity.User;
@@ -67,6 +69,11 @@ public class ItemImageServiceImpl implements ItemImageService{
         Integer sellerId = getUserByUuid(sellerEmail).getUserId();
         if(!item.getSeller().getUserId().equals(sellerId)) {
             throw new ItemAccessDeniedException("본인이 등록한 상품에만 이미지를 추가할 수 있습니다.");
+        }
+
+        // #3-1. 상태 체크 - 진행 중(OPEN)인 상품에만 이미지 추가 가능
+        if (item.getStatus() != ItemStatus.OPEN) {
+            throw new ItemStateConflictException("진행 중인 상품에만 이미지를 추가할 수 있습니다.");
         }
 
         List<ItemImage> savedImages = new ArrayList<>();
