@@ -38,10 +38,10 @@ public class MyBidController {
     public ResponseEntity<List<MyBidHistoryResponse>> getMyBidHistory(
             Authentication authentication
     ) {
-        String userEmail = authentication.getName();
+        String userUuid = authentication.getName();
 
         List<MyBidHistoryResponse> responses =
-                bidService.getMyBidHistory(userEmail);
+                bidService.getMyBidHistory(userUuid);
 
         return ResponseEntity.ok(responses);
     }

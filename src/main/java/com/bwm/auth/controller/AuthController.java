@@ -90,8 +90,8 @@ public class AuthController {
 
     @DeleteMapping("/withdraw")
     public ResponseEntity<ResultDto<Void>> withdraw(Authentication authentication) {
-        String email = authentication.getName();
-        authService.withdraw(email);
+        String userUuid = authentication.getName();
+        authService.withdraw(userUuid);
         return ResponseEntity.ok(ResultDto.success(null));
     }
 }

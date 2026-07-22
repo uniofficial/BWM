@@ -2,12 +2,14 @@ package com.bwm.user.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.SQLRestriction;
 
 import java.util.HashSet;
 import java.util.Set;
 
 @Entity
 @Table(name = "user")
+@SQLRestriction("is_deleted = false")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
@@ -31,6 +33,10 @@ public class User {
     @Column(name = "nickname", nullable = false, length = 45)
     private String nickname;
 
+    @Column(name = "is_deleted", nullable = false)
+    @Builder.Default
+    private boolean isDeleted = false;
+
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(
             name = "user_user_role",
@@ -45,5 +51,9 @@ public class User {
         if (this.userUuid == null) {
             this.userUuid = java.util.UUID.randomUUID().toString();
         }
+    }
+
+    public void markAsDeleted() {
+        this.isDeleted = true;
     }
 }

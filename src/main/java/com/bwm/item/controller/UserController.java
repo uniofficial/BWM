@@ -31,21 +31,22 @@ import org.springframework.data.domain.Sort;
 public class UserController {
     private final ItemService itemService;
     private final AuctionService auctionService;
+
     /**
      * 내가 등록한 상품 조회 API.
      *
      * @param authentication JWT 인증 정보. email(subject)을 그대로 서비스에 넘기면
-     *        서비스가 내부에서 로그인 사용자를 조회한다.
-     * @param pageable 페이지 조건 (기본값: 페이지당 20개, 등록 최신순)
+     *                       서비스가 내부에서 로그인 사용자를 조회한다.
+     * @param pageable       페이지 조건 (기본값: 페이지당 20개, 등록 최신순)
      * @return 200 OK + 내가 등록한 상품 목록
      */
     @GetMapping("/items")
     public ResponseEntity<Page<ItemSummaryResponse>> getMyItems(
-        Authentication authentication,
-        @PageableDefault(size = 20, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
-            Page<ItemSummaryResponse> response = itemService.getMyItems(authentication.getName(), pageable);
-            return ResponseEntity.ok(response);
-        }
+            Authentication authentication,
+            @PageableDefault(size = 20, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
+        Page<ItemSummaryResponse> response = itemService.getMyItems(authentication.getName(), pageable);
+        return ResponseEntity.ok(response);
+    }
 
     // 예외 처리는 GlobalExceptionHandler(전역)에서 일괄 처리한다.
 
@@ -60,13 +61,11 @@ public class UserController {
      */
     @GetMapping("/sales")
     public ResponseEntity<List<SoldAuctionResponse>> getMySales(
-        Authentication authentication) {
+            Authentication authentication) {
 
-            List<SoldAuctionResponse> response = auctionService.getMySoldAuctions(authentication.getName());
-            return ResponseEntity.ok(response);
+        List<SoldAuctionResponse> response = auctionService.getMySoldAuctions(authentication.getName());
+        return ResponseEntity.ok(response);
 
-        }
-    
-    
-    
+    }
+
 }

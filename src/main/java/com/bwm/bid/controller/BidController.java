@@ -50,11 +50,11 @@ public class BidController {
                         @PathVariable("itemId") Integer itemId,
                         @Valid @RequestBody BidCreateRequest request,
                         Authentication authentication) {
-                String bidderEmail = authentication.getName();
+                String bidderUuid = authentication.getName();
 
                 BidResponse response = bidService.createBid(
                                 itemId,
-                                bidderEmail,
+                                bidderUuid,
                                 request);
 
                 return ResponseEntity.ok(response);

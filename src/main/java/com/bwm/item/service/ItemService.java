@@ -34,7 +34,7 @@ public interface ItemService {
      * @param request  상품 등록 요청 값 (제목/카테고리/시작가/마감시각/설명)
      * @return 등록된 상품 정보 (itemId 포함 - DB에 저장된 후의 결과)
      */
-    ItemResponse createItem(String sellerEmail, ItemCreateRequest request);
+    ItemResponse createItem(String sellerUuid, ItemCreateRequest request);
 
 
     /**
@@ -79,7 +79,7 @@ public interface ItemService {
      * @param pageable 페이지 번호/크기/정렬 조건
      * @return 그 판매자가 등록한 상품 목록 (요약 정보만 포함)
      */
-    Page<ItemSummaryResponse> getMyItems(String sellerEmail, Pageable pageable);
+    Page<ItemSummaryResponse> getMyItems(String sellerUuid, Pageable pageable);
 
     /**
      * 상품 정보를 수정한다 (제목/카테고리/설명, 부분 수정).
@@ -89,7 +89,7 @@ public interface ItemService {
      * @param request 수정할 값들 (PATCH이므로 null인 필드는 그대로 유지됨)
      * @return 수정된 상품 정보
      */
-    ItemResponse updateItem(Integer itemId, String sellerEmail, ItemUpdateRequest request);
+    ItemResponse updateItem(Integer itemId, String sellerUuid, ItemUpdateRequest request);
 
     /**
      * 상품 등록을 취소한다 (상태를 CANCELLED로 변경).
@@ -98,5 +98,5 @@ public interface ItemService {
      * @param sellerEmail 요청자의 로그인 이메일. 상품을 등록한 판매자 본인만 취소 가능
      * @return 취소된 상품 정보
      */
-    ItemResponse cancelItem(Integer itemId, String sellerEmail);
+    ItemResponse cancelItem(Integer itemId, String sellerUuid);
 }

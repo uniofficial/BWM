@@ -60,7 +60,7 @@ public class BidService {
     @Transactional
     public BidResponse createBid(
             Integer itemId,
-            String bidderEmail,
+            String bidderUuid,
             BidCreateRequest request
     ) {
         /*
@@ -75,7 +75,7 @@ public class BidService {
          * JWT subject에서 가져온 이메일로
          * 로그인 사용자 엔티티를 조회합니다.
          */
-        User bidder = getUserByUuid(bidderEmail);
+        User bidder = getUserByUuid(bidderUuid);
         Integer bidderId = bidder.getUserId();
 
         validateOpenStatus(item);
@@ -177,9 +177,9 @@ public class BidService {
      */
     @Transactional(readOnly = true)
     public List<MyBidHistoryResponse> getMyBidHistory(
-            String userEmail
+            String userUuid
     ) {
-        User user = getUserByUuid(userEmail);
+        User user = getUserByUuid(userUuid);
         Integer userId = user.getUserId();
 
         return bidRepository

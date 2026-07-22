@@ -50,10 +50,10 @@ public class ItemServiceImpl implements ItemService {
 
     @Override
     @Transactional
-    public ItemResponse createItem(String sellerEmail, ItemCreateRequest request){
+    public ItemResponse createItem(String sellerUuid, ItemCreateRequest request){
 
         // #1. 판매자 조회 - JWT 인증 정보의 이메일로 로그인 사용자를 조회
-        User seller = getUserByUuid(sellerEmail);
+        User seller = getUserByUuid(sellerUuid);
 
         // #2. Item 엔티티 생성
         Item item = Item.create(
@@ -116,21 +116,21 @@ public class ItemServiceImpl implements ItemService {
 
     @Override
     @Transactional(readOnly = true)
-    public Page<ItemSummaryResponse> getMyItems(String sellerEmail, Pageable pageable) {
+    public Page<ItemSummaryResponse> getMyItems(String sellerUuid, Pageable pageable) {
         // getItems(전체 목록)와 거의 같은 흐름인데, seller_id 조건만 하나 더 걸려있는 버전
-        Integer sellerId = getUserByUuid(sellerEmail).getUserId();
+        Integer sellerId = getUserByUuid(sellerUuid).getUserId();
         return itemRepository.findAllBySeller_UserId(sellerId, pageable).map(ItemSummaryResponse::from);
     }
 
     @Override
     @Transactional
-    public ItemResponse updateItem(Integer itemId, String sellerEmail, ItemUpdateRequest request){
+    public ItemResponse updateItem(Integer itemId, String sellerUuid, ItemUpdateRequest request){
         // #1. 상품 조회 - 존재하지 않는 itemId면 제외
         Item item = itemRepository.findById(itemId)
                                   .orElseThrow(() -> new ItemNotFoundException("존재하지 않는 상품입니다. id = " + itemId));
 
         // #2. 권한 체크 - 본인이 등록한 상품만 수정 가능
-        Integer sellerId = getUserByUuid(sellerEmail).getUserId();
+        Integer sellerId = getUserByUuid(sellerUuid).getUserId();
         if(!item.getSeller().getUserId().equals(sellerId)) {
             throw new ItemAccessDeniedException("본인이 등록한 상품만 수정할 수 있습니다.");
         }
@@ -145,7 +145,7 @@ public class ItemServiceImpl implements ItemService {
 
     @Override
     @Transactional
-    public ItemResponse cancelItem(Integer itemId, String sellerEmail) {
+    public ItemResponse cancelItem(Integer itemId, String sellerUuid) {
 
         // #1. 상품 조회 - 존재하지 않는 itemId면 예외
         // findByIdForUpdate로 비관적 락을 걸어서, 취소 처리 중에 동시에 입찰이 들어와
@@ -154,7 +154,7 @@ public class ItemServiceImpl implements ItemService {
                                   .orElseThrow(() -> new ItemNotFoundException("존재하지 않는 상품입니다. id = " + itemId));
 
         // #2. 권한 체크 - 본인이 등록한 상품만 취소 가능
-        Integer sellerId = getUserByUuid(sellerEmail).getUserId();
+        Integer sellerId = getUserByUuid(sellerUuid).getUserId();
         if (!item.getSeller().getUserId().equals(sellerId)) {
             throw new ItemAccessDeniedException("본인이 등록한 상품만 취소할 수 있습니다.");
         }
@@ -178,7 +178,7 @@ public class ItemServiceImpl implements ItemService {
         }
 
         return userRepository.findByUserUuid(uuid)
-                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다. uuid=" + uuid));
+                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다. userUuid=" + uuid));
     }
 
 }

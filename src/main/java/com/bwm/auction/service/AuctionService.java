@@ -54,13 +54,13 @@ public class AuctionService {
     @Transactional
     public AuctionCloseResponse closeAuction(
             Integer itemId,
-            String requesterEmail
+            String requesterUuid
     ) {
         Item item = itemRepository.findById(itemId)
                 .orElseThrow(() ->
                         new ItemNotFoundException(itemId));
 
-        User requester = getUserByUuid(requesterEmail);
+        User requester = getUserByUuid(requesterUuid);
         Integer requesterId = requester.getUserId();
 
         validateSeller(item, requesterId);
@@ -83,9 +83,9 @@ public class AuctionService {
      */
     @Transactional(readOnly = true)
     public List<WinningAuctionResponse> getMyWinningAuctions(
-            String userEmail
+            String userUuid
     ) {
-        User user = getUserByUuid(userEmail);
+        User user = getUserByUuid(userUuid);
         Integer userId = user.getUserId();
 
         return itemRepository
@@ -109,9 +109,9 @@ public class AuctionService {
      */
     @Transactional(readOnly = true)
     public List<SoldAuctionResponse> getMySoldAuctions(
-            String userEmail
+            String userUuid
     ) {
-        User user = getUserByUuid(userEmail);
+        User user = getUserByUuid(userUuid);
         Integer userId = user.getUserId();
 
         return itemRepository
