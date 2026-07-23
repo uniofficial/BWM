@@ -27,23 +27,26 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class Item {
 
+    private static final int MINIMUM_BID_INCREMENT = 100;
+
     // PK. 자동증가(IDENTITY) - DB AUTO_INCREMENT와 동일 전략
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "item_id")
     private Integer itemId;
 
-    // 판매자. FK(item .seller_id -> user.user_id) NOT NULL 이므로 상품 등록시 항상 지정되어야함 */
+    // 판매자. FK(item.seller_id -> user.user_id)
+    // NOT NULL이므로 상품 등록 시 항상 지정되어야 함
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "seller_id", nullable = false)
     private User seller;
 
-    // 현재 최고 입찰자, 입찰 없으면 null
+    // 현재 최고 입찰자. 입찰이 없으면 null
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "highest_bidder_id")
     private User highestBidder;
 
-    // 상품명. 최대 100자 
+    // 상품명. 최대 100자
     @Column(name = "title", length = 100, nullable = false)
     private String title;
 
@@ -55,15 +58,15 @@ public class Item {
     @Column(name = "start_price", nullable = false)
     private Integer startPrice;
 
-    // 현재가. 등록 시점엔 startPrice와 동일, 입찰마다 갱신
+    // 현재가. 등록 시점에는 startPrice와 동일하고 입찰마다 갱신
     @Column(name = "current_price", nullable = false)
     private Integer currentPrice;
 
-    // 경매 마감 시각. 이 시각 이후 입찰 불가 
+    // 경매 마감 시각. 이 시각 이후 입찰 불가
     @Column(name = "auction_end_at", nullable = false)
     private LocalDateTime auctionEndAt;
 
-    // 경매 상태. ItemStatus 참고
+    // 경매 상태
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false, length = 20)
     private ItemStatus status;
@@ -72,66 +75,92 @@ public class Item {
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
-    // 상품 설명. 선택 입력. 최대 255
+    // 상품 설명. 선택 입력. 최대 255자
     @Column(name = "description", length = 255)
     private String description;
 
     /**
-     * 생성자는 private + Builder 조합으로 막아둠
-     * 외부에서 아래 create() 정적 메서드로만 인스턴스 만들 수 있다. 
-     * 
+     * 생성자는 private + Builder 조합으로 제한합니다.
+     * 외부에서는 create() 정적 팩토리 메서드를 통해 생성합니다.
      */
-
     @Builder
-    private Item(User seller, String title, String category, Integer startPrice, LocalDateTime auctionEndAt, String description) {
+    private Item(
+            User seller,
+            String title,
+            String category,
+            Integer startPrice,
+            LocalDateTime auctionEndAt,
+            String description
+    ) {
         this.seller = seller;
         this.title = title;
         this.category = category;
         this.startPrice = startPrice;
-        this.currentPrice = startPrice; // 등록 시점엔 현재가 == 시작가
+        this.currentPrice = startPrice;
         this.auctionEndAt = auctionEndAt;
-        this.status = ItemStatus.OPEN; // 등록 시점엔 항상 OPEN
+        this.status = ItemStatus.OPEN;
         this.createdAt = LocalDateTime.now();
         this.description = description;
     }
 
-
     /**
-     * 상품 등록용 정적 팩토리 메서드
-     * 
-     * ItemServiceImpl 에서 이 메서드를 통해서만 Item 생성
-     * 
+     * 상품 등록용 정적 팩토리 메서드입니다.
+     *
      * @param seller 판매자
      * @param title 상품명
      * @param category 카테고리
      * @param startPrice 시작가
      * @param auctionEndAt 경매 마감 시각
      * @param description 상품 설명
-     * @return  아직 저장 전 상태의 Item 인스턴스
-     * 
-     *  */
-
-    public static Item create(User seller, String title, String category, Integer startPrice, LocalDateTime auctionEndAt, String description) {
+     * @return 아직 저장되지 않은 Item 인스턴스
+     */
+    public static Item create(
+            User seller,
+            String title,
+            String category,
+            Integer startPrice,
+            LocalDateTime auctionEndAt,
+            String description
+    ) {
         return Item.builder()
-                   .seller(seller)
-                   .title(title)
-                   .category(category)
-                   .startPrice(startPrice)
-                   .auctionEndAt(auctionEndAt)
-                   .description(description)
-                   .build();
-    
+                .seller(seller)
+                .title(title)
+                .category(category)
+                .startPrice(startPrice)
+                .auctionEndAt(auctionEndAt)
+                .description(description)
+                .build();
     }
 
     /**
-     * JPA가 실제로 insert 쿼리를 날리기 직전 자동 호출되는 콜백
-     * created_at 을 애플리케이션 레벨에서 채워준다. 
+     * JPA가 INSERT 쿼리를 실행하기 직전에 호출되는 콜백입니다.
      */
     @PrePersist
-    private void prePersist(){
-        this.createdAt = LocalDateTime.now();
+    private void prePersist() {
+        if (this.createdAt == null) {
+            this.createdAt = LocalDateTime.now();
+        }
     }
 
+    /**
+     * 현재 상품의 최소 입찰 가능 금액을 반환합니다.
+     *
+     * 입찰자가 아직 없다면 시작가부터 입찰할 수 있습니다.
+     * 입찰자가 이미 있다면 현재가보다 최소 100P 높은 금액부터 입찰할 수 있습니다.
+     *
+     * 예시
+     * - 시작가 5,000P, 입찰 없음: 최소 입찰가 5,000P
+     * - 현재가 5,000P, 입찰 있음: 최소 입찰가 5,100P
+     *
+     * @return 현재 시점의 최소 입찰 가능 금액
+     */
+    public int getMinimumBidAmount() {
+        if (this.highestBidder == null) {
+            return this.startPrice;
+        }
+
+        return this.currentPrice + MINIMUM_BID_INCREMENT;
+    }
 
     /**
      * 최고 입찰자가 존재하는 경매를 낙찰 완료 상태로 변경합니다.
@@ -172,13 +201,18 @@ public class Item {
     }
 
     /**
-     * 새로운 최고 입찰자와 현재가를 갱신함 
+     * 새로운 최고 입찰자와 현재가를 갱신합니다.
+     *
+     * 첫 입찰은 시작가와 같은 금액으로 입찰할 수 있습니다.
+     * 두 번째 입찰부터는 현재가보다 최소 100P 높은 금액이어야 합니다.
      *
      * @param bidder 새로운 최고 입찰자
      * @param bidAmount 새로운 최고 입찰 금액
      */
-    public void updateHighestBidder(User bidder, Integer bidAmount) {
-
+    public void updateHighestBidder(
+            User bidder,
+            Integer bidAmount
+    ) {
         if (this.status != ItemStatus.OPEN) {
             throw new ItemStateConflictException(
                     "진행 중인 경매만 최고 입찰자를 변경할 수 있습니다."
@@ -191,11 +225,13 @@ public class Item {
             );
         }
 
-        int minimumBidAmount = this.currentPrice + 100;
+        int minimumBidAmount = getMinimumBidAmount();
 
         if (bidAmount == null || bidAmount < minimumBidAmount) {
             throw new IllegalArgumentException(
-                    "새 입찰 금액은 현재가보다 최소 100P 이상 높아야 합니다."
+                    "입찰 금액은 최소 입찰 가능 금액인 "
+                            + minimumBidAmount
+                            + "P 이상이어야 합니다."
             );
         }
 
@@ -204,62 +240,97 @@ public class Item {
     }
 
     /**
-     * 상품 정보를 수정한다 (PATCH 방식 - null인 필드는 그대로 유지).
+     * 상품 정보를 수정합니다.
      *
-     * - 입찰이 없는 상품(currentPrice == startPrice): title/category/description/startPrice/auctionEndAt 전부 수정 가능.
-     *   startPrice가 바뀌면 아직 입찰이 없으므로 currentPrice도 같이 맞춰줌.
-     * - 입찰이 있는 상품: description만 수정 가능. 그 외 필드에 값이 들어오면 예외.
+     * PATCH 방식으로 null인 필드는 기존 값을 유지합니다.
+     *
+     * 입찰이 없는 상품:
+     * - 제목, 카테고리, 설명, 시작가, 마감 시각 수정 가능
+     * - 시작가가 변경되면 현재가도 같은 금액으로 변경
+     *
+     * 입찰이 있는 상품:
+     * - 설명만 수정 가능
+     *
+     * 첫 입찰이 시작가와 같은 금액일 수 있으므로
+     * currentPrice와 startPrice를 비교하지 않고
+     * highestBidder 존재 여부로 입찰 여부를 판단합니다.
      */
-    public void update(String title, String category, String description, Integer startPrice, LocalDateTime auctionEndAt) {
+    public void update(
+            String title,
+            String category,
+            String description,
+            Integer startPrice,
+            LocalDateTime auctionEndAt
+    ) {
         if (this.status != ItemStatus.OPEN) {
-            throw new ItemStateConflictException("진행 중인 경매만 수정할 수 있습니다.");
+            throw new ItemStateConflictException(
+                    "진행 중인 경매만 수정할 수 있습니다."
+            );
         }
 
-        boolean hasBid = !this.currentPrice.equals(this.startPrice);
+        boolean hasBid = this.highestBidder != null;
 
         if (hasBid) {
-            if (title != null || category != null || startPrice != null || auctionEndAt != null) {
-                throw new ItemStateConflictException("입찰이 시작된 상품은 설명만 수정할 수 있습니다.");
+            if (title != null
+                    || category != null
+                    || startPrice != null
+                    || auctionEndAt != null) {
+                throw new ItemStateConflictException(
+                        "입찰이 시작된 상품은 설명만 수정할 수 있습니다."
+                );
             }
+
             if (description != null) {
                 this.description = description;
             }
+
             return;
         }
 
         if (title != null) {
             this.title = title;
         }
+
         if (category != null) {
             this.category = category;
         }
+
         if (description != null) {
             this.description = description;
         }
+
         if (startPrice != null) {
             this.startPrice = startPrice;
-            this.currentPrice = startPrice; // 아직 입찰 없으니 현재가도 같이 갱신
+            this.currentPrice = startPrice;
         }
+
         if (auctionEndAt != null) {
             this.auctionEndAt = auctionEndAt;
         }
     }
 
     /**
-     * 판매자가 경매를 직접 취소한다.
+     * 판매자가 경매를 직접 취소합니다.
      *
-     * 취소 가능 조건:
+     * 취소 가능 조건
      * - 경매가 OPEN 상태여야 함
-     * - 아직 입찰이 한 건도 없어야 함 (currentPrice == startPrice)
-     *   입찰자가 있는 상품을 판매자가 임의로 취소해버리면 입찰자에게 불공평하기 때문
+     * - 아직 입찰자가 없어야 함
+     *
+     * 첫 입찰이 시작가와 같은 금액일 수 있으므로
+     * currentPrice와 startPrice 비교가 아닌
+     * highestBidder 존재 여부로 입찰 여부를 판단합니다.
      */
     public void cancel() {
-        if(this.status != ItemStatus.OPEN) {
-            throw new ItemStateConflictException("진행 중인 경매만 취소할 수 있습니다.");
+        if (this.status != ItemStatus.OPEN) {
+            throw new ItemStateConflictException(
+                    "진행 중인 경매만 취소할 수 있습니다."
+            );
         }
 
-        if(!this.currentPrice.equals(this.startPrice)){
-            throw new ItemStateConflictException("입찰이 시작된 상품은 취소할 수 없습니다.");
+        if (this.highestBidder != null) {
+            throw new ItemStateConflictException(
+                    "입찰이 시작된 상품은 취소할 수 없습니다."
+            );
         }
 
         this.status = ItemStatus.CANCELLED;
