@@ -98,7 +98,9 @@ export function AppHeader() {
       {isAuthenticated && walletBalance !== null && (
         <div className="border-t border-line bg-surface-secondary/60">
           <div className="mx-auto flex max-w-7xl items-center justify-end gap-2 px-4 py-2 sm:px-8 lg:px-10">
-            <Badge variant="primary">현재 포인트 {formatPoints(walletBalance)}</Badge>
+            <Badge variant="primary" className="text-sm">
+              현재 포인트 {formatPoints(walletBalance)}
+            </Badge>
             <Button type="button" size="sm" variant="outline" onClick={() => setIsQuickChargeOpen(true)}>
               빠른 충전
             </Button>
