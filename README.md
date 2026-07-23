@@ -1,32 +1,20 @@
-# 📖 프로젝트 소개
+# BWM (Bid Wallet Market)
 
-BWM은 Spring Boot 기반의 실시간 경매 플랫폼입니다.
+> **포인트 기반 실시간 경매 서비스**
 
-- JWT 기반 사용자 인증
-- 실시간 입찰
-- 빠른 입찰(최소 입찰 금액 자동 계산)
-- 경매 자동 종료(Scheduler)
-- Wallet 기반 포인트 거래
-- 관리자 권한 관리
-- Swagger API 문서 제공
 
-REST API 중심으로 설계되었으며,
-동시성 문제를 고려한 안전한 입찰 처리와 확장 가능한 아키텍처를 목표로 개발하였습니다.
+# Team
 
----
-
-# 👥 Team
-
-| 이름 | 역할 | 담당 |
-|------|------|------|
-| 정윤희 (팀장) | Backend | [Bid] / [Auction] api, Swagger |
-| 이성집 | Backend | [Item] api |
-| 이헌진 | Backend | [Wallet] / [Admin] api |
-| 최정현 | Backend | 인증 / JWT / Security |
+| 이름 | 담당 |
+|------|------|
+| 정윤희 (팀장) | [백엔드] Auction, Bid, Scheduler |
+| 이성집 | [백엔드] Item |
+| 이헌진 | [백엔드] Wallet, Admin |
+| 최정현 | [백엔드] Authentication, Security |
 
 ---
 
-# 🛠 Tech Stack
+# Tech Stack
 
 ### Backend
 
@@ -35,187 +23,300 @@ REST API 중심으로 설계되었으며,
 - Spring Security
 - Spring Data JPA
 - JWT
-- Hibernate
-- Validation
-- Swagger (OpenAPI)
-
-### Database
-
 - MySQL
-- Redis
-
-### Build
-
 - Gradle
 
----
+### Frontend
 
-# 💻 Development Environment
+- React
+- TypeScript
+- Vite
 
-| 항목 | 버전 |
-|------|------|
-| Java | 21 |
-| Spring Boot | 4.1.x |
-| Gradle | 8.x |
-| MySQL | 8.x |
-| Redis | Latest |
-| IDE | STS4 / IntelliJ IDEA |
-| OS | Windows / macOS |
+### Documentation
+
+- Swagger (OpenAPI 3)
 
 ---
 
-# 📂 Project Structure
+# Project Structure
 
-```text
+```
 src
- ├── auction
- ├── auth
- ├── bid
- ├── item
- ├── wallet
- ├── user
- ├── global
- │    ├── config
- │    ├── exception
- │    ├── response
- │    └── security
- └── BwmApplication
+├── auction
+├── auth
+├── bid
+├── item
+├── user
+├── wallet
+├── global
+│   ├── config
+│   ├── exception
+│   ├── response
+│   └── security
+└── scheduler
 ```
 
 ---
 
-# 주요 기능
+# 최초 개발 환경 설정
 
-핵심 도메인 흐름:
-회원가입 → 지갑 자동 생성 → 포인트 충전 요청 → 관리자 승인 → 포인트 충전
-→ 상품 등록(판매자) → 입찰(구매자) → 포인트 차감/환불 → 경매 종료 → 판매 대금 정산
-
-상품 상태 전이:
-OPEN → (낙찰자 있음) → SOLD
-     → (낙찰자 없음) → UNSOLD
-     → (판매자 직접 취소, 입찰 전) → CANCELLED
-
-
-## 회원
-
-- 회원가입
-- 로그인
-- 로그아웃
-- 회원 탈퇴
-- JWT 인증
-- Access Token 재발급
-
----
-
-## 상품
-
-- 상품 등록
-- 상품 수정
-- 상품 삭제
-- 상품 조회
-- 이미지 등록
-
----
-
-## 입찰
-
-- 일반 입찰
-- 빠른 입찰
-- 최소 입찰 금액 검증
-- 최고 입찰자 갱신
-- 입찰 내역 조회
-
----
-
-## 경매
-
-- 경매 생성
-- 수동 종료
-- 자동 종료
-- 낙찰 조회
-- 판매 완료 조회
-
----
-
-## Wallet
-
-- 포인트 충전
-- 포인트 차감
-- 판매 금액 지급
-- 거래 내역 관리
-
----
-
-# 🔐 인증 방식
-
-- JWT Access Token
-- JWT Refresh Token
-- Redis 기반 Refresh Token 관리
-- Spring Security Filter 기반 인증
-
----
-
-# ⚙️ 최초 개발 환경 설정
-
-## 1. Clone
+## 1. 저장소 복제
 
 ```bash
 git clone https://github.com/uniofficial/BWM.git
+cd BWM
 ```
 
 ---
 
-## 2. Backend
+## 2. develop 브랜치 최신화
+
+```bash
+git switch develop
+git fetch origin
+git reset --hard origin/develop
+```
+
+---
+
+## 3. 작업 브랜치 생성
+
+```bash
+git switch -c feat/{issue-number}-{feature-name}
+```
+
+예시
+
+```bash
+git switch -c feat/120-login
+```
+
+---
+
+# Backend 실행
+
+## 1. 환경설정 파일 생성
+
+예시 파일을 복사합니다.
+
+### macOS / Linux
+
+```bash
+cp src/main/resources/application-local.example.properties \
+src/main/resources/application-local.properties
+```
+
+### Windows
+
+```cmd
+copy src\main\resources\application-local.example.properties ^
+src\main\resources\application-local.properties
+```
+
+---
+
+## 2. 환경설정 
+
+`application-local.properties`
+
+```
+spring.application.name=BWM
+auction.scheduler.fixed-delay=60000
+auction.scheduler.initial-delay=10000
+springdoc.api-docs.path=/v3/api-docs
+springdoc.swagger-ui.path=/swagger-ui.html
+springdoc.swagger-ui.operations-sorter=method
+springdoc.swagger-ui.tags-sorter=alpha
+springdoc.swagger-ui.display-request-duration=true
+springdoc.swagger-ui.doc-expansion=none
+spring.datasource.driver-class-name=com.mysql.cj.jdbc.Driver
+spring.datasource.url=jdbc:mysql://localhost:3306/minipro2?sessionVariables=FOREIGN_KEY_CHECKS=0
+spring.datasource.username=ureca
+spring.datasource.password=ureca
+#server.servlet.session.persistent=false
+spring.jpa.open-in-view=false
+spring.jpa.hibernate.ddl-auto=update
+spring.jpa.show-sql=true
+logging.level.org.springframework.security=DEBUG
+file.upload-dir=uploads/items
+spring.servlet.multipart.max-file-size=10MB
+spring.servlet.multipart.max-request-size=50MB
+jwt.secret=eytrewttgyregrerehbgferjgbhfkdsbgkfdbsgyretyhtruhterw
+jwt.access-expiration=3600000
+jwt.refresh-expiration=604800000
+```
+> `application-local.properties` 파일은 Git에 포함되지 않습니다.
+
+---
+
+## 3. 애플리케이션 실행
+
+### macOS / Linux
 
 ```bash
 ./gradlew bootRun
 ```
 
+### Windows
+
+```cmd
+gradlew.bat bootRun
+```
+
+애플리케이션 실행 후
+
+```
+http://localhost:8080
+```
+
+에서 확인할 수 있습니다.
+
 ---
 
-## 3. Frontend
+# Frontend 실행
+
+frontend 디렉터리로 이동
 
 ```bash
 cd frontend
+```
 
+패키지 설치
+
+```bash
 npm install
+```
 
+`.env.development` 생성 후 아래 내용 추가 
+
+```env
+VITE_API_BASE_URL=http://localhost:8080
+echo VITE_APP_ENV=development
+```
+
+실행
+
+```bash
 npm run dev
+```
+
+프론트 실행 주소
+
+```
+http://localhost:5173
 ```
 
 ---
 
-## 4. db
+# API 문서
 
-spring.datasource.driver-class-name=com.mysql.cj.jdbc.Driver
-spring.datasource.url=jdbc:mysql://localhost:3306/minipro2?sessionVariables=FOREIGN_KEY_CHECKS=0
-spring.datasource.username=ureca
-spring.datasource.password=ureca
-
----
-
-# 📄 API Documentation
-
-Swagger
+애플리케이션 실행 후
 
 ```
 http://localhost:8080/swagger-ui/index.html
 ```
 
+에서 Swagger 문서를 확인할 수 있습니다.
+
 ---
 
-# 🌿 Git Branch Strategy
+# 테스트
+
+Backend 테스트 실행
+
+```bash
+./gradlew test
+```
+
+---
+
+# 브랜치 전략
+
+GitHub Flow를 기반으로 개발합니다.
 
 ```
-main
-  ↑
 develop
-  ↑
-feature/*
+│
+├── feat/1-login
+├── feat/27-wallet
+├── feat/48-item
+├── feat/71-auction
+└── fix/12-auth
 ```
 
-- main : 운영 브랜치
-- develop : 개발 브랜치
-- feature/* : 기능 개발
+### 브랜치 규칙
 
-모든 기능은 Pull Request를 통해 develop으로 병합합니다.
+- `develop` 브랜치에서는 직접 작업하지 않습니다.
+- 모든 기능은 `feat/*` 브랜치에서 개발합니다.
+- 버그 수정은 `fix/*` 브랜치에서 진행합니다.
+- 작업 완료 후 Pull Request를 생성합니다.
+- PR 승인 후 `develop` 브랜치에 병합합니다.
+
+---
+
+# Commit Convention
+
+| 타입 | 설명 |
+|------|------|
+| feat | 새로운 기능 |
+| fix | 버그 수정 |
+| refactor | 리팩토링 |
+| docs | 문서 수정 |
+| style | 코드 스타일 수정 |
+| test | 테스트 코드 |
+| chore | 빌드 및 설정 |
+
+---
+
+# 주요 기능
+
+### 인증
+
+- 회원가입
+- 로그인
+- JWT 인증
+- Access Token / Refresh Token
+- 로그아웃
+
+### 상품
+
+- 상품 등록
+- 상품 수정
+- 상품 삭제
+- 상품 이미지 등록
+
+### 경매
+
+- 입찰
+- 빠른 입찰
+- 최소 입찰 단위 검증
+- Anti-Sniping(자동 시간 연장)
+- 경매 수동 종료
+- 자동 종료 Scheduler
+- 낙찰 조회
+- 판매 완료 조회
+
+### Wallet
+
+- 포인트 충전
+- 포인트 출금
+- 포인트 내역 조회
+
+### 관리자
+
+- 포인트 충전 승인
+- 사용자 관리
+
+---
+
+# 화면 UI
+
+- 메인 페이지
+<img width="666" height="649" alt="스크린샷 2026-07-23 오후 4 01 44" src="https://github.com/user-attachments/assets/93d265c7-4d8c-469b-b93a-6c2a77493632" />
+
+- 상품 목록
+<img width="1226" height="639" alt="스크린샷 2026-07-23 오후 4 02 09" src="https://github.com/user-attachments/assets/c0c6738f-4aef-4b5a-aba1-fa9e7ecee786" />
+
+- 마이페이지
+<img width="1223" height="628" alt="스크린샷 2026-07-23 오후 4 02 30" src="https://github.com/user-attachments/assets/041688dd-cbf9-492b-8109-31b79e92f7d5" />
+
