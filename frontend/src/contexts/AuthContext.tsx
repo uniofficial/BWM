@@ -1,5 +1,6 @@
 import { useEffect, useState, type ReactNode } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { requestLogout, requestWithdraw } from '../api/accountApi'
 import { refreshAuthOnce } from '../api/authRefresh'
 import { setAuthLifecycleHandlers } from '../api/axiosInstance'
 import type { AuthSession, AuthUser } from '../types/auth'
@@ -52,19 +53,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }
 
-  const logout = () => {
-    // TODO: 백엔드 로그아웃 API 구현 후
-    // Refresh Token HttpOnly Cookie 만료 요청을 추가한다.
-    // 그 전까지는 브라우저 새로고침 시 남아 있는 Cookie로 재인증될 수 있다.
+  const logout = async () => {
+    try {
+      await requestLogout()
+    } catch {
+      // Client-side logout must still proceed even if invalidating the
+      // server-side Refresh Token fails (e.g. offline, already expired).
+    }
     setClientLoggedOut(true)
     clearAuth()
     navigate('/login', { replace: true })
   }
 
-  const withdrawTemporarily = () => {
-    // TODO: 백엔드 회원 탈퇴 API 구현 후
-    // 실제 회원 탈퇴 요청으로 교체한다.
-    // 현재는 Cookie를 만료하지 않으므로 새로고침 시 재인증될 수 있다.
+  const withdraw = async () => {
+    await requestWithdraw()
     setClientLoggedOut(true)
     clearAuth()
     navigate('/login', { replace: true })
@@ -129,7 +131,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         clearAuth,
         refreshAuth,
         logout,
-        withdrawTemporarily,
+        withdraw,
       }}
     >
       {children}

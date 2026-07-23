@@ -9,8 +9,8 @@ export interface AuthContextValue {
   setAuth: (accessToken: string, user?: AuthUser | null) => void
   clearAuth: () => void
   refreshAuth: () => Promise<boolean>
-  logout: () => void
-  withdrawTemporarily: () => void
+  logout: () => Promise<void>
+  withdraw: () => Promise<void>
 }
 
 export const AuthContext = createContext<AuthContextValue | null>(null)
