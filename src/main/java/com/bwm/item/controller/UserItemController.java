@@ -28,7 +28,7 @@ import org.springframework.data.domain.Sort;
 @RestController
 @RequestMapping("/api/users/me")
 @RequiredArgsConstructor
-public class UserController {
+public class UserItemController {
     private final ItemService itemService;
     private final AuctionService auctionService;
 

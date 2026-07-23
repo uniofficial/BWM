@@ -17,9 +17,9 @@ import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.context.annotation.Import;
 import com.bwm.global.config.SecurityConfig;
 
-@WebMvcTest(UserController.class)
+@WebMvcTest(UserItemController.class)
 @Import(SecurityConfig.class)
-public class UserControllerTest extends ControllerTestSupport {
+public class UserItemControllerTest extends ControllerTestSupport {
 
     @Test
     @WithMockUser(username = "uuid-1234")
