@@ -119,7 +119,7 @@ src\main\resources\application-local.properties
 
 ---
 
-## 2. DB 정보 입력
+## 2. 환경설정 
 
 `application-local.properties`
 
@@ -148,9 +148,7 @@ spring.servlet.multipart.max-request-size=50MB
 jwt.secret=eytrewttgyregrerehbgferjgbhfkdsbgkfdbsgyretyhtruhterw
 jwt.access-expiration=3600000
 jwt.refresh-expiration=604800000
-
 ```
-
 > `application-local.properties` 파일은 Git에 포함되지 않습니다.
 
 ---
