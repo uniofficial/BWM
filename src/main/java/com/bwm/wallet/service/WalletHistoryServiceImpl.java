@@ -24,8 +24,8 @@ public class WalletHistoryServiceImpl implements WalletHistoryService {
     private final UserRepository userRepository;
 
     @Override
-    public List<WalletHistoryResponseDto> getMyHistory(String userEmail) { // 파라미터 변경
-        User user = getUserByEmail(userEmail); // 이메일로 유저 정보 조회
+    public List<WalletHistoryResponseDto> getMyHistory(String userUuid) { // 파라미터 변경
+        User user = getUserByUserUuid(userUuid); // UUID로 유저 정보 조회
         List<WalletHistory> histories = walletHistoryRepository
                 .findByWalletUserIdOrderByCreatedAtDesc(user.getUserId()); // 기존 userId 대신 user.getUserId() 사용
 
@@ -39,16 +39,13 @@ public class WalletHistoryServiceImpl implements WalletHistoryService {
                 .collect(Collectors.toList());
     }
 
-    // 이메일 기반 유저 조회 공통 헬퍼 메서드 추가
-    private User getUserByEmail(String email) {
-        if (email == null || email.isBlank()) {
-            throw new IllegalArgumentException("인증된 사용자 이메일이 없습니다.");
+    // UUID 기반 유저 조회 공통 헬퍼 메서드 추가
+    private User getUserByUserUuid(String userUuid) {
+        if (userUuid == null || userUuid.isBlank()) {
+            throw new IllegalArgumentException("인증된 사용자 식별자가 없습니다.");
         }
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다. email=" + email));
-        if (user.isDeleted()) {
-            throw new IllegalArgumentException("탈퇴한 회원입니다.");
-        }
+        User user = userRepository.findByUserUuid(userUuid)
+                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다. userUuid=" + userUuid));
         return user;
     }
 }

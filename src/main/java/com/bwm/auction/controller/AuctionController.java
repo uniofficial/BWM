@@ -42,12 +42,12 @@ public class AuctionController {
             @PathVariable("itemId") Integer itemId,
             Authentication authentication
     ) {
-        String requesterEmail = authentication.getName();
+        String requesterUuid = authentication.getName();
 
         AuctionCloseResponse response =
                 auctionService.closeAuction(
                         itemId,
-                        requesterEmail
+                        requesterUuid
                 );
 
         return ResponseEntity.ok(response);
@@ -68,10 +68,10 @@ public class AuctionController {
     public ResponseEntity<List<WinningAuctionResponse>> getMyWinningAuctions(
             Authentication authentication
     ) {
-        String userEmail = authentication.getName();
+        String userUuid = authentication.getName();
 
         List<WinningAuctionResponse> response =
-                auctionService.getMyWinningAuctions(userEmail);
+                auctionService.getMyWinningAuctions(userUuid);
 
         return ResponseEntity.ok(response);
     }
@@ -91,10 +91,10 @@ public class AuctionController {
     public ResponseEntity<List<SoldAuctionResponse>> getMySoldAuctions(
             Authentication authentication
     ) {
-        String userEmail = authentication.getName();
+        String userUuid = authentication.getName();
 
         List<SoldAuctionResponse> response =
-                auctionService.getMySoldAuctions(userEmail);
+                auctionService.getMySoldAuctions(userUuid);
 
         return ResponseEntity.ok(response);
     }

@@ -8,7 +8,7 @@ import com.bwm.user.entity.User;
 public interface WalletService {
 
     // 사용자의 현재 잔액을 조회
-    WalletResponseDto getMyWallet(String userEmail);
+    WalletResponseDto getMyWallet(String userUuid);
 
     // 사용자 포인트 충전 요청 생성
     WalletChargeRequestResponseDto requestPointCharge(String userEmail, Integer amount);
@@ -39,4 +39,7 @@ public interface WalletService {
 
     // 지갑 생성 (회원가입 시)
     void createWallet(User user);
+
+    // 지갑 삭제 (회원탈퇴 시)
+    void deleteWallet(Integer userId);
 }

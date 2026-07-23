@@ -33,8 +33,8 @@ public class WalletController {
     public ResponseEntity<ResultDto<WalletResponseDto>> getMyWallet(
     		Authentication authentication 
     ) {
-		String userEmail = authentication.getName(); // 추가
-        WalletResponseDto walletDto = walletService.getMyWallet(userEmail);
+		String userUuid = authentication.getName(); // 추가
+        WalletResponseDto walletDto = walletService.getMyWallet(userUuid);
         return ResponseEntity.ok(ResultDto.success(walletDto));
     }
 	
@@ -45,8 +45,8 @@ public class WalletController {
     public ResponseEntity<ResultDto<List<WalletHistoryResponseDto>>>  getMyWalletHistories(
     		Authentication authentication
     ) {
-		String userEmail = authentication.getName(); // 추가
-        List<WalletHistoryResponseDto> histories = walletHistoryService.getMyHistory(userEmail);
+		String userUuid = authentication.getName(); // 추가
+        List<WalletHistoryResponseDto> histories = walletHistoryService.getMyHistory(userUuid);
         return ResponseEntity.ok(ResultDto.success(histories));
     }
 

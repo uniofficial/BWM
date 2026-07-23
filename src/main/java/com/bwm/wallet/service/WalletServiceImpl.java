@@ -36,8 +36,8 @@ public class WalletServiceImpl implements WalletService {
         private final WalletChargeRequestRepository walletChargeRequestRepository;
 
         @Override
-        public WalletResponseDto getMyWallet(String userEmail) {
-                User user = getUserByEmail(userEmail);
+        public WalletResponseDto getMyWallet(String userUuid) {
+                User user = getUserByUserUuid(userUuid);
                 Wallet wallet = walletRepository.findById(user.getUserId())
                                 .orElseGet(() -> { // 지갑이 없으면 신규 생성 후 저장
                                         Wallet newWallet = Wallet.builder()
@@ -47,6 +47,18 @@ public class WalletServiceImpl implements WalletService {
                                         return walletRepository.save(newWallet);
                                 });
                 return new WalletResponseDto(wallet.getBalance());
+        }
+
+        private User getUserByUserUuid(String userUuid) {
+                if (userUuid == null || userUuid.isBlank()) {
+                        throw new IllegalArgumentException("인증된 사용자 식별자가 없습니다.");
+                }
+                User user = userRepository.findByUserUuid(userUuid)
+                                .orElseThrow(() -> new IllegalArgumentException(
+                                                "사용자를 찾을 수 없습니다. userUuid=" + userUuid));
+                // isDeleted check is handled by @SQLRestriction on User entity implicitly,
+                // but we can add explicit check if needed.
+                return user;
         }
 
         @Override
@@ -122,9 +134,6 @@ public class WalletServiceImpl implements WalletService {
                 }
                 User user = userRepository.findByEmail(email)
                                 .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다. email=" + email));
-                if (user.isDeleted()) {
-                        throw new IllegalArgumentException("탈퇴한 회원입니다.");
-                }
                 return user;
         }
 
@@ -133,10 +142,6 @@ public class WalletServiceImpl implements WalletService {
         public void chargeUserPoint(Integer userId, Integer amount) {
                 Wallet wallet = walletRepository.findById(userId)
                                 .orElseThrow(() -> new WalletNotFoundException("해당 유저의 지갑을 찾을 수 없습니다."));
-
-                if (wallet.getUser().isDeleted()) {
-                        throw new IllegalArgumentException("탈퇴한 회원의 지갑입니다.");
-                }
 
                 wallet.charge(amount);
 
@@ -156,10 +161,6 @@ public class WalletServiceImpl implements WalletService {
         public void deductBidPoint(Integer userId, Integer itemId, Integer amount) {
                 Wallet wallet = walletRepository.findById(userId)
                                 .orElseThrow(() -> new WalletNotFoundException("해당 유저의 지갑을 찾을 수 없습니다."));
-
-                if (wallet.getUser().isDeleted()) {
-                        throw new IllegalArgumentException("탈퇴한 회원의 지갑입니다.");
-                }
 
                 Item item = itemRepository.findById(itemId)
                                 .orElseThrow(() -> new IllegalArgumentException("해당 상품을 찾을 수 없습니다."));
@@ -238,5 +239,18 @@ public class WalletServiceImpl implements WalletService {
                                 .balance(0)
                                 .build();
                 walletRepository.save(newWallet);
+        }
+
+        @Override
+        @Transactional
+        public void deleteWallet(Integer userId) {
+                Wallet wallet = walletRepository.findById(userId)
+                                .orElseThrow(() -> new WalletNotFoundException("해당 유저의 지갑을 찾을 수 없습니다."));
+
+                if (wallet.getBalance() > 0) {
+                        throw new IllegalStateException("지갑에 잔액이 남아있어 탈퇴할 수 없습니다.");
+                }
+
+                walletRepository.delete(wallet);
         }
 }

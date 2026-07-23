@@ -46,10 +46,10 @@ public class ItemServiceImpl implements ItemService {
     @Override
     @Transactional
     public ItemResponse createItem(
-            String sellerEmail,
+            String sellerUuid,
             ItemCreateRequest request
     ) {
-        User seller = getUserByUuid(sellerEmail);
+        User seller = getUserByUuid(sellerUuid);
 
         Item item = Item.create(
                 seller,
@@ -125,11 +125,11 @@ public class ItemServiceImpl implements ItemService {
     @Override
     @Transactional(readOnly = true)
     public Page<ItemSummaryResponse> getMyItems(
-            String sellerEmail,
+            String sellerUuid,
             Pageable pageable
     ) {
         Integer sellerId =
-                getUserByUuid(sellerEmail).getUserId();
+                getUserByUuid(sellerUuid).getUserId();
 
         return itemRepository
                 .findAllBySeller_UserId(sellerId, pageable)
@@ -143,7 +143,7 @@ public class ItemServiceImpl implements ItemService {
     @Transactional
     public ItemResponse updateItem(
             Integer itemId,
-            String sellerEmail,
+            String sellerUuid,
             ItemUpdateRequest request
     ) {
         Item item = itemRepository.findById(itemId)
@@ -154,7 +154,7 @@ public class ItemServiceImpl implements ItemService {
                 );
 
         Integer sellerId =
-                getUserByUuid(sellerEmail).getUserId();
+                getUserByUuid(sellerUuid).getUserId();
 
         if (!item.getSeller().getUserId().equals(sellerId)) {
             throw new ItemAccessDeniedException(
@@ -180,7 +180,7 @@ public class ItemServiceImpl implements ItemService {
     @Transactional
     public ItemResponse cancelItem(
             Integer itemId,
-            String sellerEmail
+            String sellerUuid
     ) {
         Item item = itemRepository.findByIdForUpdate(itemId)
                 .orElseThrow(() ->
@@ -190,7 +190,7 @@ public class ItemServiceImpl implements ItemService {
                 );
 
         Integer sellerId =
-                getUserByUuid(sellerEmail).getUserId();
+                getUserByUuid(sellerUuid).getUserId();
 
         if (!item.getSeller().getUserId().equals(sellerId)) {
             throw new ItemAccessDeniedException(
@@ -216,7 +216,7 @@ public class ItemServiceImpl implements ItemService {
         return userRepository.findByUserUuid(uuid)
                 .orElseThrow(() ->
                         new IllegalArgumentException(
-                                "사용자를 찾을 수 없습니다. uuid=" + uuid
+                                "사용자를 찾을 수 없습니다. userUuid=" + uuid
                         )
                 );
     }

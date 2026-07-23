@@ -24,11 +24,16 @@ public interface ItemImageService {
      * 5) 저장된 이미지들을 DTO로 변환해서 반환
      *
      * @param itemId 이미지가 속할 상품 id
-     * @param sellerEmail 요청자의 로그인 이메일 (JWT subject, ItemService와 동일한 방식)
+     * @param sellerUuid 요청자의 로그인 UUID (JWT subject, ItemService와 동일한 방식)
      * @param images 업로드할 이미지 파일 목록 (1개 이상, 순서 = 등록 순서)
      * @param representativeIndex images 중 대표 이미지의 인덱스 (0-based). null이면 0번째를 대표로 지정
      * @return 등록된 이미지 목록 (요청에 넘긴 순서와 동일)
      */
 
-    List<ItemImageResponse> uploadItemImages(Integer itemId, String sellerEmail, List<MultipartFile> images, Integer representativeIndex);
+    List<ItemImageResponse> uploadItemImages(
+            Integer itemId,
+            String sellerUuid,
+            List<MultipartFile> images,
+            Integer representativeIndex
+    );
 }

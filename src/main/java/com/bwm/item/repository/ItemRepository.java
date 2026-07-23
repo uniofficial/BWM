@@ -87,5 +87,14 @@ public interface ItemRepository extends JpaRepository<Item, Integer>, JpaSpecifi
      * "상품 목록 조회"는 진행 중(OPEN)인 상품만 보여줘야 하므로 사용.
      */
     Page<Item> findAllByStatus(ItemStatus status, Pageable pageable);
+    
+    /**
+     * 회원 탈퇴 시, 최고 입찰자로 등록되어 진행 중이거나 낙찰 대기 중인 상품이 있는지 확인
+     */
+    boolean existsByHighestBidder_UserIdAndStatusIn(Integer userId, List<ItemStatus> statuses);
 
+    /**
+     * 회원 탈퇴 시, 판매자로 등록되어 진행 중이거나 판매 대기 중인 상품이 있는지 확인
+     */
+    boolean existsBySeller_UserIdAndStatusIn(Integer userId, List<ItemStatus> statuses);
 }

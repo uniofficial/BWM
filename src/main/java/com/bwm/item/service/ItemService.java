@@ -23,7 +23,7 @@ public interface ItemService {
      * @return 등록된 상품 정보
      */
     ItemResponse createItem(
-            String sellerEmail,
+            String sellerUuid,
             ItemCreateRequest request
     );
 
@@ -57,7 +57,7 @@ public interface ItemService {
      * @return 사용자가 등록한 상품 목록
      */
     Page<ItemSummaryResponse> getMyItems(
-            String sellerEmail,
+            String sellerUuid,
             Pageable pageable
     );
 
@@ -65,13 +65,13 @@ public interface ItemService {
      * 상품 정보를 수정한다.
      *
      * @param itemId 상품 ID
-     * @param sellerEmail 요청자 식별자
+     * @param sellerUuid 요청자 식별자
      * @param request 수정 요청
      * @return 수정된 상품 정보
      */
     ItemResponse updateItem(
             Integer itemId,
-            String sellerEmail,
+            String sellerUuid,
             ItemUpdateRequest request
     );
 
@@ -84,6 +84,6 @@ public interface ItemService {
      */
     ItemResponse cancelItem(
             Integer itemId,
-            String sellerEmail
+            String sellerUuid
     );
 }
