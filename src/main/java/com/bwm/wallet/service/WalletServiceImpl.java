@@ -100,7 +100,7 @@ public class WalletServiceImpl implements WalletService {
         @Override
         @Transactional
         public void approvePointCharge(Integer requestId) {
-                WalletChargeRequest request = walletChargeRequestRepository.findById(requestId)
+                WalletChargeRequest request = walletChargeRequestRepository.findByIdForUpdate(requestId)
                                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 충전 요청입니다. ID=" + requestId));
 
                 request.approve();
@@ -110,7 +110,7 @@ public class WalletServiceImpl implements WalletService {
         @Override
         @Transactional
         public void rejectPointCharge(Integer requestId) {
-                WalletChargeRequest request = walletChargeRequestRepository.findById(requestId)
+                WalletChargeRequest request = walletChargeRequestRepository.findByIdForUpdate(requestId)
                                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 충전 요청입니다. ID=" + requestId));
 
                 request.reject();
@@ -140,7 +140,7 @@ public class WalletServiceImpl implements WalletService {
         @Override
         @Transactional
         public void chargeUserPoint(Integer userId, Integer amount) {
-                Wallet wallet = walletRepository.findById(userId)
+                Wallet wallet = walletRepository.findByIdForUpdate(userId)
                                 .orElseThrow(() -> new WalletNotFoundException("해당 유저의 지갑을 찾을 수 없습니다."));
 
                 wallet.charge(amount);
@@ -159,7 +159,7 @@ public class WalletServiceImpl implements WalletService {
         @Override
         @Transactional
         public void deductBidPoint(Integer userId, Integer itemId, Integer amount) {
-                Wallet wallet = walletRepository.findById(userId)
+                Wallet wallet = walletRepository.findByIdForUpdate(userId)
                                 .orElseThrow(() -> new WalletNotFoundException("해당 유저의 지갑을 찾을 수 없습니다."));
 
                 Item item = itemRepository.findById(itemId)
@@ -181,7 +181,7 @@ public class WalletServiceImpl implements WalletService {
         @Override
         @Transactional
         public void refundBidPoint(Integer userId, Integer itemId, Integer amount) {
-                Wallet wallet = walletRepository.findById(userId)
+                Wallet wallet = walletRepository.findByIdForUpdate(userId)
                                 .orElseThrow(() -> new WalletNotFoundException("해당 유저의 지갑을 찾을 수 없습니다."));
 
                 Item item = itemRepository.findById(itemId)
@@ -206,12 +206,12 @@ public class WalletServiceImpl implements WalletService {
                 User seller = userRepository.findById(sellerId)
                                 .orElseThrow(() -> new IllegalArgumentException("해당 유저를 찾을 수 없습니다."));
 
-                Wallet wallet = walletRepository.findById(sellerId)
+                Wallet wallet = walletRepository.findByIdForUpdate(sellerId)
                                 .orElseGet(() -> {
                                         Wallet newWallet = Wallet.builder()
-                                                        .user(seller)
-                                                        .balance(0)
-                                                        .build();
+                                                         .user(seller)
+                                                         .balance(0)
+                                                         .build();
                                         return walletRepository.save(newWallet);
                                 });
 
@@ -244,7 +244,7 @@ public class WalletServiceImpl implements WalletService {
         @Override
         @Transactional
         public void deleteWallet(Integer userId) {
-                Wallet wallet = walletRepository.findById(userId)
+                Wallet wallet = walletRepository.findByIdForUpdate(userId)
                                 .orElseThrow(() -> new WalletNotFoundException("해당 유저의 지갑을 찾을 수 없습니다."));
 
                 if (wallet.getBalance() > 0) {
