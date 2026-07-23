@@ -10,6 +10,7 @@ interface BidDialogProps {
   product: ProductDetail
   isSubmitting: boolean
   onSubmit: (amount: number) => Promise<BidSubmissionResult>
+  onQuickSubmit: () => Promise<BidSubmissionResult>
   onClose: () => void
 }
 
@@ -22,10 +23,18 @@ function validateAuctionState(product: ProductDetail) {
   return null
 }
 
-export function BidDialog({ open, product, isSubmitting, onSubmit, onClose }: BidDialogProps) {
+export function BidDialog({
+  open,
+  product,
+  isSubmitting,
+  onSubmit,
+  onQuickSubmit,
+  onClose,
+}: BidDialogProps) {
   const [amount, setAmount] = useState('')
   const [submittedError, setSubmittedError] = useState<string | undefined>()
   const [commonError, setCommonError] = useState<string | null>(null)
+  const [submissionMode, setSubmissionMode] = useState<'manual' | 'quick' | null>(null)
   const initialMinimumRef = useRef<number | null>(null)
   const wasOpenRef = useRef(false)
 
@@ -34,6 +43,7 @@ export function BidDialog({ open, product, isSubmitting, onSubmit, onClose }: Bi
       setAmount('')
       setSubmittedError(undefined)
       setCommonError(null)
+      setSubmissionMode(null)
       initialMinimumRef.current = product.minimumBidAmount
     }
     wasOpenRef.current = open
@@ -45,6 +55,15 @@ export function BidDialog({ open, product, isSubmitting, onSubmit, onClose }: Bi
     initialMinimumRef.current !== null &&
     product.minimumBidAmount !== null &&
     initialMinimumRef.current !== product.minimumBidAmount
+
+  const applyFailedResult = (result: BidSubmissionResult, mode: 'manual' | 'quick') => {
+    if (result.ok || 'ignored' in result) return
+    if (result.error.placement === 'field' && mode === 'manual') {
+      setSubmittedError(result.error.message)
+      return
+    }
+    if (result.error.placement !== 'toast') setCommonError(result.error.message)
+  }
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
@@ -61,11 +80,27 @@ export function BidDialog({ open, product, isSubmitting, onSubmit, onClose }: Bi
     setCommonError(null)
     if (validation.error || validation.amount === null) return
 
+    setSubmissionMode('manual')
     const result = await onSubmit(validation.amount)
-    if (result.ok) return
-    if ('ignored' in result) return
-    if (result.error.placement === 'field') setSubmittedError(result.error.message)
-    if (result.error.placement === 'dialog') setCommonError(result.error.message)
+    applyFailedResult(result, 'manual')
+    if (result.ok || !('ignored' in result)) setSubmissionMode(null)
+  }
+
+  const handleQuickSubmit = async () => {
+    if (isSubmitting) return
+
+    const auctionError = validateAuctionState(product)
+    if (auctionError) {
+      setCommonError(auctionError)
+      return
+    }
+
+    setSubmittedError(undefined)
+    setCommonError(null)
+    setSubmissionMode('quick')
+    const result = await onQuickSubmit()
+    applyFailedResult(result, 'quick')
+    if (result.ok || !('ignored' in result)) setSubmissionMode(null)
   }
 
   const handleClose = () => {
@@ -88,9 +123,9 @@ export function BidDialog({ open, product, isSubmitting, onSubmit, onClose }: Bi
           <Button
             type="submit"
             form="bid-form"
-            isLoading={isSubmitting}
+            isLoading={isSubmitting && submissionMode === 'manual'}
             loadingLabel="입찰 처리 중"
-            disabled={Boolean(displayedError)}
+            disabled={isSubmitting || Boolean(displayedError)}
           >
             입찰 확인
           </Button>
@@ -100,12 +135,16 @@ export function BidDialog({ open, product, isSubmitting, onSubmit, onClose }: Bi
       <form id="bid-form" onSubmit={handleSubmit} noValidate aria-busy={isSubmitting || undefined}>
         <dl className="grid gap-3 rounded-inline bg-surface-secondary p-4 text-sm">
           <div className="flex items-center justify-between gap-4">
-            <dt className="text-ink-secondary">{product.bidCount > 0 ? '현재 최고 입찰가' : '시작가'}</dt>
+            <dt className="text-ink-secondary">
+              {product.bidCount > 0 ? '현재 최고 입찰가' : '시작가'}
+            </dt>
             <dd className="font-semibold text-ink">{formatPrice(product.currentPrice)}</dd>
           </div>
           <div className="flex items-center justify-between gap-4">
             <dt className="text-ink-secondary">최소 입찰 가능 금액</dt>
-            <dd className="font-semibold text-brand-dark">{formatPrice(product.minimumBidAmount)}</dd>
+            <dd className="font-semibold text-brand-dark">
+              {formatPrice(product.minimumBidAmount)}
+            </dd>
           </div>
         </dl>
 
@@ -114,12 +153,35 @@ export function BidDialog({ open, product, isSubmitting, onSubmit, onClose }: Bi
             className="mt-4 rounded-inline border border-caution/30 bg-[var(--ds-warning-light)] px-4 py-3 text-sm leading-6 text-ink"
             role="status"
           >
-            다른 사용자의 입찰로 최소 입찰 금액이 변경되었습니다. 입력한 금액을 다시 확인해주세요.
+            다른 사용자의 입찰로 최소 입찰 금액이 변경되었습니다. 입력한 금액을 다시
+            확인해주세요.
           </div>
         )}
 
+        <div className="mt-5">
+          <Button
+            type="button"
+            variant="outline"
+            className="w-full"
+            isLoading={isSubmitting && submissionMode === 'quick'}
+            loadingLabel="빠른 입찰 처리 중"
+            disabled={isSubmitting || product.minimumBidAmount === null}
+            onClick={handleQuickSubmit}
+          >
+            {formatPrice(product.minimumBidAmount)}으로 빠른 입찰
+          </Button>
+          <p className="mt-2 text-xs leading-5 text-ink-muted">
+            요청 시점의 최신 최소 입찰 금액을 서버에서 계산해 입찰합니다.
+          </p>
+        </div>
+
+        <div className="my-5 flex items-center gap-3" aria-hidden="true">
+          <span className="h-px flex-1 bg-line" />
+          <span className="text-xs text-ink-muted">직접 금액 입력</span>
+          <span className="h-px flex-1 bg-line" />
+        </div>
+
         <Input
-          containerClassName="mt-5"
           label="입찰 금액"
           name="bidAmount"
           type="text"

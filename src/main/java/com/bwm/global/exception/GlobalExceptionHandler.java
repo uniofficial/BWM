@@ -40,6 +40,13 @@ public class GlobalExceptionHandler {
                 .body(ResultDto.error("BAD_REQUEST", e.getMessage()));
     }
 
+    // 회원 탈퇴 제한 등 현재 상태 충돌은 500이 아닌 409로 응답해 사용자에게 사유를 전달합니다.
+    @ExceptionHandler(IllegalStateException.class)
+    public ResponseEntity<ResultDto<Void>> handleIllegalStateException(IllegalStateException e) {
+        return ResponseEntity.status(HttpStatus.CONFLICT)
+                .body(ResultDto.error("CONFLICT", e.getMessage()));
+    }
+
     // ItemNotFoundException, ItemAccessDeniedException, ItemStateConflictException 등
     // BusinessException을 상속한 도메인 예외를 한 곳에서 처리
     @ExceptionHandler(BusinessException.class)
