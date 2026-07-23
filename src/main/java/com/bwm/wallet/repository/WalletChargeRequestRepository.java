@@ -14,8 +14,8 @@ import jakarta.persistence.LockModeType;
 
 public interface WalletChargeRequestRepository extends JpaRepository<WalletChargeRequest, Integer> {
 
-    @Query("SELECT r FROM WalletChargeRequest r JOIN FETCH r.user WHERE r.user.email = :email ORDER BY r.createdAt DESC")
-    List<WalletChargeRequest> findByUserEmailOrderByCreatedAtDesc(@Param("email") String email);
+    @Query("SELECT r FROM WalletChargeRequest r JOIN FETCH r.user WHERE r.user.userUuid = :userUuid ORDER BY r.createdAt DESC")
+    List<WalletChargeRequest> findByUserUuidOrderByCreatedAtDesc(@Param("userUuid") String userUuid);
 
     @Query("SELECT r FROM WalletChargeRequest r JOIN FETCH r.user ORDER BY r.createdAt DESC")
     List<WalletChargeRequest> findAllByOrderByCreatedAtDesc();
