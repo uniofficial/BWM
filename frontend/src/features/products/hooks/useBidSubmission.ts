@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { createBid } from '../../../api/bidApi'
+import { createBid, createQuickBid } from '../../../api/bidApi'
 import type { CreateBidResponse } from '../../../types/bid'
 import { mapBidError, type MappedBidError } from '../utils/bidErrorMapper'
 
@@ -28,6 +28,8 @@ const duplicateSubmissionError: MappedBidError = {
   status: null,
 }
 
+type BidRequest = (productId: number) => Promise<CreateBidResponse>
+
 export function useBidSubmission(
   productId: number | null,
   canSubmit: boolean,
@@ -44,26 +46,38 @@ export function useBidSubmission(
     }
   }, [])
 
-  const submitBid = useCallback(async (bidAmount: number): Promise<BidSubmissionResult> => {
-    if (inFlightRef.current) return { ok: false, error: duplicateSubmissionError }
-    if (!canSubmit || productId === null) return { ok: false, error: missingAuthError }
+  const submitRequest = useCallback(
+    async (request: BidRequest): Promise<BidSubmissionResult> => {
+      if (inFlightRef.current) return { ok: false, error: duplicateSubmissionError }
+      if (!canSubmit || productId === null) return { ok: false, error: missingAuthError }
 
-    inFlightRef.current = true
-    onRequestStart()
-    if (mountedRef.current) setIsSubmitting(true)
+      inFlightRef.current = true
+      onRequestStart()
+      if (mountedRef.current) setIsSubmitting(true)
 
-    try {
-      const response = await createBid(productId, { bidAmount })
-      if (!mountedRef.current) return { ok: false, ignored: true }
-      return { ok: true, response }
-    } catch (error) {
-      if (!mountedRef.current) return { ok: false, ignored: true }
-      return { ok: false, error: mapBidError(error) }
-    } finally {
-      inFlightRef.current = false
-      if (mountedRef.current) setIsSubmitting(false)
-    }
-  }, [canSubmit, onRequestStart, productId])
+      try {
+        const response = await request(productId)
+        if (!mountedRef.current) return { ok: false, ignored: true }
+        return { ok: true, response }
+      } catch (error) {
+        if (!mountedRef.current) return { ok: false, ignored: true }
+        return { ok: false, error: mapBidError(error) }
+      } finally {
+        inFlightRef.current = false
+        if (mountedRef.current) setIsSubmitting(false)
+      }
+    },
+    [canSubmit, onRequestStart, productId],
+  )
 
-  return { submitBid, isSubmitting }
+  const submitBid = useCallback(
+    (bidAmount: number) => submitRequest((id) => createBid(id, { bidAmount })),
+    [submitRequest],
+  )
+  const submitQuickBid = useCallback(
+    () => submitRequest((id) => createQuickBid(id)),
+    [submitRequest],
+  )
+
+  return { submitBid, submitQuickBid, isSubmitting }
 }

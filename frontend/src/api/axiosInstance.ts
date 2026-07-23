@@ -77,7 +77,7 @@ apiClient.interceptors.response.use(
 
       if (isClientLoggedOut()) {
         clearAccessToken()
-        return Promise.reject(toApiError(new Error('로그아웃 이후 Refresh 결과를 적용하지 않습니다.')))
+        return Promise.reject(toApiError(new Error('Refresh result ignored after logout')))
       }
 
       setAccessToken(refreshedSession.accessToken)
@@ -87,9 +87,9 @@ apiClient.interceptors.response.use(
       requestConfig.headers.set('Authorization', `Bearer ${refreshedSession.accessToken}`)
 
       return apiClient.request(requestConfig)
-    } catch {
+    } catch (refreshError) {
       if (!isClientLoggedOut()) invalidateAuth()
-      return Promise.reject(toApiError(error))
+      return Promise.reject(toApiError(refreshError))
     }
   },
 )

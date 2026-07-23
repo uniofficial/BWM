@@ -1,5 +1,6 @@
 import { Component, type ErrorInfo, type ReactNode } from 'react'
 import { AppConfigurationError } from '../../config/appConfig'
+import { reportOperationalError } from '../../utils/operationalDiagnostics'
 
 interface AppErrorBoundaryProps {
   children: ReactNode
@@ -17,7 +18,11 @@ export class AppErrorBoundary extends Component<AppErrorBoundaryProps, AppErrorB
   }
 
   componentDidCatch(error: Error, info: ErrorInfo) {
-    if (import.meta.env.DEV) console.error('Application render error', error, info)
+    reportOperationalError(error, {
+      feature: 'application',
+      action: info.componentStack ? 'react-render' : 'react-render-unknown',
+      route: window.location.pathname,
+    })
   }
 
   private reload = () => {
