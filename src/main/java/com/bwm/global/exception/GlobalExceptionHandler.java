@@ -1,7 +1,6 @@
 package com.bwm.global.exception;
 
 import com.bwm.global.dto.ResultDto;
-import com.bwm.wallet.exception.WalletException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
@@ -49,10 +48,12 @@ public class GlobalExceptionHandler {
                 .body(ResultDto.error("CONFLICT", e.getMessage()));
     }
 
-    // ItemNotFoundException, ItemAccessDeniedException, ItemStateConflictException 등
-    // BusinessException을 상속한 도메인 예외를 한 곳에서 처리
     @ExceptionHandler(BusinessException.class)
     public ResponseEntity<ResultDto<Void>> handleBusinessException(BusinessException e) {
+        // 서버 로그에는 상세 메시지(가변 인자 포함) 출력
+        log.error("[Business Exception] {} : {}", e.getErrorCode(), e.getLogMessage());
+
+        // 프론트엔드로는 안전한 기본 메시지만 응답
         return ResponseEntity.status(e.getStatus())
                 .body(ResultDto.error(e.getErrorCode(), e.getMessage()));
     }

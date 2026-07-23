@@ -3,6 +3,7 @@ package com.bwm.wallet.entity;
 import com.bwm.user.entity.User;
 import com.bwm.wallet.exception.InsufficientBalanceException;
 import com.bwm.wallet.exception.InvalidAmountException;
+import com.bwm.global.exception.ErrorCode;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -42,7 +43,7 @@ public class Wallet {
      */
     public void charge(int amount) {
         if (amount <= 0) {
-            throw new InvalidAmountException("충전 및 환불 금액은 1원 이상이어야 합니다.");
+            throw new InvalidAmountException(ErrorCode.INVALID_AMOUNT, "충전 및 환불 금액은 1원 이상이어야 합니다.");
         }
         this.balance += amount;
     }
@@ -53,10 +54,10 @@ public class Wallet {
      */
     public void deduct(int amount) {
         if (amount <= 0) {
-            throw new InvalidAmountException("차감할 금액은 1원 이상이어야 합니다.");
+            throw new InvalidAmountException(ErrorCode.INVALID_AMOUNT, "차감할 금액은 1원 이상이어야 합니다.");
         }
         if (this.balance < amount) {
-            throw new InsufficientBalanceException("보유 포인트 잔액이 부족합니다.");
+            throw new InsufficientBalanceException(ErrorCode.INSUFFICIENT_BALANCE, "보유 포인트 잔액이 부족합니다.");
         }
         this.balance -= amount;
     }

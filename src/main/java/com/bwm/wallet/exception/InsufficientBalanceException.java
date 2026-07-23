@@ -1,11 +1,14 @@
 package com.bwm.wallet.exception;
 
-public class InsufficientBalanceException extends WalletException {
-    public InsufficientBalanceException() {
-        super("INSUFFICIENT_BALANCE", "보유 포인트 잔액이 부족합니다.");
+import com.bwm.global.exception.BusinessException;
+import com.bwm.global.exception.ErrorCode;
+
+public class InsufficientBalanceException extends BusinessException {
+    public InsufficientBalanceException(ErrorCode errorCode) {
+        super(errorCode);
     }
 
-    public InsufficientBalanceException(String message) {
-        super("INSUFFICIENT_BALANCE", message);
+    public InsufficientBalanceException(ErrorCode errorCode, String logMessage) {
+        super(errorCode, logMessage);
     }
 }

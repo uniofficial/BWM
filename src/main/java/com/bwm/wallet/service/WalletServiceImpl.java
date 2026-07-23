@@ -23,6 +23,8 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.time.LocalDateTime;
 
+import com.bwm.global.exception.ErrorCode;
+
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -133,7 +135,7 @@ public class WalletServiceImpl implements WalletService {
         @Transactional
         public void chargeUserPoint(Integer userId, Integer amount) {
                 Wallet wallet = walletRepository.findByIdForUpdate(userId)
-                                .orElseThrow(() -> new WalletNotFoundException("해당 유저의 지갑을 찾을 수 없습니다."));
+                                .orElseThrow(() -> new WalletNotFoundException(ErrorCode.WALLET_NOT_FOUND, "해당 유저의 지갑을 찾을 수 없습니다."));
 
                 wallet.charge(amount);
 
@@ -152,7 +154,7 @@ public class WalletServiceImpl implements WalletService {
         @Transactional
         public void deductBidPoint(Integer userId, Integer itemId, Integer amount) {
                 Wallet wallet = walletRepository.findByIdForUpdate(userId)
-                                .orElseThrow(() -> new WalletNotFoundException("해당 유저의 지갑을 찾을 수 없습니다."));
+                                .orElseThrow(() -> new WalletNotFoundException(ErrorCode.WALLET_NOT_FOUND, "해당 유저의 지갑을 찾을 수 없습니다."));
 
                 Item item = itemRepository.findById(itemId)
                                 .orElseThrow(() -> new IllegalArgumentException("해당 상품을 찾을 수 없습니다."));
@@ -174,7 +176,7 @@ public class WalletServiceImpl implements WalletService {
         @Transactional
         public void refundBidPoint(Integer userId, Integer itemId, Integer amount) {
                 Wallet wallet = walletRepository.findByIdForUpdate(userId)
-                                .orElseThrow(() -> new WalletNotFoundException("해당 유저의 지갑을 찾을 수 없습니다."));
+                                .orElseThrow(() -> new WalletNotFoundException(ErrorCode.WALLET_NOT_FOUND, "해당 유저의 지갑을 찾을 수 없습니다."));
 
                 Item item = itemRepository.findById(itemId)
                                 .orElseThrow(() -> new IllegalArgumentException("해당 상품을 찾을 수 없습니다."));

@@ -3,20 +3,15 @@ package com.bwm.item.exception;
 import org.springframework.http.HttpStatus;
 
 import com.bwm.global.exception.BusinessException;
+import com.bwm.global.exception.ErrorCode;
 
 public class ItemStateConflictException extends BusinessException{
 
-    public ItemStateConflictException(String message) {
-        super(message);
+    public ItemStateConflictException(ErrorCode errorCode) {
+        super(errorCode);
     }
 
-    @Override
-    public HttpStatus getStatus() {
-        return HttpStatus.CONFLICT;
-    }
-
-    @Override
-    public String getErrorCode() {
-        return "ITEM_STATE_CONFLICT";
+    public ItemStateConflictException(ErrorCode errorCode, String logMessage) {
+        super(errorCode, logMessage);
     }
 }
