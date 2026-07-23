@@ -1,6 +1,7 @@
 package com.bwm.global.exception;
 
 import com.bwm.global.dto.ResultDto;
+import com.bwm.wallet.exception.WalletException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
@@ -8,7 +9,9 @@ import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
@@ -39,9 +42,25 @@ public class GlobalExceptionHandler {
                 .body(ResultDto.error("BAD_REQUEST", e.getMessage()));
     }
 
+    // 회원 탈퇴 제한 등 현재 상태 충돌은 500이 아닌 409로 응답해 사용자에게 사유를 전달합니다.
+    @ExceptionHandler(IllegalStateException.class)
+    public ResponseEntity<ResultDto<Void>> handleIllegalStateException(IllegalStateException e) {
+        return ResponseEntity.status(HttpStatus.CONFLICT)
+                .body(ResultDto.error("CONFLICT", e.getMessage()));
+    }
+
+    // ItemNotFoundException, ItemAccessDeniedException, ItemStateConflictException 등
+    // BusinessException을 상속한 도메인 예외를 한 곳에서 처리
+    @ExceptionHandler(BusinessException.class)
+    public ResponseEntity<ResultDto<Void>> handleBusinessException(BusinessException e) {
+        return ResponseEntity.status(e.getStatus())
+                .body(ResultDto.error(e.getErrorCode(), e.getMessage()));
+    }
+
     // 그 외 모든 예외 처리
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ResultDto<Void>> handleException(Exception e) {
+        log.error("[서버 내부 오류 발생] ", e);
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(ResultDto.error("INTERNAL_SERVER_ERROR", "서버 내부 오류가 발생했습니다."));
     }

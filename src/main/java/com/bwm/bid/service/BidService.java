@@ -35,8 +35,6 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class BidService {
 
-    private static final int MINIMUM_BID_INCREMENT = 100;
-
     private final BidRepository bidRepository;
     private final ItemRepository itemRepository;
     private final UserRepository userRepository;
@@ -45,7 +43,7 @@ public class BidService {
     /**
      * 새로운 입찰을 등록합니다.
      *
-     * JWT 인증 정보에서 추출한 로그인 사용자의 이메일로
+     * JWT 인증 정보에서 추출한 로그인 사용자의 uuid로
      * 실제 사용자 엔티티를 조회하고 입찰자로 사용합니다.
      *
      * 입찰 처리 과정 전체를 하나의 트랜잭션으로 묶어
@@ -53,87 +51,41 @@ public class BidService {
      * 모든 변경 사항을 롤백합니다.
      *
      * @param itemId 입찰 대상 상품 ID
-     * @param bidderEmail 로그인한 입찰자의 이메일
+     * @param bidderUuid 로그인한 입찰자의 UUID
      * @param request 입찰 요청 정보
      * @return 등록된 입찰 정보
      */
     @Transactional
     public BidResponse createBid(
             Integer itemId,
-            String bidderEmail,
+            String bidderUuid,
             BidCreateRequest request
     ) {
-        /*
-         * 같은 상품에 여러 요청이 동시에 들어오는 경우를 방지하기 위해
-         * 상품 행을 비관적 쓰기 락으로 조회합니다.
-         */
         Item item = itemRepository.findByIdForUpdate(itemId)
                 .orElseThrow(() ->
                         new BidItemNotFoundException(itemId));
 
-        /*
-         * JWT subject에서 가져온 이메일로
-         * 로그인 사용자 엔티티를 조회합니다.
-         */
-        User bidder = getUserByUuid(bidderEmail);
-        Integer bidderId = bidder.getUserId();
-
-        validateOpenStatus(item);
-        validateAuctionEndTime(item);
-        validateSellerCannotBid(item, bidderId);
-        validateAlreadyHighestBidder(item, bidderId);
-        validateBidAmount(item, request.bidAmount());
-
-        /*
-         * Item 정보를 변경하기 전에 기존 최고 입찰자와 입찰 금액을 저장합니다.
-         * 이후 기존 최고 입찰자에게 환불할 때 사용합니다.
-         */
-        User previousHighestBidder = item.getHighestBidder();
-        Integer previousHighestBidAmount = item.getCurrentPrice();
-
-        /*
-         * 새 입찰자의 지갑에서 입찰 금액 전액을 차감합니다.
-         */
-        walletService.deductBidPoint(
-                bidderId,
-                itemId,
+        return createBidInternal(
+                item,
+                bidderUuid,
                 request.bidAmount()
         );
+    }
+    
+    @Transactional
+    public BidResponse createQuickBid(
+            Integer itemId,
+            String bidderUuid
+    ) {
+        Item item = itemRepository.findByIdForUpdate(itemId)
+                .orElseThrow(() ->
+                        new BidItemNotFoundException(itemId));
 
-        /*
-         * 기존 최고 입찰자가 있다면 기존 입찰 금액을 환불합니다.
-         */
-        if (previousHighestBidder != null) {
-            walletService.refundBidPoint(
-                    previousHighestBidder.getUserId(),
-                    itemId,
-                    previousHighestBidAmount
-            );
-        }
-
-        /*
-         * 입찰 이력을 저장합니다.
-         */
-        Bid bid = Bid.builder()
-                .item(item)
-                .bidder(bidder)
-                .bidAmount(request.bidAmount())
-                .build();
-
-        Bid savedBid = bidRepository.save(bid);
-
-        /*
-         * 상품의 최고 입찰자와 현재가를 변경합니다.
-         *
-         * Item은 영속 상태이므로 트랜잭션 종료 시
-         * 변경 감지로 데이터베이스에 반영됩니다.
-         */
-        item.updateHighestBidder(
-                bidder,
-                request.bidAmount()
+        return createBidInternal(
+                item,
+                bidderUuid,
+                item.getMinimumBidAmount()
         );
-
-        return BidResponse.from(savedBid);
     }
 
     /**
@@ -172,14 +124,12 @@ public class BidService {
      * 응답에는 상품 정보, 입찰 금액, 입찰 시각과 함께
      * 현재 최고 입찰자인지 여부가 포함됩니다.
      *
-     * @param userEmail 로그인한 사용자의 이메일
-     * @return 로그인 사용자의 전체 입찰 내역
      */
     @Transactional(readOnly = true)
     public List<MyBidHistoryResponse> getMyBidHistory(
-            String userEmail
+            String userUuid
     ) {
-        User user = getUserByUuid(userEmail);
+        User user = getUserByUuid(userUuid);
         Integer userId = user.getUserId();
 
         return bidRepository
@@ -194,10 +144,7 @@ public class BidService {
     }
 
     /**
-     * 이메일을 기준으로 로그인 사용자 엔티티를 조회합니다.
-     *
-     * JWT subject에는 로그인 사용자의 이메일이 저장되어 있으므로
-     * SecurityContext에서 얻은 이메일을 이 메서드에 전달합니다.
+     * uuid 기준으로 로그인 사용자 엔티티를 조회합니다.
      */
     private User getUserByUuid(String uuid) {
         if (uuid == null || uuid.isBlank()) {
@@ -228,10 +175,11 @@ public class BidService {
      * 현재 시각이 마감 시각과 같거나 이후라면
      * 입찰할 수 없습니다.
      */
-    private void validateAuctionEndTime(Item item) {
-        LocalDateTime now = LocalDateTime.now();
-
-        if (!now.isBefore(item.getAuctionEndAt())) {
+    private void validateAuctionEndTime(
+            Item item,
+            LocalDateTime bidTime
+    ) {
+        if (!bidTime.isBefore(item.getAuctionEndAt())) {
             throw new BidAuctionEndedException(
                     item.getItemId(),
                     item.getAuctionEndAt()
@@ -276,19 +224,69 @@ public class BidService {
             );
         }
     }
+    
+    private BidResponse createBidInternal(
+            Item item,
+            String bidderUuid,
+            Integer bidAmount
+    ) {
+    	LocalDateTime bidTime = LocalDateTime.now();
+    	
+        User bidder = getUserByUuid(bidderUuid);
+        Integer bidderId = bidder.getUserId();
+
+        validateOpenStatus(item);
+        validateAuctionEndTime(item, bidTime);
+        validateSellerCannotBid(item, bidderId);
+        validateAlreadyHighestBidder(item, bidderId);
+        validateBidAmount(item, bidAmount);
+
+        User previousHighestBidder = item.getHighestBidder();
+        Integer previousHighestBidAmount = item.getCurrentPrice();
+
+        walletService.deductBidPoint(
+                bidderId,
+                item.getItemId(),
+                bidAmount
+        );
+
+        if (previousHighestBidder != null) {
+            walletService.refundBidPoint(
+                    previousHighestBidder.getUserId(),
+                    item.getItemId(),
+                    previousHighestBidAmount
+            );
+        }
+
+        Bid bid = Bid.builder()
+                .item(item)
+                .bidder(bidder)
+                .bidAmount(bidAmount)
+                .build();
+
+        Bid savedBid = bidRepository.save(bid);
+
+        item.updateHighestBidder(
+                bidder,
+                bidAmount
+        );
+        
+        item.extendAuctionEndTimeIfNeeded(bidTime);
+        
+        return BidResponse.from(savedBid);
+    }
 
     /**
      * 입찰 금액이 최소 입찰 가능 금액 이상인지 검증합니다.
      *
-     * 최소 입찰 가능 금액은 현재가보다 100P 높은 금액입니다.
+     * 첫 입찰은 시작가부터 가능하며,
+     * 기존 입찰자가 있는 경우 현재가보다 100P 높은 금액부터 가능합니다.
      */
     private void validateBidAmount(
             Item item,
             Integer bidAmount
     ) {
-        int minimumBidAmount =
-                item.getCurrentPrice()
-                        + MINIMUM_BID_INCREMENT;
+        int minimumBidAmount = item.getMinimumBidAmount();
 
         if (bidAmount == null
                 || bidAmount < minimumBidAmount) {

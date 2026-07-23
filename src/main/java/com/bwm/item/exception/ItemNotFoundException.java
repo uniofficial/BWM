@@ -1,8 +1,22 @@
 package com.bwm.item.exception;
 
-public class ItemNotFoundException extends RuntimeException {
+import org.springframework.http.HttpStatus;
 
-    public ItemNotFoundException(String message) {
+import com.bwm.global.exception.BusinessException;
+
+public class ItemNotFoundException extends BusinessException {
+
+    public ItemNotFoundException(String message){
         super(message);
+    }
+
+    @Override
+    public HttpStatus getStatus() {
+        return HttpStatus.NOT_FOUND;
+    }
+
+    @Override
+    public String getErrorCode() {
+        return "ITEM_NOT_FOUND";
     }
 }

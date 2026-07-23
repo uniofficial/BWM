@@ -37,7 +37,7 @@ public class BidController {
          *
          * POST /api/items/{itemId}/bids
          *
-         * JWT 인증 정보에서 로그인 사용자의 이메일을 추출한 뒤,
+         * JWT 인증 정보에서 로그인 사용자의 uuid을 추출한 뒤,
          * 해당 사용자를 입찰자로 사용합니다.
          *
          * @param itemId         입찰 대상 상품 ID
@@ -50,14 +50,27 @@ public class BidController {
                         @PathVariable("itemId") Integer itemId,
                         @Valid @RequestBody BidCreateRequest request,
                         Authentication authentication) {
-                String bidderEmail = authentication.getName();
+                String bidderUuid = authentication.getName();
 
                 BidResponse response = bidService.createBid(
                                 itemId,
-                                bidderEmail,
+                                bidderUuid,
                                 request);
 
                 return ResponseEntity.ok(response);
+        }
+        
+        @PostMapping("/{itemId}/bids/quick")
+        public ResponseEntity<BidResponse> createQuickBid(
+                @PathVariable Integer itemId,
+                Authentication authentication
+        ) {
+            BidResponse response = bidService.createQuickBid(
+                    itemId,
+                    authentication.getName()
+            );
+
+            return ResponseEntity.ok(response);
         }
 
         /**
