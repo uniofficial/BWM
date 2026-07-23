@@ -1,10 +1,12 @@
 import { useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { Badge, Card } from '../../../components/ui'
+import { cx } from '../../../utils/cx'
 import type { MyBidItem } from '../../../types/myBid'
 import { AuctionStatusBadge } from '../../products/components/AuctionStatusBadge'
 import { formatDateTime } from '../../products/utils/dateFormat'
 import { formatDuration, formatPoints } from '../utils/myPageFormat'
+import { isAuctionImminent } from '../../products/utils/remainingTime'
 
 function BidResultBadge({ bid }: { bid: MyBidItem }) {
   if (bid.auctionStatus === 'OPEN') {
@@ -26,6 +28,7 @@ export function MyBidCard({ bid }: { bid: MyBidItem }) {
   const location = useLocation()
   const [imageFailed, setImageFailed] = useState(false)
   const showImage = Boolean(bid.imageUrl) && !imageFailed
+  const isImminent = isAuctionImminent(bid.auctionStatus, null, 0, bid.remainingSeconds)
 
   return (
     <Link
@@ -51,7 +54,12 @@ export function MyBidCard({ bid }: { bid: MyBidItem }) {
           <dl className="mt-4 grid gap-2 text-sm">
             <div className="flex justify-between gap-3"><dt className="text-ink-muted">내 입찰가</dt><dd className="text-right font-bold text-brand-dark">{formatPoints(bid.myBidAmount)}</dd></div>
             <div className="flex justify-between gap-3"><dt className="text-ink-muted">현재 최고가</dt><dd className="text-right font-semibold text-ink">{formatPoints(bid.currentHighestBidAmount)}</dd></div>
-            <div className="flex justify-between gap-3"><dt className="text-ink-muted">남은 시간</dt><dd className="text-right text-ink-secondary">{formatDuration(bid.remainingSeconds, bid.auctionStatus === 'OPEN')}</dd></div>
+            <div className="flex justify-between gap-3">
+              <dt className="text-ink-muted">남은 시간</dt>
+              <dd className={cx('text-right', isImminent ? 'font-semibold text-danger' : 'text-ink-secondary')}>
+                {formatDuration(bid.remainingSeconds, bid.auctionStatus === 'OPEN')}
+              </dd>
+            </div>
             <div className="flex justify-between gap-3"><dt className="text-ink-muted">최근 입찰</dt><dd className="text-right text-ink-secondary">{formatDateTime(bid.bidAt)}</dd></div>
           </dl>
           <span className="mt-5 inline-flex min-h-11 items-center justify-center rounded-block border border-line bg-surface text-sm font-semibold text-ink group-hover:bg-brand-light">

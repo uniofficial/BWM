@@ -1,10 +1,12 @@
 import { Button, Card, Spinner } from '../../../components/ui'
+import { cx } from '../../../utils/cx'
 import type { ProductDetail } from '../../../types/product'
 import { AuctionStatusBadge } from './AuctionStatusBadge'
 import { getAuctionAvailability } from '../utils/auctionAvailability'
 import { formatDateTime } from '../utils/dateFormat'
 import { formatDetailRemainingTime } from '../utils/detailTime'
 import { formatPrice } from '../utils/priceFormat'
+import { isAuctionImminent } from '../utils/remainingTime'
 
 interface ProductSummaryCardProps {
   product: ProductDetail
@@ -33,6 +35,7 @@ export function ProductSummaryCard({
     : getAuctionAvailability(product, isAuthenticated, now)
   const hasBids = product.bidCount > 0
   const displayPrice = hasBids ? product.currentPrice : product.startPrice ?? product.currentPrice
+  const isImminent = isAuctionImminent(product.status, product.auctionEndAt, now)
 
   return (
     <Card className="flex h-full flex-col p-6 sm:p-7">
@@ -52,7 +55,9 @@ export function ProductSummaryCard({
       <div className="mt-7 border-y border-line py-5">
         <p className="text-sm text-ink-secondary">{hasBids ? '현재 최고 입찰가' : '현재 입찰 없음 · 시작가'}</p>
         <p className="mt-2 break-words text-3xl font-bold text-ink">{formatPrice(displayPrice)}</p>
-        <p className="mt-3 text-base font-semibold text-brand-dark">{formatDetailRemainingTime(product, now)}</p>
+        <p className={cx('mt-3 text-base font-semibold', isImminent ? 'text-danger' : 'text-brand-dark')}>
+          {formatDetailRemainingTime(product, now)}
+        </p>
       </div>
 
       <dl className="grid gap-3 py-5 text-sm">
