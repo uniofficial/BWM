@@ -6,6 +6,7 @@ import { ProductCreatePage } from '../pages/ProductCreatePage'
 import { ProductDetailPage } from '../pages/ProductDetailPage'
 import { ProductListPage } from '../pages/ProductListPage'
 import { RegisterPage } from '../pages/RegisterPage'
+import { AdminChargeRequestsPage } from '../pages/admin/AdminChargeRequestsPage'
 import { ChargeHistoryPage } from '../pages/mypage/ChargeHistoryPage'
 import { MyBidsPage } from '../pages/mypage/MyBidsPage'
 import { MyProductsPage } from '../pages/mypage/MyProductsPage'
@@ -14,6 +15,7 @@ import { WalletChargePage } from '../pages/mypage/WalletChargePage'
 import { WalletPage } from '../pages/mypage/WalletPage'
 import { WithdrawPage } from '../pages/mypage/WithdrawPage'
 import { MyPageLayout } from '../features/mypage/components/MyPageLayout'
+import { AdminRoute } from './AdminRoute'
 import { GuestRoute } from './GuestRoute'
 import { ProtectedRoute } from './ProtectedRoute'
 
@@ -39,6 +41,9 @@ export function AppRoutes() {
           <Route path="bids" element={<MyBidsPage />} />
           <Route path="withdraw" element={<WithdrawPage />} />
         </Route>
+      </Route>
+      <Route element={<AdminRoute />}>
+        <Route path="/admin/charge-requests" element={<AdminChargeRequestsPage />} />
       </Route>
       <Route path="/" element={<Navigate to="/products" replace />} />
       <Route path="*" element={<NotFoundPage />} />

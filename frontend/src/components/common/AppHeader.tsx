@@ -1,7 +1,12 @@
+import { useEffect, useState } from 'react'
 import { Link, NavLink } from 'react-router-dom'
+import { getMyWallet } from '../../api/walletApi'
+import { QuickChargeDialog } from '../../features/mypage/components/QuickChargeDialog'
+import { formatPoints } from '../../features/mypage/utils/myPageFormat'
 import { useAuth } from '../../hooks/useAuth'
 import { cx } from '../../utils/cx'
-import { Button, Spinner } from '../ui'
+import { isAdmin } from '../../utils/authRole'
+import { Badge, Button, Spinner } from '../ui'
 
 const navLinkClass = ({ isActive }: { isActive: boolean }) =>
   cx(
@@ -14,6 +19,25 @@ const navLinkClass = ({ isActive }: { isActive: boolean }) =>
 
 export function AppHeader() {
   const { user, isAuthenticated, isInitializing, logout } = useAuth()
+  const [walletBalance, setWalletBalance] = useState<number | null>(null)
+  const [isQuickChargeOpen, setIsQuickChargeOpen] = useState(false)
+
+  useEffect(() => {
+    if (!isAuthenticated) {
+      setWalletBalance(null)
+      return
+    }
+
+    const controller = new AbortController()
+    void getMyWallet(controller.signal)
+      .then((summary) => {
+        if (!controller.signal.aborted) setWalletBalance(summary.isValid ? summary.balance : null)
+      })
+      .catch(() => {
+        if (!controller.signal.aborted) setWalletBalance(null)
+      })
+    return () => controller.abort()
+  }, [isAuthenticated])
 
   return (
     <header className="border-b border-line bg-surface">
@@ -45,6 +69,12 @@ export function AppHeader() {
                 <span className="sm:hidden">마이</span>
                 <span className="hidden sm:inline">마이페이지</span>
               </NavLink>
+              {isAdmin(user) && (
+                <NavLink to="/admin/charge-requests" className={navLinkClass} aria-label="충전 요청 관리">
+                  <span className="sm:hidden">관리자</span>
+                  <span className="hidden sm:inline">충전 요청 관리</span>
+                </NavLink>
+              )}
               <span className="hidden max-w-40 truncate px-2 text-sm text-ink-secondary sm:block">
                 {user?.nickname || '내 계정'}
               </span>
@@ -64,6 +94,19 @@ export function AppHeader() {
           )}
         </nav>
       </div>
+
+      {isAuthenticated && walletBalance !== null && (
+        <div className="border-t border-line bg-surface-secondary/60">
+          <div className="mx-auto flex max-w-7xl items-center justify-end gap-2 px-4 py-2 sm:px-8 lg:px-10">
+            <Badge variant="primary">현재 포인트 {formatPoints(walletBalance)}</Badge>
+            <Button type="button" size="sm" variant="outline" onClick={() => setIsQuickChargeOpen(true)}>
+              빠른 충전
+            </Button>
+          </div>
+        </div>
+      )}
+
+      <QuickChargeDialog open={isQuickChargeOpen} onClose={() => setIsQuickChargeOpen(false)} />
     </header>
   )
 }
