@@ -39,7 +39,4 @@ public interface WalletService {
 
     // 지갑 생성 (회원가입 시)
     void createWallet(User user);
-
-    // 지갑 삭제 (회원탈퇴 시)
-    void deleteWallet(Integer userId);
 }
