@@ -1,10 +1,11 @@
 import { useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { Card } from '../../../components/ui'
+import { cx } from '../../../utils/cx'
 import type { ProductListItem } from '../../../types/product'
 import { AuctionStatusBadge } from './AuctionStatusBadge'
 import { formatPrice } from '../utils/priceFormat'
-import { formatRemainingTime } from '../utils/remainingTime'
+import { formatRemainingTime, isAuctionImminent } from '../utils/remainingTime'
 
 interface ProductCardProps {
   product: ProductListItem
@@ -15,6 +16,7 @@ export function ProductCard({ product, now }: ProductCardProps) {
   const location = useLocation()
   const [imageFailed, setImageFailed] = useState(false)
   const showImage = Boolean(product.imageUrl) && !imageFailed
+  const isImminent = isAuctionImminent(product.status, product.auctionEndAt, now, product.remainingSeconds)
 
   return (
     <Link
@@ -53,7 +55,9 @@ export function ProductCard({ product, now }: ProductCardProps) {
             <p className="mt-1 break-words text-xl font-bold leading-tight text-ink">{formatPrice(product.currentPrice)}</p>
             <div className="mt-3 flex items-center justify-between gap-3 border-t border-line pt-3 text-xs text-ink-secondary">
               <span className="truncate">{product.highestBidderNickname ? '최고 입찰 있음' : '첫 입찰 대기'}</span>
-              <span className="shrink-0 font-medium text-brand-dark">{formatRemainingTime(product, now)}</span>
+              <span className={cx('shrink-0 font-medium', isImminent ? 'text-danger font-semibold' : 'text-brand-dark')}>
+                {formatRemainingTime(product, now)}
+              </span>
             </div>
           </div>
         </div>

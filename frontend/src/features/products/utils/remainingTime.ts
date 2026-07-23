@@ -21,3 +21,17 @@ export function formatRemainingTime(product: ProductListItem, now: number) {
   if (hours > 0) return `${hours}시간 ${minutes}분 남음`
   return `${minutes}분 남음`
 }
+
+export function isAuctionImminent(
+  status: string,
+  auctionEndAt: string | null | undefined,
+  now: number,
+  fallbackRemainingSeconds: number | null = null,
+): boolean {
+  if (status !== 'OPEN') return false
+  const endTime = auctionEndAt ? Date.parse(auctionEndAt) : Number.NaN
+  const totalSeconds = Number.isFinite(endTime)
+    ? Math.max(0, Math.ceil((endTime - now) / 1_000))
+    : fallbackRemainingSeconds
+  return totalSeconds !== null && totalSeconds > 0 && totalSeconds <= 60
+}
