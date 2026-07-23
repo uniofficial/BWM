@@ -4,6 +4,7 @@ import { AppHeader } from '../components/common/AppHeader'
 import { EmptyState, ErrorState } from '../components/ui'
 import { BidDialog } from '../features/products/components/BidDialog'
 import { ProductDescription } from '../features/products/components/ProductDescription'
+import { ProductBidHistorySection } from '../features/products/components/ProductBidHistorySection'
 import { ProductDetailSkeleton } from '../features/products/components/ProductDetailSkeleton'
 import { ProductImageGallery } from '../features/products/components/ProductImageGallery'
 import { ProductSummaryCard } from '../features/products/components/ProductSummaryCard'
@@ -193,6 +194,7 @@ export function ProductDetailPage() {
               </div>
 
               <ProductDescription description={product.description} />
+              <ProductBidHistorySection product={product} />
               <BidDialog
                 open={bidDialogOpen}
                 product={product}
