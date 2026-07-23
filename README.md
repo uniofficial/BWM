@@ -19,8 +19,8 @@ REST API 중심으로 설계되었으며,
 
 | 이름 | 역할 | 담당 |
 |------|------|------|
-| **정윤희 (Team Leader)** | Backend | [Bid] / [Auction] api, Swagger |
-| 이성집 | Backend | [Item] api, frontend |
+| 정윤희 (팀장) | Backend | [Bid] / [Auction] api, Swagger |
+| 이성집 | Backend | [Item] api |
 | 이헌진 | Backend | [Wallet] / [Admin] api |
 | 최정현 | Backend | 인증 / JWT / Security |
 
