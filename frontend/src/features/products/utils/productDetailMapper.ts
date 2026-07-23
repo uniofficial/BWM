@@ -25,6 +25,17 @@ function mapBidHistory(response: ItemDetailResponse['bidHistory']): ProductBidHi
     }))
 }
 
+function getMinimumBidAmount(
+  response: ItemDetailResponse,
+  currentPrice: number | null,
+  bidHistory: ProductBidHistoryItem[],
+) {
+  if (currentPrice === null) return null
+  const hasBid = Boolean(response.highestBidderNickname) || bidHistory.length > 0
+  if (hasBid) return currentPrice + MINIMUM_BID_INCREMENT
+  return finiteNumber(response.startPrice) ?? currentPrice
+}
+
 export function mapProductDetail(response: ItemDetailResponse): ProductDetail {
   const currentPrice = finiteNumber(response.currentPrice)
   const bidHistory = mapBidHistory(response.bidHistory)
@@ -45,9 +56,11 @@ export function mapProductDetail(response: ItemDetailResponse): ProductDetail {
     category: response.category,
     startPrice: finiteNumber(response.startPrice),
     currentPrice,
-    minimumBidAmount: currentPrice === null ? null : currentPrice + MINIMUM_BID_INCREMENT,
+    minimumBidAmount: getMinimumBidAmount(response, currentPrice, bidHistory),
     auctionEndAt: response.auctionEndAt,
-    status: ITEM_STATUSES.has(response.status as ItemStatus) ? (response.status as ItemStatus) : 'UNKNOWN',
+    status: ITEM_STATUSES.has(response.status as ItemStatus)
+      ? (response.status as ItemStatus)
+      : 'UNKNOWN',
     createdAt: response.createdAt,
     description: response.description || '',
     highestBidderNickname: response.highestBidderNickname || null,

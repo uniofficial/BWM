@@ -54,7 +54,7 @@ export function ProductDetailPage() {
     pausePolling,
     resumePolling,
   } = useProductPolling(validProductId, retryKey)
-  const { submitBid, isSubmitting: isBidSubmitting } = useBidSubmission(
+  const { submitBid, submitQuickBid, isSubmitting: isBidSubmitting } = useBidSubmission(
     validProductId,
     isAuthenticated && !isInitializing && Boolean(accessToken),
     pausePolling,
@@ -83,8 +83,8 @@ export function ProductDetailPage() {
     if (action === 'bid') setBidDialogOpen(true)
   }
 
-  const handleBidSubmit = async (amount: number): Promise<BidSubmissionResult> => {
-    const result = await submitBid(amount)
+  const handleBidSubmit = async (amount?: number): Promise<BidSubmissionResult> => {
+    const result = amount === undefined ? await submitQuickBid() : await submitBid(amount)
 
     if (!result.ok && 'ignored' in result) return result
 
@@ -198,6 +198,7 @@ export function ProductDetailPage() {
                 product={product}
                 isSubmitting={isBidSubmitting}
                 onSubmit={handleBidSubmit}
+                onQuickSubmit={() => handleBidSubmit()}
                 onClose={() => setBidDialogOpen(false)}
               />
             </>

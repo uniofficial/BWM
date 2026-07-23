@@ -1,5 +1,7 @@
 # BWM Frontend Deployment Guide
 
+관련 문서: [운영 체크리스트](./operations-checklist.md) · [장애 대응 가이드](./incident-response.md)
+
 ## 1. 배포 전제
 
 - Node.js: `^20.19.0 || >=22.12.0`
@@ -18,6 +20,8 @@ Vite 환경 변수는 런타임이 아니라 **Build 시점**에 Bundle에 포�
 |---|---:|---|
 | `VITE_API_BASE_URL` | 예 | 백엔드 Origin. `/api`를 포함하지 않습니다. |
 | `VITE_APP_ENV` | 아니요 | `development`, `production`, `test`. 생략하면 Vite mode를 사용합니다. |
+| `VITE_APP_VERSION` | 아니요 | 배포 Release 식별자. 운영 오류 진단에 포함됩니다. |
+| `VITE_COMMIT_SHA` | 아니요 | 배포 Commit SHA. 운영 오류 진단에 포함됩니다. |
 
 개발 예시:
 
@@ -201,14 +205,6 @@ HSTS는 모든 하위 도메인의 HTTPS 준비가 끝난 뒤 적용합니다. C
 
 ## 11. Known limitations
 
-### 임시 로그아웃
-
-백엔드 로그아웃 API가 없어 프론트 Access Token과 사용자 상태만 제거합니다. HttpOnly Refresh Cookie는 프론트에서 만료할 수 없으므로 새로고침 시 재인증될 수 있습니다.
-
-### 임시 회원 탈퇴
-
-프론트는 아직 실제 회원 탈퇴 API를 호출하지 않고 임시 로그아웃만 수행합니다. 실제 계정 삭제 완료로 안내하지 않습니다.
-
 ### Production 인프라
 
 - 실제 Production API Origin 미확정
@@ -231,7 +227,7 @@ HSTS는 모든 하위 도메인의 HTTPS 준비가 끝난 뒤 적용합니다. C
 11. `/mypage/products` 경매 종료
 12. `/mypage/bids` 내 입찰 조회
 13. Access Token 만료 후 Refresh와 원 요청 1회 재시도
-14. 임시 로그아웃 제한 문구 확인
+14. 로그아웃(재로그인 시 세션 제거)과 회원 탈퇴(경매·입찰 중 탈퇴 제한 메시지 포함) 확인
 15. 브라우저 Console·Network·OPTIONS·Cookie 확인
 
 ## 13. 최종 배포 체크리스트

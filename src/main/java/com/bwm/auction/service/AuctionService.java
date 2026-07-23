@@ -12,7 +12,6 @@ import com.bwm.auction.dto.AuctionCloseResponse;
 import com.bwm.auction.dto.SoldAuctionResponse;
 import com.bwm.auction.dto.WinningAuctionResponse;
 import com.bwm.auction.exception.AuctionAlreadyClosedException;
-import com.bwm.auction.exception.AuctionNotEndedException;
 import com.bwm.auction.exception.AuctionPermissionDeniedException;
 import com.bwm.auction.exception.ItemNotFoundException;
 import com.bwm.item.entity.Item;
@@ -39,16 +38,20 @@ public class AuctionService {
     private final WalletService walletService;
 
     /**
-     * 로그인한 판매자의 요청으로 특정 경매를 종료합니다.
+     * 판매자의 요청으로 진행 중인 경매를 즉시 종료합니다.
+     *
+     * 마감 시간 이전에도 종료할 수 있으며, 이를 통해 조기 종료가 가능합니다.
+     * 마감 시간이 지난 경매는 스케줄러가 자동으로 처리하며,
+     * 이 API는 판매자의 의도적인 조기 종료 목적으로 사용합니다.
      *
      * JWT 인증 정보에서 추출한 사용자 UUID로 로그인 사용자를 조회하고,
      * 해당 사용자가 상품 판매자인지 검증합니다.
      *
-     * 경매 종료 시 포인트를 다시 차감하지 않습니다.
-     * 입찰 시점에 최고 입찰자의 포인트가 이미 처리되기 때문입니다.
+     * 최고 입찰자가 있으면 SOLD, 없으면 UNSOLD로 처리됩니다.
+     * 입찰자 없이 취소를 원하는 경우에는 cancel API를 사용해야 합니다.
      *
-     * 비관적 쓰기 락을 사용하여 자동 종료와 수동 종료가 동시에 실행돼도
-     * 한 트랜잭션만 종료 및 판매대금 지급을 수행하도록 합니다.
+     * 비관적 쓰기 락을 사용하여 자동 종료(스케줄러)와 수동 종료가 동시에
+     * 실행돼도 한 트랜잭션만 종료 및 판매대금 지급을 수행하도록 합니다.
      *
      * @param itemId 종료할 상품 ID
      * @param requesterUuid 종료를 요청한 로그인 사용자의 UUID
@@ -77,7 +80,6 @@ public class AuctionService {
 
         validateSeller(item, requesterId);
         validateOpenStatus(item);
-        validateAuctionEndTime(item);
 
         closeItem(item);
 
@@ -249,19 +251,7 @@ public class AuctionService {
         }
     }
 
-    /**
-     * 경매 마감 시간이 도달했는지 검증합니다.
-     */
-    private void validateAuctionEndTime(Item item) {
-        LocalDateTime now = LocalDateTime.now();
 
-        if (now.isBefore(item.getAuctionEndAt())) {
-            throw new AuctionNotEndedException(
-                    item.getItemId(),
-                    item.getAuctionEndAt()
-            );
-        }
-    }
 
     /**
      * 최고 입찰자 존재 여부에 따라 경매 상태를 변경합니다.

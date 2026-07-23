@@ -63,8 +63,8 @@ public class WalletServiceImpl implements WalletService {
 
         @Override
         @Transactional
-        public WalletChargeRequestResponseDto requestPointCharge(String userEmail, Integer amount) {
-                User user = getUserByEmail(userEmail);
+        public WalletChargeRequestResponseDto requestPointCharge(String userUuid, Integer amount) {
+                User user = getUserByUserUuid(userUuid);
                 if (amount <= 0) {
                         throw new IllegalArgumentException("충전 요청 금액은 1원 이상이어야 합니다.");
                 }
@@ -81,10 +81,10 @@ public class WalletServiceImpl implements WalletService {
         }
 
         @Override
-        public List<WalletChargeRequestResponseDto> getMyChargeRequests(String userEmail) {
-                getUserByEmail(userEmail); // 유저 존재 및 탈퇴 여부 검증
+        public List<WalletChargeRequestResponseDto> getMyChargeRequests(String userUuid) {
+                getUserByUserUuid(userUuid); // 유저 존재 및 탈퇴 여부 검증
                 List<WalletChargeRequest> requests = walletChargeRequestRepository
-                                .findByUserEmailOrderByCreatedAtDesc(userEmail);
+                                .findByUserUuidOrderByCreatedAtDesc(userUuid);
                 return requests.stream()
                                 .map(this::convertToResponseDto)
                                 .collect(Collectors.toList());
@@ -127,15 +127,6 @@ public class WalletServiceImpl implements WalletService {
                                 .createdAt(request.getCreatedAt())
                                 .processedAt(request.getProcessedAt())
                                 .build();
-        }
-
-        private User getUserByEmail(String email) {
-                if (email == null || email.isBlank()) {
-                        throw new IllegalArgumentException("인증된 사용자 이메일이 없습니다.");
-                }
-                User user = userRepository.findByEmail(email)
-                                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다. email=" + email));
-                return user;
         }
 
         @Override
