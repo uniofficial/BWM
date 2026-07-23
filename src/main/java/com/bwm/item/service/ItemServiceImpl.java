@@ -146,7 +146,7 @@ public class ItemServiceImpl implements ItemService {
             String sellerEmail,
             ItemUpdateRequest request
     ) {
-        Item item = itemRepository.findById(itemId)
+        Item item = itemRepository.findByIdForUpdate(itemId)
                 .orElseThrow(() ->
                         new ItemNotFoundException(
                                 "존재하지 않는 상품입니다. id = " + itemId
