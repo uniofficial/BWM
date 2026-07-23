@@ -8,5 +8,6 @@ public interface AuthService {
     void signup(SignupRequest request);
     LoginResult login(LoginRequest request);
     LoginResult reissue(String refreshToken);
+    void logout(String refreshToken);
     void withdraw(String userUuid);
 }

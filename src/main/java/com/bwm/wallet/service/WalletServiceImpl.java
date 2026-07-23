@@ -83,7 +83,8 @@ public class WalletServiceImpl implements WalletService {
         @Override
         public List<WalletChargeRequestResponseDto> getMyChargeRequests(String userEmail) {
                 getUserByEmail(userEmail); // 유저 존재 및 탈퇴 여부 검증
-                List<WalletChargeRequest> requests = walletChargeRequestRepository.findByUserEmailOrderByCreatedAtDesc(userEmail);
+                List<WalletChargeRequest> requests = walletChargeRequestRepository
+                                .findByUserEmailOrderByCreatedAtDesc(userEmail);
                 return requests.stream()
                                 .map(this::convertToResponseDto)
                                 .collect(Collectors.toList());
@@ -209,9 +210,9 @@ public class WalletServiceImpl implements WalletService {
                 Wallet wallet = walletRepository.findByIdForUpdate(sellerId)
                                 .orElseGet(() -> {
                                         Wallet newWallet = Wallet.builder()
-                                                         .user(seller)
-                                                         .balance(0)
-                                                         .build();
+                                                        .user(seller)
+                                                        .balance(0)
+                                                        .build();
                                         return walletRepository.save(newWallet);
                                 });
 
@@ -239,18 +240,5 @@ public class WalletServiceImpl implements WalletService {
                                 .balance(0)
                                 .build();
                 walletRepository.save(newWallet);
-        }
-
-        @Override
-        @Transactional
-        public void deleteWallet(Integer userId) {
-                Wallet wallet = walletRepository.findByIdForUpdate(userId)
-                                .orElseThrow(() -> new WalletNotFoundException("해당 유저의 지갑을 찾을 수 없습니다."));
-
-                if (wallet.getBalance() > 0) {
-                        throw new IllegalStateException("지갑에 잔액이 남아있어 탈퇴할 수 없습니다.");
-                }
-
-                walletRepository.delete(wallet);
         }
 }

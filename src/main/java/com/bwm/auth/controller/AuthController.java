@@ -44,7 +44,7 @@ public class AuthController {
         ResponseCookie cookie = ResponseCookie.from("Refresh-Token", result.getRefreshToken())
                 .httpOnly(true)
                 .secure(false) // HTTP 테스트를 위해 임시로 false (실서버 HTTPS 적용 시 true)
-                .path("/")
+                .path("/api/auth")
                 .maxAge(7 * 24 * 60 * 60) // 7일
                 .sameSite("Strict")
                 .build();
@@ -75,7 +75,7 @@ public class AuthController {
         ResponseCookie cookie = ResponseCookie.from("Refresh-Token", result.getRefreshToken())
                 .httpOnly(true)
                 .secure(false)
-                .path("/")
+                .path("/api/auth")
                 .maxAge(7 * 24 * 60 * 60)
                 .sameSite("Strict")
                 .build();
@@ -86,6 +86,31 @@ public class AuthController {
         return ResponseEntity.ok()
                 .headers(headers)
                 .body(ResultDto.success(responseBody));
+    }
+
+    @PostMapping("/logout")
+    public ResponseEntity<ResultDto<Void>> logout(
+            @CookieValue(value = "Refresh-Token", required = false) String refreshToken) {
+        
+        if (refreshToken != null) {
+            authService.logout(refreshToken);
+        }
+
+        // 로그아웃 시 클라이언트의 쿠키를 즉시 만료시킴 (MaxAge 0)
+        ResponseCookie cookie = ResponseCookie.from("Refresh-Token", "")
+                .httpOnly(true)
+                .secure(false) // HTTP 테스트를 위해 임시로 false (실서버 HTTPS 적용 시 true)
+                .path("/api/auth")
+                .maxAge(0) 
+                .sameSite("Strict")
+                .build();
+        
+        HttpHeaders headers = new HttpHeaders();
+        headers.add(HttpHeaders.SET_COOKIE, cookie.toString());
+
+        return ResponseEntity.ok()
+                .headers(headers)
+                .body(ResultDto.success(null));
     }
 
     @DeleteMapping("/withdraw")

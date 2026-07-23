@@ -165,6 +165,21 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     @Transactional
+    public void logout(String refreshToken) {
+        if (refreshToken == null || !jwtProvider.validateToken(refreshToken)) {
+            return;
+        }
+        
+        try {
+            String jti = jwtProvider.getJtiFromToken(refreshToken);
+            refreshTokenRepository.deleteById(jti);
+        } catch (Exception e) {
+            // 토큰 파싱 실패 또는 DB 삭제 실패 시 무시 (이미 로그아웃 처리된 것으로 간주)
+        }
+    }
+
+    @Override
+    @Transactional
     public void withdraw(String userUuid) {
         User user = userRepository.findByUserUuid(userUuid)
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 유저입니다."));
