@@ -5,9 +5,7 @@
 BWM은 사용자가 상품을 등록하고 실시간으로 입찰할 수 있는 경매 서비스입니다.  
 JWT 기반 인증, 포인트 시스템, 경매 자동 종료, 빠른 입찰, Anti-Sniping 기능 등을 제공합니다.
 
----
-
-# 👥 Team
+# Team
 
 | 이름 | 담당 |
 |------|------|
@@ -18,7 +16,7 @@ JWT 기반 인증, 포인트 시스템, 경매 자동 종료, 빠른 입찰, Ant
 
 ---
 
-# 🛠 Tech Stack
+# Tech Stack
 
 ### Backend
 
@@ -42,7 +40,7 @@ JWT 기반 인증, 포인트 시스템, 경매 자동 종료, 빠른 입찰, Ant
 
 ---
 
-# 📂 Project Structure
+# Project Structure
 
 ```
 src
@@ -62,7 +60,7 @@ src
 
 ---
 
-# 🚀 최초 개발 환경 설정
+# 최초 개발 환경 설정
 
 ## 1. 저장소 복제
 
@@ -97,7 +95,7 @@ git switch -c feat/120-login
 
 ---
 
-# ⚙ Backend 실행
+# Backend 실행
 
 ## 1. 환경설정 파일 생성
 
@@ -177,7 +175,7 @@ http://localhost:8080
 
 ---
 
-# 💻 Frontend 실행
+# Frontend 실행
 
 frontend 디렉터리로 이동
 
@@ -212,7 +210,7 @@ http://localhost:5173
 
 ---
 
-# 📖 API 문서
+# API 문서
 
 애플리케이션 실행 후
 
@@ -224,7 +222,7 @@ http://localhost:8080/swagger-ui/index.html
 
 ---
 
-# 🧪 테스트
+# 테스트
 
 Backend 테스트 실행
 
@@ -234,7 +232,7 @@ Backend 테스트 실행
 
 ---
 
-# 🌱 브랜치 전략
+# 브랜치 전략
 
 GitHub Flow를 기반으로 개발합니다.
 
@@ -258,7 +256,7 @@ develop
 
 ---
 
-# 💬 Commit Convention
+# Commit Convention
 
 | 타입 | 설명 |
 |------|------|
@@ -272,7 +270,7 @@ develop
 
 ---
 
-# ✨ 주요 기능
+# 주요 기능
 
 ### 인증
 
@@ -313,12 +311,14 @@ develop
 
 ---
 
-# 📸 Screen Shots
-
-> 프로젝트 완료 후 화면 추가 예정 
+# 화면 UI
 
 - 메인 페이지
+<img width="666" height="649" alt="스크린샷 2026-07-23 오후 4 01 44" src="https://github.com/user-attachments/assets/93d265c7-4d8c-469b-b93a-6c2a77493632" />
+
 - 상품 목록
-- 상품 상세
-- 입찰 화면
+<img width="1226" height="639" alt="스크린샷 2026-07-23 오후 4 02 09" src="https://github.com/user-attachments/assets/c0c6738f-4aef-4b5a-aba1-fa9e7ecee786" />
+
 - 마이페이지
+<img width="1223" height="628" alt="스크린샷 2026-07-23 오후 4 02 30" src="https://github.com/user-attachments/assets/041688dd-cbf9-492b-8109-31b79e92f7d5" />
+
