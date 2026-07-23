@@ -1,9 +1,11 @@
 import { useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { Badge, Button, Card } from '../../../components/ui'
+import { cx } from '../../../utils/cx'
 import { AuctionStatusBadge } from '../../products/components/AuctionStatusBadge'
 import type { MyProductItem } from '../../../types/myProduct'
 import { formatDuration, formatPoints } from '../utils/myPageFormat'
+import { isAuctionImminent } from '../../products/utils/remainingTime'
 
 interface MyProductCardProps {
   product: MyProductItem
@@ -28,7 +30,8 @@ export function MyProductCard({ product, now, isEnding, onEndAuction }: MyProduc
   const remainingSeconds = Number.isFinite(endTimestamp)
     ? Math.max(0, Math.ceil((endTimestamp - now) / 1_000))
     : product.remainingSeconds
-  const canEndAuction = product.status === 'OPEN' && Number.isFinite(endTimestamp) && now >= endTimestamp
+  const canEndAuction = product.status === 'OPEN'
+  const isImminent = isAuctionImminent(product.status, product.auctionEndAt, now, product.remainingSeconds)
 
   return (
     <Card className="flex h-full flex-col overflow-hidden p-0">
@@ -56,7 +59,12 @@ export function MyProductCard({ product, now, isEnding, onEndAuction }: MyProduc
         <dl className="mt-4 grid gap-2 text-sm">
           <div className="flex justify-between gap-3"><dt className="text-ink-muted">현재가</dt><dd className="text-right font-semibold text-ink">{formatPoints(product.currentPrice)}</dd></div>
           <div className="flex justify-between gap-3"><dt className="text-ink-muted">입찰 상태</dt><dd className="text-right text-ink-secondary">{product.highestBidderNickname ? '최고 입찰 있음' : '입찰 없음'}</dd></div>
-          <div className="flex justify-between gap-3"><dt className="text-ink-muted">남은 시간</dt><dd className="text-right text-ink-secondary">{formatDuration(remainingSeconds, product.status === 'OPEN')}</dd></div>
+          <div className="flex justify-between gap-3">
+            <dt className="text-ink-muted">남은 시간</dt>
+            <dd className={cx('text-right', isImminent ? 'font-semibold text-danger' : 'text-ink-secondary')}>
+              {formatDuration(remainingSeconds, product.status === 'OPEN')}
+            </dd>
+          </div>
         </dl>
         <div className="mt-auto grid gap-2 pt-5 sm:grid-cols-2">
           <Link
@@ -66,25 +74,19 @@ export function MyProductCard({ product, now, isEnding, onEndAuction }: MyProduc
           >
             상품 보기
           </Link>
-          {product.status === 'OPEN' && (
+          {canEndAuction && (
             <Button
               type="button"
               variant="danger"
-              disabled={!canEndAuction || isEnding}
+              disabled={isEnding}
               isLoading={isEnding}
               loadingLabel="종료 중..."
               onClick={() => onEndAuction(product)}
-              aria-describedby={!canEndAuction ? `end-reason-${product.id}` : undefined}
             >
               경매 종료
             </Button>
           )}
         </div>
-        {product.status === 'OPEN' && !canEndAuction && (
-          <p id={`end-reason-${product.id}`} className="mt-2 text-xs leading-5 text-ink-muted">
-            경매 종료는 마감 시각 이후에 가능합니다.
-          </p>
-        )}
       </div>
     </Card>
   )
