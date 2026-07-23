@@ -28,7 +28,7 @@ import com.bwm.global.config.security.CustomAuthenticationEntryPoint;
 import com.bwm.global.config.security.JwtAuthenticationFilter;
 import com.bwm.item.controller.ItemController;
 import com.bwm.item.controller.ItemImageController;
-import com.bwm.item.controller.UserController;
+import com.bwm.item.controller.UserItemController;
 import com.bwm.item.service.ItemImageService;
 import com.bwm.item.service.ItemService;
 import com.bwm.wallet.controller.WalletController;
@@ -38,27 +38,29 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  * 모든 컨트롤러 단위 테스트가 상속받는 베이스 클래스.
+ * 
  * @WebMvcTest에 테스트할 모든 컨트롤러를 등록하여, 하위 클래스에서 하나만 상속받으면 되도록 구성.
- * Security 관련 Bean 및 서비스 레이어 Bean들을 일괄 모킹하여 중복 제거.
+ *              Security 관련 Bean 및 서비스 레이어 Bean들을 일괄 모킹하여 중복 제거.
  */
 @Import(SecurityConfig.class)
 @WebMvcTest(controllers = {
-    AdminWalletController.class,
-    AuctionController.class,
-    AuthController.class,
-    BidController.class,
-    MyBidController.class,
-    ItemController.class,
-    ItemImageController.class,
-    UserController.class,
-    WalletController.class
+        AdminWalletController.class,
+        AuctionController.class,
+        AuthController.class,
+        BidController.class,
+        MyBidController.class,
+        ItemController.class,
+        ItemImageController.class,
+        UserItemController.class,
+        WalletController.class
 })
 public abstract class ControllerTestSupport {
 
     @Autowired
     protected MockMvc mockMvc;
 
-    protected ObjectMapper objectMapper = new ObjectMapper().registerModule(new com.fasterxml.jackson.datatype.jsr310.JavaTimeModule());
+    protected ObjectMapper objectMapper = new ObjectMapper()
+            .registerModule(new com.fasterxml.jackson.datatype.jsr310.JavaTimeModule());
 
     // --- Services ---
     @MockitoBean
