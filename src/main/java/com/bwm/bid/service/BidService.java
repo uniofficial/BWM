@@ -124,8 +124,6 @@ public class BidService {
      * 응답에는 상품 정보, 입찰 금액, 입찰 시각과 함께
      * 현재 최고 입찰자인지 여부가 포함됩니다.
      *
-     * @param userEmail 로그인한 사용자의 이메일
-     * @return 로그인 사용자의 전체 입찰 내역
      */
     @Transactional(readOnly = true)
     public List<MyBidHistoryResponse> getMyBidHistory(
@@ -146,10 +144,7 @@ public class BidService {
     }
 
     /**
-     * 이메일을 기준으로 로그인 사용자 엔티티를 조회합니다.
-     *
-     * JWT subject에는 로그인 사용자의 이메일이 저장되어 있으므로
-     * SecurityContext에서 얻은 이메일을 이 메서드에 전달합니다.
+     * uuid 기준으로 로그인 사용자 엔티티를 조회합니다.
      */
     private User getUserByUuid(String uuid) {
         if (uuid == null || uuid.isBlank()) {
@@ -180,10 +175,11 @@ public class BidService {
      * 현재 시각이 마감 시각과 같거나 이후라면
      * 입찰할 수 없습니다.
      */
-    private void validateAuctionEndTime(Item item) {
-        LocalDateTime now = LocalDateTime.now();
-
-        if (!now.isBefore(item.getAuctionEndAt())) {
+    private void validateAuctionEndTime(
+            Item item,
+            LocalDateTime bidTime
+    ) {
+        if (!bidTime.isBefore(item.getAuctionEndAt())) {
             throw new BidAuctionEndedException(
                     item.getItemId(),
                     item.getAuctionEndAt()
@@ -234,11 +230,13 @@ public class BidService {
             String bidderUuid,
             Integer bidAmount
     ) {
+    	LocalDateTime bidTime = LocalDateTime.now();
+    	
         User bidder = getUserByUuid(bidderUuid);
         Integer bidderId = bidder.getUserId();
 
         validateOpenStatus(item);
-        validateAuctionEndTime(item);
+        validateAuctionEndTime(item, bidTime);
         validateSellerCannotBid(item, bidderId);
         validateAlreadyHighestBidder(item, bidderId);
         validateBidAmount(item, bidAmount);
@@ -272,7 +270,9 @@ public class BidService {
                 bidder,
                 bidAmount
         );
-
+        
+        item.extendAuctionEndTimeIfNeeded(bidTime);
+        
         return BidResponse.from(savedBid);
     }
 

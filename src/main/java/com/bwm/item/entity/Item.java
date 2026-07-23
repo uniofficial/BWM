@@ -28,6 +28,8 @@ import lombok.NoArgsConstructor;
 public class Item {
 
     private static final int MINIMUM_BID_INCREMENT = 100;
+    private static final int EXTENSION_TRIGGER_MINUTES = 10;
+    private static final int EXTENSION_MINUTES = 1;
 
     // PK. 자동증가(IDENTITY) - DB AUTO_INCREMENT와 동일 전략
     @Id
@@ -309,6 +311,25 @@ public class Item {
         }
     }
 
+    // 마감 임박 입찰에 대해 새 입찰자 생길 시 시간 연장 
+    public void extendAuctionEndTimeIfNeeded(LocalDateTime bidTime) {
+        if (this.status != ItemStatus.OPEN) {
+            return;
+        }
+
+        LocalDateTime extensionTriggerTime =
+                this.auctionEndAt.minusMinutes(EXTENSION_TRIGGER_MINUTES);
+
+        boolean isExtensionPeriod =
+                !bidTime.isBefore(extensionTriggerTime)
+                && bidTime.isBefore(this.auctionEndAt);
+
+        if (isExtensionPeriod) {
+            this.auctionEndAt =
+                    this.auctionEndAt.plusMinutes(EXTENSION_MINUTES);
+        }
+    }
+    
     /**
      * 판매자가 경매를 직접 취소합니다.
      *
@@ -336,3 +357,4 @@ public class Item {
         this.status = ItemStatus.CANCELLED;
     }
 }
+
