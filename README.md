@@ -191,7 +191,7 @@ cd frontend
 npm install
 ```
 
-`.env.development` 생성
+`.env.development` 생성 후 아래 내용 추가 
 
 ```env
 VITE_API_BASE_URL=http://localhost:8080
@@ -322,9 +322,3 @@ develop
 - 상품 상세
 - 입찰 화면
 - 마이페이지
-
----
-
-# 📄 License
-
-This project is licensed under the MIT License.
