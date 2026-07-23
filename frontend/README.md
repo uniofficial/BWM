@@ -10,7 +10,14 @@ React, Vite, TypeScript, Tailwind CSS로 구현된 경매 서비스 프론트엔
 
 ## Local development
 
-`.env.development`는 로컬 API Origin을 사용합니다. API Endpoint에 `/api`가 포함되어 있으므로 Base URL에는 `/api`를 붙이지 않습니다.
+`.env.development`는 Git에 커밋되지 않으므로(`.gitignore`) 저장소를 새로 받았다면 먼저 직접 만들어야 합니다. `frontend/.env.development` 파일을 아래 내용으로 생성하세요.
+
+```dotenv
+VITE_API_BASE_URL=http://localhost:8080
+VITE_APP_ENV=development
+```
+
+API Endpoint에 `/api`가 포함되어 있으므로 Base URL에는 `/api`를 붙이지 않습니다. 이 파일이 없으면 실행은 되지만 "앱 설정을 확인해주세요" 화면만 표시됩니다.
 
 ```bash
 npm ci

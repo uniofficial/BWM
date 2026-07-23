@@ -58,8 +58,8 @@ public class WalletController {
 			Authentication authentication,
 			@RequestBody @Valid PointChargeRequestDto requestDto
 	) {
-		String userEmail = authentication.getName();
-		WalletChargeRequestResponseDto response = walletService.requestPointCharge(userEmail, requestDto.getAmount());
+		String userUuid = authentication.getName();
+		WalletChargeRequestResponseDto response = walletService.requestPointCharge(userUuid, requestDto.getAmount());
 		return ResponseEntity.ok(ResultDto.success(response));
 	}
 
@@ -70,8 +70,8 @@ public class WalletController {
 	public ResponseEntity<ResultDto<List<WalletChargeRequestResponseDto>>> getMyChargeRequests(
 			Authentication authentication
 	) {
-		String userEmail = authentication.getName();
-		List<WalletChargeRequestResponseDto> responses = walletService.getMyChargeRequests(userEmail);
+		String userUuid = authentication.getName();
+		List<WalletChargeRequestResponseDto> responses = walletService.getMyChargeRequests(userUuid);
 		return ResponseEntity.ok(ResultDto.success(responses));
 	}
 }

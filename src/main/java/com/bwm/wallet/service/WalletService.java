@@ -11,10 +11,10 @@ public interface WalletService {
     WalletResponseDto getMyWallet(String userUuid);
 
     // 사용자 포인트 충전 요청 생성
-    WalletChargeRequestResponseDto requestPointCharge(String userEmail, Integer amount);
+    WalletChargeRequestResponseDto requestPointCharge(String userUuid, Integer amount);
 
     // 사용자 자신의 포인트 충전 요청 내역 조회
-    List<WalletChargeRequestResponseDto> getMyChargeRequests(String userEmail);
+    List<WalletChargeRequestResponseDto> getMyChargeRequests(String userUuid);
 
     // 관리자용 모든 포인트 충전 요청 목록 조회
     List<WalletChargeRequestResponseDto> getAllChargeRequests();
