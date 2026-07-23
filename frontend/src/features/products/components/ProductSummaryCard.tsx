@@ -14,7 +14,10 @@ interface ProductSummaryCardProps {
   isAuthenticated: boolean
   isRefreshing: boolean
   bidRestriction?: string | null
+  isSeller?: boolean
+  isEndingAuction?: boolean
   onBidAction: (action: 'bid' | 'login' | 'disabled') => void
+  onEndAuction?: () => void
 }
 
 export function ProductSummaryCard({
@@ -23,7 +26,10 @@ export function ProductSummaryCard({
   isAuthenticated,
   isRefreshing,
   bidRestriction,
+  isSeller = false,
+  isEndingAuction = false,
   onBidAction,
+  onEndAuction,
 }: ProductSummaryCardProps) {
   const availability = bidRestriction
     ? {
@@ -80,16 +86,38 @@ export function ProductSummaryCard({
       </dl>
 
       <div className="mt-auto border-t border-line pt-5">
-        <Button
-          type="button"
-          size="lg"
-          className="w-full"
-          disabled={availability.action === 'disabled'}
-          onClick={() => onBidAction(availability.action)}
-        >
-          {availability.buttonLabel}
-        </Button>
-        <p className="mt-3 text-center text-xs leading-5 text-ink-muted">{availability.message}</p>
+        {isSeller && product.status === 'OPEN' ? (
+          <>
+            <Button
+              type="button"
+              variant="danger"
+              size="lg"
+              className="w-full"
+              isLoading={isEndingAuction}
+              loadingLabel="경매 종료 중..."
+              disabled={isEndingAuction}
+              onClick={onEndAuction}
+            >
+              경매 종료
+            </Button>
+            <p className="mt-3 text-center text-xs leading-5 text-ink-muted">
+              판매자 권한으로 마감 시각 전 경매를 즉시 종료할 수 있습니다.
+            </p>
+          </>
+        ) : (
+          <>
+            <Button
+              type="button"
+              size="lg"
+              className="w-full"
+              disabled={availability.action === 'disabled'}
+              onClick={() => onBidAction(availability.action)}
+            >
+              {availability.buttonLabel}
+            </Button>
+            <p className="mt-3 text-center text-xs leading-5 text-ink-muted">{availability.message}</p>
+          </>
+        )}
       </div>
     </Card>
   )

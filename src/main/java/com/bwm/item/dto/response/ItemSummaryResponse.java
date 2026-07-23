@@ -14,6 +14,7 @@ public record ItemSummaryResponse(
     Integer itemId,
     String title,
     String category,
+    String representativeImageUrl,
     Integer currentPrice,
     String highestBidderNickname, // 아직 입찰이 없으면 null
     LocalDateTime auctionEndAt,
@@ -21,13 +22,14 @@ public record ItemSummaryResponse(
     ItemStatus status,
     LocalDateTime createdAt
 ) {
-    public static ItemSummaryResponse from(Item item) {
+    public static ItemSummaryResponse from(Item item, String representativeImageUrl) {
         long remaining = Duration.between(LocalDateTime.now(), item.getAuctionEndAt()).getSeconds();
 
         return new ItemSummaryResponse(
             item.getItemId(),
             item.getTitle(),
             item.getCategory(),
+            representativeImageUrl,
             item.getCurrentPrice(),
             item.getHighestBidder() != null ? item.getHighestBidder().getNickname() : null,
             item.getAuctionEndAt(),
@@ -35,5 +37,9 @@ public record ItemSummaryResponse(
             item.getStatus(),
             item.getCreatedAt()
         );
+    }
+
+    public static ItemSummaryResponse from(Item item) {
+        return from(item, null);
     }
 }

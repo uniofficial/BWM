@@ -9,13 +9,15 @@ import type {
 
 const ITEM_STATUSES = new Set<ItemStatus>(['OPEN', 'SOLD', 'UNSOLD', 'CANCELLED'])
 
-export function resolveProductImageUrl(value: string | null) {
-  if (!value) return null
-  if (value.startsWith('http://') || value.startsWith('https://')) return value
-  if (!value.startsWith('/')) return null
+export function resolveProductImageUrl(value: string | null | undefined): string | null {
+  if (!value || typeof value !== 'string') return null
+  const trimmed = value.trim().replace(/\\/g, '/')
+  if (!trimmed) return null
+  if (trimmed.startsWith('http://') || trimmed.startsWith('https://')) return trimmed
 
+  const path = trimmed.startsWith('/') ? trimmed : `/${trimmed}`
   try {
-    return new URL(value, getAppConfig().apiBaseUrl).toString()
+    return new URL(path, getAppConfig().apiBaseUrl).toString()
   } catch {
     return null
   }
