@@ -1,10 +1,12 @@
 import { Button, Card, Spinner } from '../../../components/ui'
+import { cx } from '../../../utils/cx'
 import type { ProductDetail } from '../../../types/product'
 import { AuctionStatusBadge } from './AuctionStatusBadge'
 import { getAuctionAvailability } from '../utils/auctionAvailability'
 import { formatDateTime } from '../utils/dateFormat'
 import { formatDetailRemainingTime } from '../utils/detailTime'
 import { formatPrice } from '../utils/priceFormat'
+import { isAuctionImminent } from '../utils/remainingTime'
 
 interface ProductSummaryCardProps {
   product: ProductDetail
@@ -12,7 +14,10 @@ interface ProductSummaryCardProps {
   isAuthenticated: boolean
   isRefreshing: boolean
   bidRestriction?: string | null
+  isSeller?: boolean
+  isEndingAuction?: boolean
   onBidAction: (action: 'bid' | 'login' | 'disabled') => void
+  onEndAuction?: () => void
 }
 
 export function ProductSummaryCard({
@@ -21,7 +26,10 @@ export function ProductSummaryCard({
   isAuthenticated,
   isRefreshing,
   bidRestriction,
+  isSeller = false,
+  isEndingAuction = false,
   onBidAction,
+  onEndAuction,
 }: ProductSummaryCardProps) {
   const availability = bidRestriction
     ? {
@@ -33,6 +41,7 @@ export function ProductSummaryCard({
     : getAuctionAvailability(product, isAuthenticated, now)
   const hasBids = product.bidCount > 0
   const displayPrice = hasBids ? product.currentPrice : product.startPrice ?? product.currentPrice
+  const isImminent = isAuctionImminent(product.status, product.auctionEndAt, now)
 
   return (
     <Card className="flex h-full flex-col p-6 sm:p-7">
@@ -52,7 +61,9 @@ export function ProductSummaryCard({
       <div className="mt-7 border-y border-line py-5">
         <p className="text-sm text-ink-secondary">{hasBids ? '현재 최고 입찰가' : '현재 입찰 없음 · 시작가'}</p>
         <p className="mt-2 break-words text-3xl font-bold text-ink">{formatPrice(displayPrice)}</p>
-        <p className="mt-3 text-base font-semibold text-brand-dark">{formatDetailRemainingTime(product, now)}</p>
+        <p className={cx('mt-3 text-base font-semibold', isImminent ? 'text-danger' : 'text-brand-dark')}>
+          {formatDetailRemainingTime(product, now)}
+        </p>
       </div>
 
       <dl className="grid gap-3 py-5 text-sm">
@@ -75,16 +86,38 @@ export function ProductSummaryCard({
       </dl>
 
       <div className="mt-auto border-t border-line pt-5">
-        <Button
-          type="button"
-          size="lg"
-          className="w-full"
-          disabled={availability.action === 'disabled'}
-          onClick={() => onBidAction(availability.action)}
-        >
-          {availability.buttonLabel}
-        </Button>
-        <p className="mt-3 text-center text-xs leading-5 text-ink-muted">{availability.message}</p>
+        {isSeller && product.status === 'OPEN' ? (
+          <>
+            <Button
+              type="button"
+              variant="danger"
+              size="lg"
+              className="w-full"
+              isLoading={isEndingAuction}
+              loadingLabel="경매 종료 중..."
+              disabled={isEndingAuction}
+              onClick={onEndAuction}
+            >
+              경매 종료
+            </Button>
+            <p className="mt-3 text-center text-xs leading-5 text-ink-muted">
+              판매자 권한으로 마감 시각 전 경매를 즉시 종료할 수 있습니다.
+            </p>
+          </>
+        ) : (
+          <>
+            <Button
+              type="button"
+              size="lg"
+              className="w-full"
+              disabled={availability.action === 'disabled'}
+              onClick={() => onBidAction(availability.action)}
+            >
+              {availability.buttonLabel}
+            </Button>
+            <p className="mt-3 text-center text-xs leading-5 text-ink-muted">{availability.message}</p>
+          </>
+        )}
       </div>
     </Card>
   )

@@ -2,8 +2,11 @@ import { useEffect, useState } from 'react'
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom'
 import { AppHeader } from '../components/common/AppHeader'
 import { EmptyState, ErrorState } from '../components/ui'
+import { EndAuctionDialog } from '../features/mypage/components/EndAuctionDialog'
+import { useEndAuction } from '../features/mypage/hooks/useEndAuction'
 import { BidDialog } from '../features/products/components/BidDialog'
 import { ProductDescription } from '../features/products/components/ProductDescription'
+import { ProductBidHistorySection } from '../features/products/components/ProductBidHistorySection'
 import { ProductDetailSkeleton } from '../features/products/components/ProductDetailSkeleton'
 import { ProductImageGallery } from '../features/products/components/ProductImageGallery'
 import { ProductSummaryCard } from '../features/products/components/ProductSummaryCard'
@@ -35,7 +38,7 @@ export function ProductDetailPage() {
   const { productId } = useParams()
   const location = useLocation()
   const navigate = useNavigate()
-  const { accessToken, isAuthenticated, isInitializing } = useAuth()
+  const { user, accessToken, isAuthenticated, isInitializing } = useAuth()
   const { showToast } = useToast()
   const parsedId = Number(productId)
   const validProductId = Number.isInteger(parsedId) && parsedId > 0 ? parsedId : null
@@ -44,6 +47,9 @@ export function ProductDetailPage() {
   const [bidDialogOpen, setBidDialogOpen] = useState(false)
   const [bidNotFound, setBidNotFound] = useState(false)
   const [bidRestriction, setBidRestriction] = useState<string | null>(null)
+  const [endAuctionDialogOpen, setEndAuctionDialogOpen] = useState(false)
+  const [endAuctionError, setEndAuctionError] = useState<string | null>(null)
+  const { submit: submitEndAuction, endingProductId } = useEndAuction()
   const {
     product,
     isInitialLoading,
@@ -61,6 +67,12 @@ export function ProductDetailPage() {
   )
   const listPath = readProductListReturnPath(location.state)
   const productStatus = product?.status
+  const isSeller = Boolean(
+    isAuthenticated &&
+    user?.nickname &&
+    product?.sellerNickname &&
+    user.nickname === product.sellerNickname,
+  )
 
   useEffect(() => {
     setNow(Date.now())
@@ -73,6 +85,8 @@ export function ProductDetailPage() {
     setBidNotFound(false)
     setBidDialogOpen(false)
     setBidRestriction(null)
+    setEndAuctionDialogOpen(false)
+    setEndAuctionError(null)
   }, [validProductId])
 
   const handleBidAction = (action: 'bid' | 'login' | 'disabled') => {
@@ -81,6 +95,40 @@ export function ProductDetailPage() {
       return
     }
     if (action === 'bid') setBidDialogOpen(true)
+  }
+
+  const handleEndAuctionClick = () => {
+    setEndAuctionError(null)
+    setEndAuctionDialogOpen(true)
+  }
+
+  const confirmEndAuction = async () => {
+    if (!product || endingProductId !== null) return
+    const result = await submitEndAuction(product.id)
+    if (!result.ok && 'ignored' in result) return
+
+    if (!result.ok) {
+      if (result.error.shouldRefresh) await refreshProduct()
+      if (result.error.shouldCloseDialog) {
+        setEndAuctionDialogOpen(false)
+        setEndAuctionError(null)
+        showToast({ message: result.error.message, variant: 'warning' })
+      } else {
+        setEndAuctionError(result.error.message)
+      }
+      return
+    }
+
+    setEndAuctionDialogOpen(false)
+    setEndAuctionError(null)
+    await refreshProduct()
+    const message =
+      result.response.status === 'SOLD'
+        ? '경매가 종료되고 낙찰자가 결정되었습니다.'
+        : result.response.status === 'UNSOLD'
+          ? '경매가 종료되었으며 유찰 처리되었습니다.'
+          : '경매 종료 요청이 처리되었습니다.'
+    showToast({ message, variant: 'success' })
   }
 
   const handleBidSubmit = async (amount?: number): Promise<BidSubmissionResult> => {
@@ -139,14 +187,13 @@ export function ProductDetailPage() {
           <span className="ml-2">상품 목록으로</span>
         </Link>
 
-        <div className="mt-5">
+        <div className="mt-6">
           {validProductId === null ? (
-            <div>
-              <ErrorState title="상품 번호를 확인해주세요." description="올바른 상품 상세 주소가 아닙니다." />
-              <div className="text-center">
-                <Link to="/products" className={listLinkClass}>상품 목록으로 이동</Link>
-              </div>
-            </div>
+            <EmptyState
+              title="잘못된 접근입니다."
+              description="올바른 상품 번호가 아닙니다."
+              action={<Link to="/products" className={listLinkClass}>상품 목록으로 이동</Link>}
+            />
           ) : bidNotFound ? (
             <EmptyState
               title="상품을 찾을 수 없습니다."
@@ -188,11 +235,15 @@ export function ProductDetailPage() {
                   isAuthenticated={isAuthenticated}
                   isRefreshing={isRefreshing}
                   bidRestriction={bidRestriction}
+                  isSeller={isSeller}
+                  isEndingAuction={endingProductId === product.id}
                   onBidAction={handleBidAction}
+                  onEndAuction={handleEndAuctionClick}
                 />
               </div>
 
               <ProductDescription description={product.description} />
+              <ProductBidHistorySection product={product} />
               <BidDialog
                 open={bidDialogOpen}
                 product={product}
@@ -200,6 +251,21 @@ export function ProductDetailPage() {
                 onSubmit={handleBidSubmit}
                 onQuickSubmit={() => handleBidSubmit()}
                 onClose={() => setBidDialogOpen(false)}
+              />
+              <EndAuctionDialog
+                open={endAuctionDialogOpen}
+                productTitle={product.title}
+                currentPrice={product.currentPrice}
+                hasHighestBidder={Boolean(product.highestBidderNickname)}
+                isLoading={endingProductId === product.id}
+                errorMessage={endAuctionError}
+                onClose={() => {
+                  if (endingProductId === null) {
+                    setEndAuctionDialogOpen(false)
+                    setEndAuctionError(null)
+                  }
+                }}
+                onConfirm={confirmEndAuction}
               />
             </>
           ) : null}

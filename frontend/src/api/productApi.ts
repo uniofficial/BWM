@@ -25,6 +25,7 @@ export const PRODUCT_ENDPOINTS = {
   detail: (productId: number | string) => `/api/items/${productId}`,
   images: (productId: number | string) => `/api/items/${productId}/images`,
   close: (productId: number | string) => `/api/items/${productId}/close`,
+  cancel: (productId: number | string) => `/api/items/${productId}/cancel`,
 } as const
 
 export async function getProducts(query: ProductListQuery, signal?: GenericAbortSignal): Promise<ProductListResult> {
@@ -53,6 +54,10 @@ export async function endAuction(productId: number): Promise<EndAuctionResponse>
     throw new ApiError('경매 종료 응답을 확인할 수 없습니다.', { kind: 'unknown' })
   }
   return response.data
+}
+
+export async function cancelAuction(productId: number): Promise<void> {
+  await apiClient.post(PRODUCT_ENDPOINTS.cancel(productId))
 }
 
 export async function getProductDetail(productId: number, signal?: GenericAbortSignal): Promise<ProductDetail> {

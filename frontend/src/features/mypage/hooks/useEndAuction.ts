@@ -41,18 +41,6 @@ export function useEndAuction() {
         }
       }
 
-      const endAt = latestProduct.auctionEndAt ? Date.parse(latestProduct.auctionEndAt) : Number.NaN
-      if (!Number.isFinite(endAt) || Date.now() < endAt) {
-        return {
-          ok: false,
-          error: {
-            message: '아직 경매 마감 시간이 되지 않았습니다.',
-            shouldRefresh: true,
-            shouldCloseDialog: false,
-          },
-        }
-      }
-
       const response = await endAuction(productId)
       if (!mountedRef.current) return { ok: false, ignored: true }
       return { ok: true, response }

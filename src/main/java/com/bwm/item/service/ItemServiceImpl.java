@@ -83,7 +83,15 @@ public class ItemServiceImpl implements ItemService {
 
         return itemRepository
                 .findAll(specification, pageable)
-                .map(ItemSummaryResponse::from);
+                .map(item -> {
+                    String repImageUrl = itemImageRepository
+                            .findAllByItem_ItemIdOrderByIsRepresentativeDescCreatedAtAsc(item.getItemId())
+                            .stream()
+                            .findFirst()
+                            .map(ItemImage::getImageUrl)
+                            .orElse(null);
+                    return ItemSummaryResponse.from(item, repImageUrl);
+                });
     }
 
     /**
@@ -133,7 +141,15 @@ public class ItemServiceImpl implements ItemService {
 
         return itemRepository
                 .findAllBySeller_UserId(sellerId, pageable)
-                .map(ItemSummaryResponse::from);
+                .map(item -> {
+                    String repImageUrl = itemImageRepository
+                            .findAllByItem_ItemIdOrderByIsRepresentativeDescCreatedAtAsc(item.getItemId())
+                            .stream()
+                            .findFirst()
+                            .map(ItemImage::getImageUrl)
+                            .orElse(null);
+                    return ItemSummaryResponse.from(item, repImageUrl);
+                });
     }
 
     /**
