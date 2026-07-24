@@ -34,7 +34,7 @@ export async function getProducts(query: ProductListQuery, signal?: GenericAbort
     params: {
       keyword: query.keyword || undefined,
       category: query.category || undefined,
-      status: query.status === 'ALL' ? undefined : query.status,
+      status: query.status,
       page: query.page - 1,
       size: PRODUCT_PAGE_SIZE,
       sort: PRODUCT_SORT_PARAMS[query.sort],

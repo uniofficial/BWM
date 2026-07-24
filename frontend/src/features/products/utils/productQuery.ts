@@ -11,7 +11,7 @@ function readPage(value: string | null) {
 }
 
 export function readProductQuery(searchParams: URLSearchParams): ProductListQuery {
-  const statusValue = searchParams.get('status') || 'ALL'
+  const statusValue = searchParams.get('status') || 'OPEN'
   const sortValue = searchParams.get('sort') || DEFAULT_PRODUCT_SORT
 
   return {
@@ -28,5 +28,5 @@ export function readProductQuery(searchParams: URLSearchParams): ProductListQuer
 }
 
 export function hasActiveProductFilters(query: ProductListQuery) {
-  return Boolean(query.keyword || query.category || query.status !== 'ALL')
+  return Boolean(query.keyword || query.category || query.status !== 'OPEN')
 }

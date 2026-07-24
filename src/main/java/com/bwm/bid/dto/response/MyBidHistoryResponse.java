@@ -31,6 +31,11 @@ public record MyBidHistoryResponse(
         String itemTitle,
 
         /**
+         * 입찰한 상품의 대표 이미지 URL. 등록된 이미지가 없으면 null
+         */
+        String representativeImageUrl,
+
+        /**
          * 사용자가 입찰한 금액
          */
         Integer bidAmount,
@@ -65,11 +70,13 @@ public record MyBidHistoryResponse(
      *
      * @param bid 입찰 엔티티
      * @param userId 조회 사용자 ID
+     * @param representativeImageUrl 입찰한 상품의 대표 이미지 URL (없으면 null)
      * @return 내 입찰 내역 응답
      */
     public static MyBidHistoryResponse from(
             Bid bid,
-            Integer userId
+            Integer userId,
+            String representativeImageUrl
     ) {
         Item item = bid.getItem();
 
@@ -84,6 +91,7 @@ public record MyBidHistoryResponse(
                 bid.getBidId(),
                 item.getItemId(),
                 item.getTitle(),
+                representativeImageUrl,
                 bid.getBidAmount(),
                 bid.getBidAt(),
                 item.getCurrentPrice(),

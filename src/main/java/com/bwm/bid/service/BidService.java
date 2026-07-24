@@ -20,7 +20,9 @@ import com.bwm.bid.exception.BidNotOpenException;
 import com.bwm.bid.exception.SellerCannotBidException;
 import com.bwm.bid.repository.BidRepository;
 import com.bwm.item.entity.Item;
+import com.bwm.item.entity.ItemImage;
 import com.bwm.item.entity.ItemStatus;
+import com.bwm.item.repository.ItemImageRepository;
 import com.bwm.item.repository.ItemRepository;
 import com.bwm.user.entity.User;
 import com.bwm.user.repository.UserRepository;
@@ -37,6 +39,7 @@ public class BidService {
 
     private final BidRepository bidRepository;
     private final ItemRepository itemRepository;
+    private final ItemImageRepository itemImageRepository;
     private final UserRepository userRepository;
     private final WalletService walletService;
 
@@ -138,9 +141,22 @@ public class BidService {
                 .map(bid ->
                         MyBidHistoryResponse.from(
                                 bid,
-                                userId
+                                userId,
+                                findRepresentativeImageUrl(bid.getItem().getItemId())
                         ))
                 .toList();
+    }
+
+    /**
+     * 상품의 대표 이미지 URL을 조회합니다. 등록된 이미지가 없으면 null을 반환합니다.
+     */
+    private String findRepresentativeImageUrl(Integer itemId) {
+        return itemImageRepository
+                .findAllByItem_ItemIdOrderByIsRepresentativeDescCreatedAtAsc(itemId)
+                .stream()
+                .findFirst()
+                .map(ItemImage::getImageUrl)
+                .orElse(null);
     }
 
     /**

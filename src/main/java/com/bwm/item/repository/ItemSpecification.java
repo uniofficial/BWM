@@ -51,15 +51,12 @@ public final class ItemSpecification {
 
         /*
          * status를 명시하지 않으면 목록 화면의 기본 정책인 OPEN을 적용한다.
-         * status를 명시하면 OPEN 대신 전달받은 상태를 적용한다.
+         * status="ALL"이면 상태 조건 없이 전체를 조회한다.
+         * 그 외에는 전달받은 상태 문자열을 그대로 적용한다.
          */
-        ItemStatus status = condition.status() == null
-                ? ItemStatus.OPEN
-                : condition.status();
-
         addIfPresent(
                 specifications,
-                statusEquals(status)
+                statusEquals(resolveStatus(condition.status()))
         );
 
         addIfPresent(
@@ -126,6 +123,29 @@ public final class ItemSpecification {
                         root.get("category"),
                         normalizedCategory
                 );
+    }
+
+    /**
+     * status 쿼리 파라미터 문자열을 실제 필터링에 쓸 ItemStatus로 변환한다.
+     *
+     * null/빈 문자열(파라미터 미지정) → 기본값 OPEN
+     * "ALL"(대소문자 무관) → null 반환 (상태 조건 없이 전체 조회)
+     * 그 외 → 해당 이름의 ItemStatus로 파싱, 알 수 없는 값이면 기본값 OPEN
+     */
+    private static ItemStatus resolveStatus(String rawStatus) {
+        if (rawStatus == null || rawStatus.isBlank()) {
+            return ItemStatus.OPEN;
+        }
+
+        if ("ALL".equalsIgnoreCase(rawStatus.trim())) {
+            return null;
+        }
+
+        try {
+            return ItemStatus.valueOf(rawStatus.trim().toUpperCase());
+        } catch (IllegalArgumentException e) {
+            return ItemStatus.OPEN;
+        }
     }
 
     /**
