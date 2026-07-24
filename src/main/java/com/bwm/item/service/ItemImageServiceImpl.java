@@ -26,6 +26,7 @@ import com.bwm.item.repository.ItemImageRepository;
 import com.bwm.item.repository.ItemRepository;
 import com.bwm.user.entity.User;
 import com.bwm.user.repository.UserRepository;
+import com.bwm.global.exception.ErrorCode;
 
 import lombok.RequiredArgsConstructor;
 
@@ -67,18 +68,18 @@ public class ItemImageServiceImpl implements ItemImageService {
 
         // #2. 상품 조회 - 존재하지 않는 itemId가 넘어오면 예외
         Item item = itemRepository.findById(itemId).orElseThrow(() -> {
-            throw new ItemNotFoundException("존재하지 않는 상품입니다. id = " + itemId);
+            throw new ItemNotFoundException(ErrorCode.ITEM_NOT_FOUND, "존재하지 않는 상품입니다. id = " + itemId);
         });
 
         // #3. 권한 체크 - 상품을 등록한 판매자 본인만 이미지 추가 가능
         Integer sellerId = getUserByUuid(sellerUuid).getUserId();
         if (!item.getSeller().getUserId().equals(sellerId)) {
-            throw new ItemAccessDeniedException("본인이 등록한 상품에만 이미지를 추가할 수 있습니다.");
+            throw new ItemAccessDeniedException(ErrorCode.ITEM_ACCESS_DENIED, "본인이 등록한 상품에만 이미지를 추가할 수 있습니다.");
         }
 
         // #3-1. 상태 체크 - 진행 중(OPEN)인 상품에만 이미지 추가 가능
         if (item.getStatus() != ItemStatus.OPEN) {
-            throw new ItemStateConflictException("진행 중인 상품에만 이미지를 추가할 수 있습니다.");
+            throw new ItemStateConflictException(ErrorCode.ITEM_STATE_CONFLICT, "진행 중인 상품에만 이미지를 추가할 수 있습니다.");
         }
 
         List<ItemImage> savedImages = new ArrayList<>();

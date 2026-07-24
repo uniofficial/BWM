@@ -3,20 +3,15 @@ package com.bwm.item.exception;
 import org.springframework.http.HttpStatus;
 
 import com.bwm.global.exception.BusinessException;
+import com.bwm.global.exception.ErrorCode;
 
 public class ItemAccessDeniedException extends BusinessException {
 
-    public ItemAccessDeniedException(String message) {
-        super(message);
+    public ItemAccessDeniedException(ErrorCode errorCode) {
+        super(errorCode);
     }
 
-    @Override
-    public HttpStatus getStatus() {
-        return HttpStatus.FORBIDDEN;
-    }
-
-    @Override
-    public String getErrorCode() {
-        return "ITEM_ACCESS_DENIED";
+    public ItemAccessDeniedException(ErrorCode errorCode, String logMessage) {
+        super(errorCode, logMessage);
     }
 }

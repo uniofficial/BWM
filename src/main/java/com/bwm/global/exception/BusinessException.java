@@ -4,10 +4,30 @@ import org.springframework.http.HttpStatus;
 
 public abstract class BusinessException extends RuntimeException {
 
-    protected BusinessException(String message) {
-        super(message);
+    private final ErrorCode errorCode;
+    private final String logMessage;
+
+    public BusinessException(ErrorCode errorCode) {
+        super(errorCode.getMessage());
+        this.errorCode = errorCode;
+        this.logMessage = errorCode.getMessage();
     }
 
-    public abstract HttpStatus getStatus();
-    public abstract String getErrorCode();
+    public BusinessException(ErrorCode errorCode, String logMessage) {
+        super(errorCode.getMessage());
+        this.errorCode = errorCode;
+        this.logMessage = logMessage;
+    }
+
+    public HttpStatus getStatus() {
+        return errorCode.getStatus();
+    }
+
+    public String getErrorCode() {
+        return errorCode.getCode();
+    }
+
+    public String getLogMessage() {
+        return logMessage;
+    }
 }

@@ -1,11 +1,14 @@
 package com.bwm.wallet.exception;
 
-public class InvalidAmountException extends WalletException {
-    public InvalidAmountException() {
-        super("INVALID_AMOUNT", "유효하지 않은 포인트 금액입니다.");
+import com.bwm.global.exception.BusinessException;
+import com.bwm.global.exception.ErrorCode;
+
+public class InvalidAmountException extends BusinessException {
+    public InvalidAmountException(ErrorCode errorCode) {
+        super(errorCode);
     }
 
-    public InvalidAmountException(String message) {
-        super("INVALID_AMOUNT", message);
+    public InvalidAmountException(ErrorCode errorCode, String logMessage) {
+        super(errorCode, logMessage);
     }
 }

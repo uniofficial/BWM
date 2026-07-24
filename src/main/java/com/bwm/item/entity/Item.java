@@ -4,6 +4,7 @@ import java.time.LocalDateTime;
 
 import com.bwm.item.exception.ItemStateConflictException;
 import com.bwm.user.entity.User;
+import com.bwm.global.exception.ErrorCode;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -169,13 +170,13 @@ public class Item {
      */
     public void closeAsSold() {
         if (this.status != ItemStatus.OPEN) {
-            throw new ItemStateConflictException(
+            throw new ItemStateConflictException(ErrorCode.ITEM_STATE_CONFLICT,
                     "OPEN 상태의 경매만 SOLD로 변경할 수 있습니다."
             );
         }
 
         if (this.highestBidder == null) {
-            throw new ItemStateConflictException(
+            throw new ItemStateConflictException(ErrorCode.ITEM_STATE_CONFLICT,
                     "최고 입찰자가 없는 경매는 SOLD로 변경할 수 없습니다."
             );
         }
@@ -188,13 +189,13 @@ public class Item {
      */
     public void closeAsUnsold() {
         if (this.status != ItemStatus.OPEN) {
-            throw new ItemStateConflictException(
+            throw new ItemStateConflictException(ErrorCode.ITEM_STATE_CONFLICT,
                     "OPEN 상태의 경매만 UNSOLD로 변경할 수 있습니다."
             );
         }
 
         if (this.highestBidder != null) {
-            throw new ItemStateConflictException(
+            throw new ItemStateConflictException(ErrorCode.ITEM_STATE_CONFLICT,
                     "최고 입찰자가 있는 경매는 UNSOLD로 변경할 수 없습니다."
             );
         }
@@ -216,7 +217,7 @@ public class Item {
             Integer bidAmount
     ) {
         if (this.status != ItemStatus.OPEN) {
-            throw new ItemStateConflictException(
+            throw new ItemStateConflictException(ErrorCode.ITEM_STATE_CONFLICT,
                     "진행 중인 경매만 최고 입찰자를 변경할 수 있습니다."
             );
         }
@@ -265,7 +266,7 @@ public class Item {
             LocalDateTime auctionEndAt
     ) {
         if (this.status != ItemStatus.OPEN) {
-            throw new ItemStateConflictException(
+            throw new ItemStateConflictException(ErrorCode.ITEM_STATE_CONFLICT,
                     "진행 중인 경매만 수정할 수 있습니다."
             );
         }
@@ -277,7 +278,7 @@ public class Item {
                     || category != null
                     || startPrice != null
                     || auctionEndAt != null) {
-                throw new ItemStateConflictException(
+                throw new ItemStateConflictException(ErrorCode.ITEM_STATE_CONFLICT,
                         "입찰이 시작된 상품은 설명만 수정할 수 있습니다."
                 );
             }
@@ -343,13 +344,13 @@ public class Item {
      */
     public void cancel() {
         if (this.status != ItemStatus.OPEN) {
-            throw new ItemStateConflictException(
+            throw new ItemStateConflictException(ErrorCode.ITEM_STATE_CONFLICT,
                     "진행 중인 경매만 취소할 수 있습니다."
             );
         }
 
         if (this.highestBidder != null) {
-            throw new ItemStateConflictException(
+            throw new ItemStateConflictException(ErrorCode.ITEM_STATE_CONFLICT,
                     "입찰이 시작된 상품은 취소할 수 없습니다."
             );
         }

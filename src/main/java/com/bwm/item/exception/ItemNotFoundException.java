@@ -3,20 +3,15 @@ package com.bwm.item.exception;
 import org.springframework.http.HttpStatus;
 
 import com.bwm.global.exception.BusinessException;
+import com.bwm.global.exception.ErrorCode;
 
 public class ItemNotFoundException extends BusinessException {
 
-    public ItemNotFoundException(String message){
-        super(message);
+    public ItemNotFoundException(ErrorCode errorCode) {
+        super(errorCode);
     }
 
-    @Override
-    public HttpStatus getStatus() {
-        return HttpStatus.NOT_FOUND;
-    }
-
-    @Override
-    public String getErrorCode() {
-        return "ITEM_NOT_FOUND";
+    public ItemNotFoundException(ErrorCode errorCode, String logMessage){
+        super(errorCode, logMessage);
     }
 }

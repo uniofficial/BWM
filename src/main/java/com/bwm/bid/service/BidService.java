@@ -27,6 +27,7 @@ import com.bwm.item.repository.ItemRepository;
 import com.bwm.user.entity.User;
 import com.bwm.user.repository.UserRepository;
 import com.bwm.wallet.service.WalletService;
+import com.bwm.global.exception.ErrorCode;
 
 import lombok.RequiredArgsConstructor;
 
@@ -66,7 +67,7 @@ public class BidService {
     ) {
         Item item = itemRepository.findByIdForUpdate(itemId)
                 .orElseThrow(() ->
-                        new BidItemNotFoundException(itemId));
+                        new BidItemNotFoundException(ErrorCode.BID_ITEM_NOT_FOUND, itemId));
 
         return createBidInternal(
                 item,
@@ -82,7 +83,7 @@ public class BidService {
     ) {
         Item item = itemRepository.findByIdForUpdate(itemId)
                 .orElseThrow(() ->
-                        new BidItemNotFoundException(itemId));
+                        new BidItemNotFoundException(ErrorCode.BID_ITEM_NOT_FOUND, itemId));
 
         return createBidInternal(
                 item,
@@ -105,7 +106,7 @@ public class BidService {
             Integer itemId
     ) {
         if (!itemRepository.existsById(itemId)) {
-            throw new BidItemNotFoundException(itemId);
+            throw new BidItemNotFoundException(ErrorCode.BID_ITEM_NOT_FOUND, itemId);
         }
 
         return bidRepository
@@ -179,6 +180,7 @@ public class BidService {
     private void validateOpenStatus(Item item) {
         if (item.getStatus() != ItemStatus.OPEN) {
             throw new BidNotOpenException(
+                    ErrorCode.BID_NOT_OPEN,
                     item.getItemId(),
                     item.getStatus()
             );
@@ -197,6 +199,7 @@ public class BidService {
     ) {
         if (!bidTime.isBefore(item.getAuctionEndAt())) {
             throw new BidAuctionEndedException(
+                    ErrorCode.BID_AUCTION_ENDED,
                     item.getItemId(),
                     item.getAuctionEndAt()
             );
@@ -214,6 +217,7 @@ public class BidService {
 
         if (Objects.equals(sellerId, bidderId)) {
             throw new SellerCannotBidException(
+                    ErrorCode.SELLER_CANNOT_BID,
                     item.getItemId(),
                     sellerId
             );
@@ -235,6 +239,7 @@ public class BidService {
                         bidderId
                 )) {
             throw new AlreadyHighestBidderException(
+                    ErrorCode.ALREADY_HIGHEST_BIDDER,
                     item.getItemId(),
                     bidderId
             );
@@ -307,6 +312,7 @@ public class BidService {
         if (bidAmount == null
                 || bidAmount < minimumBidAmount) {
             throw new BidAmountTooLowException(
+                    ErrorCode.BID_AMOUNT_TOO_LOW,
                     item.getCurrentPrice(),
                     bidAmount,
                     minimumBidAmount

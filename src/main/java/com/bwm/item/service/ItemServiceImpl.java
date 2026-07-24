@@ -17,6 +17,7 @@ import com.bwm.item.repository.ItemRepository;
 import com.bwm.item.repository.ItemSpecification;
 import com.bwm.user.entity.User;
 import com.bwm.user.repository.UserRepository;
+import com.bwm.global.exception.ErrorCode;
 
 import lombok.RequiredArgsConstructor;
 
@@ -103,7 +104,7 @@ public class ItemServiceImpl implements ItemService {
 
         Item item = itemRepository.findById(itemId)
                 .orElseThrow(() ->
-                        new ItemNotFoundException(
+                        new ItemNotFoundException(ErrorCode.ITEM_NOT_FOUND,
                                 "존재하지 않는 상품입니다. id = " + itemId
                         )
                 );
@@ -164,7 +165,7 @@ public class ItemServiceImpl implements ItemService {
     ) {
         Item item = itemRepository.findByIdForUpdate(itemId)
                 .orElseThrow(() ->
-                        new ItemNotFoundException(
+                        new ItemNotFoundException(ErrorCode.ITEM_NOT_FOUND,
                                 "존재하지 않는 상품입니다. id = " + itemId
                         )
                 );
@@ -173,7 +174,7 @@ public class ItemServiceImpl implements ItemService {
                 getUserByUuid(sellerUuid).getUserId();
 
         if (!item.getSeller().getUserId().equals(sellerId)) {
-            throw new ItemAccessDeniedException(
+            throw new ItemAccessDeniedException(ErrorCode.ITEM_ACCESS_DENIED,
                     "본인이 등록한 상품만 수정할 수 있습니다."
             );
         }
@@ -200,7 +201,7 @@ public class ItemServiceImpl implements ItemService {
     ) {
         Item item = itemRepository.findByIdForUpdate(itemId)
                 .orElseThrow(() ->
-                        new ItemNotFoundException(
+                        new ItemNotFoundException(ErrorCode.ITEM_NOT_FOUND,
                                 "존재하지 않는 상품입니다. id = " + itemId
                         )
                 );
@@ -209,7 +210,7 @@ public class ItemServiceImpl implements ItemService {
                 getUserByUuid(sellerUuid).getUserId();
 
         if (!item.getSeller().getUserId().equals(sellerId)) {
-            throw new ItemAccessDeniedException(
+            throw new ItemAccessDeniedException(ErrorCode.ITEM_ACCESS_DENIED,
                     "본인이 등록한 상품만 취소할 수 있습니다."
             );
         }

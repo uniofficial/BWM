@@ -13,13 +13,14 @@ import com.bwm.auction.dto.SoldAuctionResponse;
 import com.bwm.auction.dto.WinningAuctionResponse;
 import com.bwm.auction.exception.AuctionAlreadyClosedException;
 import com.bwm.auction.exception.AuctionPermissionDeniedException;
-import com.bwm.auction.exception.ItemNotFoundException;
+import com.bwm.item.exception.ItemNotFoundException;
 import com.bwm.item.entity.Item;
 import com.bwm.item.entity.ItemStatus;
 import com.bwm.item.repository.ItemRepository;
 import com.bwm.user.entity.User;
 import com.bwm.user.repository.UserRepository;
 import com.bwm.wallet.service.WalletService;
+import com.bwm.global.exception.ErrorCode;
 
 import lombok.RequiredArgsConstructor;
 
@@ -73,7 +74,7 @@ public class AuctionService {
          */
         Item item = itemRepository.findByIdForUpdate(itemId)
                 .orElseThrow(() ->
-                        new ItemNotFoundException(itemId));
+                        new ItemNotFoundException(ErrorCode.ITEM_NOT_FOUND, "존재하지 않는 상품입니다. id = " + itemId));
 
         User requester = getUserByUuid(requesterUuid);
         Integer requesterId = requester.getUserId();
@@ -179,7 +180,7 @@ public class AuctionService {
          */
         Item item = itemRepository.findByIdForUpdate(itemId)
                 .orElseThrow(() ->
-                        new ItemNotFoundException(itemId));
+                        new ItemNotFoundException(ErrorCode.ITEM_NOT_FOUND, "존재하지 않는 상품입니다. id = " + itemId));
 
         /*
          * 락을 획득한 뒤 상태를 다시 검사해야 합니다.
@@ -233,6 +234,7 @@ public class AuctionService {
 
         if (!Objects.equals(sellerId, requesterId)) {
             throw new AuctionPermissionDeniedException(
+                    ErrorCode.AUCTION_PERMISSION_DENIED,
                     item.getItemId(),
                     requesterId
             );
@@ -245,6 +247,7 @@ public class AuctionService {
     private void validateOpenStatus(Item item) {
         if (item.getStatus() != ItemStatus.OPEN) {
             throw new AuctionAlreadyClosedException(
+                    ErrorCode.AUCTION_ALREADY_CLOSED,
                     item.getItemId(),
                     item.getStatus()
             );

@@ -1,7 +1,7 @@
 package com.bwm.bid.exception;
 
 import com.bwm.global.exception.BusinessException;
-import org.springframework.http.HttpStatus;
+import com.bwm.global.exception.ErrorCode;
 
 import java.time.LocalDateTime;
 
@@ -10,24 +10,19 @@ import java.time.LocalDateTime;
  */
 public class BidAuctionEndedException extends BusinessException {
 
+    public BidAuctionEndedException(ErrorCode errorCode) {
+        super(errorCode);
+    }
+
     public BidAuctionEndedException(
+            ErrorCode errorCode,
             Integer itemId,
             LocalDateTime auctionEndAt
     ) {
-        super(
+        super(errorCode,
                 "이미 마감된 경매에는 입찰할 수 없습니다. "
                         + "itemId=" + itemId
                         + ", auctionEndAt=" + auctionEndAt
         );
-    }
-
-    @Override
-    public HttpStatus getStatus() {
-        return HttpStatus.CONFLICT;
-    }
-
-    @Override
-    public String getErrorCode() {
-        return "AUCTION_ENDED";
     }
 }
