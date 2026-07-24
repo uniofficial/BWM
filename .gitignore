@@ -45,3 +45,5 @@ application-local.properties
 .env
 
 application.properties
+
+node_modules/
