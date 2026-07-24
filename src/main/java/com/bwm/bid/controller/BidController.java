@@ -62,7 +62,7 @@ public class BidController {
         
         @PostMapping("/{itemId}/bids/quick")
         public ResponseEntity<BidResponse> createQuickBid(
-                @PathVariable Integer itemId,
+                @PathVariable("itemId") Integer itemId,
                 Authentication authentication
         ) {
             BidResponse response = bidService.createQuickBid(
@@ -86,7 +86,7 @@ public class BidController {
          */
         @GetMapping("/{itemId}/bids")
         public ResponseEntity<List<ItemBidHistoryResponse>> getItemBidHistory(
-                        @PathVariable Integer itemId) {
+                        @PathVariable("itemId") Integer itemId) {
                 List<ItemBidHistoryResponse> responses = bidService.getItemBidHistory(itemId);
 
                 return ResponseEntity.ok(responses);
