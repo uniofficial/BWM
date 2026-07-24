@@ -67,7 +67,7 @@ export function ProductListPage() {
   }
 
   const handleStatusChange = (status: ProductStatusFilter) => {
-    updateSearchParams({ status: status === 'ALL' ? undefined : status, page: undefined })
+    updateSearchParams({ status: status === 'OPEN' ? undefined : status, page: undefined })
   }
 
   const handleSortChange = (sort: ProductSortOption) => {
