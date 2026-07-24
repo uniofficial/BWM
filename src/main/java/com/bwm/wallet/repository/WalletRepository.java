@@ -8,7 +8,7 @@ import org.springframework.data.jpa.repository.Query;
 
 import com.bwm.wallet.entity.Wallet;
 
-import io.lettuce.core.dynamic.annotation.Param;
+import org.springframework.data.repository.query.Param;
 import jakarta.persistence.LockModeType;
 
 public interface WalletRepository extends JpaRepository<Wallet, Integer> {
